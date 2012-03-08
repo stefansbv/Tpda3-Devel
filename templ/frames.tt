@@ -1,0 +1,15 @@
+    #- Frame - top
+
+    my $frm_top = $rec_page->LabFrame(
+        -foreground => 'blue',
+        -label      => '[% name %]',
+        -labelside  => 'acrosstop',
+    );
+    $frm_top->grid(
+        $frm_top,
+        -row    => 0, -column => 0,
+        -ipadx  => 3, -ipady  => 3,
+        -sticky => 'nsew',
+    );
+
+    my $f1d = 110;              # distance from left

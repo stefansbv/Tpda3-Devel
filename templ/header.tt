@@ -1,0 +1,60 @@
+package Tpda3::Tk::App::[% module %]::[% screen %];
+
+use strict;
+use warnings;
+use utf8;
+
+use Tk::widgets qw(DateEntry JComboBox);
+
+use base q{Tpda3::Tk::Screen};
+
+use POSIX qw (strftime);
+
+use Tpda3::Utils;
+
+=head1 NAME
+
+Tpda3::Tk::App::[% module %]::[% screen %] screen.
+
+=head1 VERSION
+
+Version 0.01
+
+=cut
+
+our $VERSION = '0.01';
+
+=head1 SYNOPSIS
+
+    require Tpda3::App::[% module %]::[% screen %];
+
+    my $scr = Tpda3::App::[% module %]::[% screen %]->new;
+
+    $scr->run_screen($args);
+
+=head1 METHODS
+
+=head2 run_screen
+
+The screen layout
+
+=cut
+
+sub run_screen {
+    my ( $self, $nb ) = @_;
+
+    my $rec_page  = $nb->page_widget('rec');
+    my $det_page  = $nb->page_widget('det');
+    $self->{view} = $nb->toplevel;
+    $self->{bg}   = $self->{view}->cget('-background');
+
+    my $validation
+        = Tpda3::Tk::Validation->new( $self->{scrcfg}, $self->{view} );
+
+    my $date_format = $self->{scrcfg}->app_dateformat();
+
+    #- For DateEntry day names
+    my @daynames = ();
+    foreach ( 0 .. 6 ) {
+        push @daynames, strftime( "%a", 0, 0, 0, 1, 1, 1, $_ );
+    }

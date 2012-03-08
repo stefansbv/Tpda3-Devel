@@ -1,0 +1,16 @@
+[% SET top = '%0, 0' %]
+[%- FOREACH key = columns.keys %]
+[%- SET ctrltype = columns.$key.ctrltype -%]
+
+[%- IF ctrltype == 'e' -%]
+  [%- PROCESS entry.tt -%]
+[%- ELSIF ctrltype == 'd' -%]
+  [%- PROCESS dateentry.tt -%]
+[%- ELSIF ctrltype == 'm' -%]
+  [%- PROCESS jcombobox.tt -%]
+[%- ELSIF ctrltype == 't' -%]
+  [%- PROCESS text.tt -%]
+[%- END -%]
+
+[% SET top = "\$l${key}, 8" -%]
+[% END -%]
