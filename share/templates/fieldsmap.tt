@@ -1,0 +1,16 @@
+    # Entry objects: var_asoc, var_obiect
+    # Other configurations in '[% name %].conf'
+    $self->{controls} = {
+[%- FOREACH key = columns.keys %]
+[% SET ctrltype = columns.$key.ctrltype %]
+[%- IF ctrltype == 'e' -%]
+        [% key %] => [ undef, $e[% key %] ],
+[%- ELSIF ctrltype == 'd' -%]
+        [% key %] => [ \$v[% key %], $d[% key %] ],
+[%- ELSIF ctrltype == 'm' -%]
+        [% key %] => [ \$v[% key %], $m[% key %] ],
+[%- ELSIF ctrltype == 't' -%]
+        [% key %] => [ undef, $t[% key %] ],
+[%- END -%]
+[% END %]
+    };

@@ -1,0 +1,29 @@
+    #- [% columns.$key.label -%] ([% key %])
+
+    my $v[% key %];
+    my $l[% key %] = $frm_top->Label(
+        -text => '[% columns.$key.label -%]',
+    );
+    $l[% key %]->form(
+        -top  => [ [% top %] ],
+        -left => [ %0, 0 ],
+        -padleft => 5,
+    );
+
+    my $d[% key %] = $frm_top->DateEntry(
+        -daynames        => \@daynames,
+        -variable        => \$v[% key %],
+        -arrowimage      => 'calmonth16',
+        -todaybackground => 'lightblue',
+        -weekstart       => 1,
+        -parsecmd        => sub {
+            Tpda3::Utils->dateentry_parse_date( $date_format, @_ );
+        },
+        -formatcmd => sub {
+            Tpda3::Utils->dateentry_format_date( $date_format, @_ );
+        },
+    );
+    $d[% key %]->form(
+        -top  => [ '&', $l[% key %], 0 ],
+        -left => [ %0, $f1d ],
+    );
