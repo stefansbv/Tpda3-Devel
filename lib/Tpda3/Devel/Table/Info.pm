@@ -61,7 +61,6 @@ sub new {
 sub get_table_info {
     my ($self, $table) = @_;
 
-    Tpda3::Config->instance;
     $self->{_db} = Tpda3::Db->instance;
 
     my $dbc = $self->{_db}->dbc;

@@ -4,7 +4,11 @@ use 5.008009;
 use strict;
 use warnings;
 
-use Data::Dumper;
+use Config::General;
+use Tie::IxHash::Easy;
+use List::Compare;
+use Template;
+
 use Tpda3::Devel::Table::Info;
 
 =head1 NAME
@@ -56,7 +60,7 @@ sub new {
 sub make_config {
     my ($self) = @_;
 
-    my $table  = $self->{opt}{screen};
+    my $table  = $self->{opt}{table};
     my $screen = $self->{opt}{screen};
     print "Screen name: $screen\n";
     print "Table name : $table\n";
@@ -223,18 +227,10 @@ sub apply_template {
         OUTPUT_PATH  => './',
     );
 
-    my $screen  = lc $self->{opt}{screen};
-    my $outfile = "$screen.conf";     # output screen module file name
+    my $screen  = lc $self->{opt}{screen} . '.conf';
 
-    $tt->process( 'config.tt', $data, $outfile, binmode => ':utf8' )
+    $tt->process( 'config.tt', $data, $screen, binmode => ':utf8' )
         or die $tt->error(), "\n";
-
-    if ( -f $outfile ) {
-        print "$outfile created.\n";
-    }
-    else {
-        print "$outfile creation failed!\n";
-    }
 
     return $screen;
 }

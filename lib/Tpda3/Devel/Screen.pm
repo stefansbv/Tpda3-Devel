@@ -4,7 +4,12 @@ use 5.008009;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 use Template;
+use Config::General qw{ParseConfig};
+
+use Tpda3::Devel::Config::Info;
 
 =head1 NAME
 
@@ -41,11 +46,13 @@ if you don't export anything, such as for a purely object-oriented module.
 =cut
 
 sub new {
-    my $class = shift;
+    my ( $class, $opt ) = @_;
 
     my $self = {};
 
     bless $self, $class;
+
+    $self->{opt} = $opt;
 
     return $self;
 }
@@ -54,31 +61,18 @@ sub new {
 
 =cut
 
-sub make_pm {
+sub make_screen {
     my $self = shift;
-    my $screen = shift;
-    my $templ_path  = shift;
 
-    my $args = config_instance_args();
+    my $screen = $self->{opt}{screen};
 
-    my $appcfg = Tpda3::Config->instance($args);
-
-    my $cfg_name   = $appcfg->cfname;
-    my $cfg_apps   = $appcfg->cfapps;
-    my $cfg_module = $appcfg->application->{module};
-
-    # Check widget type config
-    my $cfg_widget = $appcfg->application->{widgetset};
-    die "EE: $cfg_widget toolkit not supported!"
-        unless $cfg_widget eq 'Tk';
-
-    # Screen config path of the application
-    my $cfg_scr_path = catdir( $cfg_apps, $cfg_name, 'scr');
+    my $dci = Tpda3::Devel::Config::Info->new($self->{opt});
+    my $cfg = $dci->get_config_info($screen, $self->{opt}{config_file});
 
     tie my %cfg, "Tie::IxHash";     # keep the order
 
     %cfg = ParseConfig(
-        -ConfigFile => locate_config_file(lc $screen, $cfg_scr_path),
+        -ConfigFile => $cfg->{config_file},
         -Tie        => 'Tie::IxHash',
     );
 
@@ -87,22 +81,22 @@ sub make_pm {
         copy_author => 'Ștefan Suciu',
         copy_email  => 'stefan@s2i2.ro',
         copy_year   => '2012',
-        module      => $cfg_module,
+        module      => $cfg->{cfg_module},
         screen      => $screen,
         columns     => $cfg{maintable}{columns},
     );
 
     my $tt = Template->new(
-        INCLUDE_PATH => $templ_path,
+        INCLUDE_PATH => $self->{opt}{templ_path},
         OUTPUT_PATH  => './',
     );
 
-    my $outfile = "$screen.pm";     # output screen module file name
+    my $screen_module = ucfirst $self->{opt}{screen} . '.pm';
 
-    $tt->process( 'screen.tt', \%data, $outfile, binmode => ':utf8' )
+    $tt->process( 'screen.tt', \%data, $screen_module, binmode => ':utf8' )
         or die $tt->error(), "\n";
 
-    return;
+    return $screen_module;
 }
 
 =head1 AUTHOR
@@ -114,9 +108,6 @@ Stefan Suciu, C<< <stefansbv at users.sourceforge.net> >>
 Please report any bugs or feature requests to C<bug-tpda3-devel-config at rt.cpan.org>, or through
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Tpda3-Devel-Config>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
-
-
-
 
 =head1 SUPPORT
 

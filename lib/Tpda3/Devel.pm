@@ -9,11 +9,8 @@ use Data::Dumper;
 use Getopt::Long;
 use Pod::Usage;
 use Term::ReadKey;
-
-use Config::General;
-use Tie::IxHash::Easy;
-use List::Compare;
-use Template;
+use File::ShareDir qw(dist_dir);
+use File::Spec::Functions;
 
 use Tpda3::Config;
 use Tpda3::Devel::Config;
@@ -65,7 +62,9 @@ sub new {
     return $self;
 }
 
-=head2 function1
+=head2 _init
+
+Initializations.
 
 =cut
 
@@ -104,7 +103,6 @@ sub _init {
     };
 
     Tpda3::Config->instance($args);
-    Tpda3::Db->instance;
 
     return;
 }
@@ -120,15 +118,16 @@ sub get_options {
 
     my %opt = ();
     my $getopt_specs = {
-        'c|config=s'   => \$opt{config},
-        'l|list:s'     => \$opt{list},
-        't|table:s'    => \$opt{table},
-        'u|user=s'     => \$opt{user},
-        'p|password=s' => \$opt{pass},
-        's|screen=s'   => \$opt{screen},
-        'v|version'    => sub { version(); exit; },
-        'h|help|?:s'   => sub { shift; help(@_); exit; },
-        'man'          => sub {
+        'c|config=s'      => \$opt{config},
+        'l|list:s'        => \$opt{list},
+        't|table:s'       => \$opt{table},
+        'u|user=s'        => \$opt{user},
+        'p|password=s'    => \$opt{pass},
+        's|screen=s'      => \$opt{screen},
+        'g|no-config-gen' => \$opt{ncg},
+        'v|version'       => sub { version(); exit; },
+        'help|?:s'        => sub { shift; help(@_); exit; },
+        'm|man'           => sub {
             require Pod::Usage;
             Pod::Usage::pod2usage(
                 {   -verbose => 2,
@@ -143,9 +142,12 @@ sub get_options {
     $parser->getoptions( %{$getopt_specs} ) or
         die( 'See tpda3dev --help, tpda3dev --man for options.' );
 
+    # Where are module-level shared data files kept
+    my $templ_path = catdir( dist_dir('Tpda3-Devel'), 'templates');
+
     my %defaults = (
         max_len    => 30,
-        templ_path => 'templ',    # TT templates path
+        templ_path => $templ_path,    # TT templates path
     );
 
     while ( my ( $key, $value ) = each %defaults ) {
@@ -161,43 +163,41 @@ sub make_config {
     my $self = shift;
 
     my $cfg = Tpda3::Devel::Config->new( $self->{opt} );
+    my $config_file;
+    if ( $self->{opt}{ncg} ) {
+        print "Don't generate config, use this one\n";
+        $config_file = $self->{opt}{screen} . '.conf';
+    }
+    else {
+        $config_file = $cfg->make_config();
+    }
 
-    my $config = $cfg->make_config();
+    if ( -f $config_file ) {
+        print "Screen config file is '$config_file'.\n";
+        $self->{opt}{config_file} = $config_file;
+        $self->make_screen($config_file);
+    }
+    else {
+        print "Failed to locate config file!\n";
+    }
 
-    return $config;
+    return;
 }
 
 sub make_screen {
-    my $screen = shift;
+    my ($self) = @_;
 
-    print "Screen name: $screen\n";
+    my $scr = Tpda3::Devel::Screen->new( $self->{opt} );
+    my $screen = $scr->make_screen();
 
-    # # Gather info from table(s)
-    # my $table_info = gather_table_info();
-    # # print Dumper( $table_info);
+    if ( $screen and -f $screen ) {
+        print "Screen module file is '$screen'.\n";
+    }
+    else {
+        print "Failed to create screen module file!\n";
+    }
 
-    # # Make 'maintable' section config
-    # my $maintable = make_conf_main($table_info);
-
-    # # make_conf_dep();
-
-    # my $pkfields = $table_info->{pk_keys};
-    # my $fields   = $table_info->{fields};
-
-    # my $columns = remove_dupes($pkfields, $fields);
-
-    # my %data = (
-    #     maintable   => $maintable,
-    #     screenname  => lc $screen,
-    #     screendescr => $screen,
-    #     pkfields    => $table_info->{pk_keys},
-    #     fkfields    => $table_info->{fk_keys},
-    #     columns     => $columns,
-    # );
-
-    # # Assemble using a template
-    # apply_template(\%data);
-
+    return;
 }
 
 =head2 read_username
@@ -235,41 +235,6 @@ sub read_password {
     ReadMode('normal');
 
     return $pass;
-}
-
-=head1
-
-=cut
-
-sub locate_config_file {
-    my ($file, $cfg_scr_path) = @_;
-
-    # Check if has extension and add it if not
-    my (undef, undef, $type) = fileparse($file, '\.conf' );
-    unless ($type eq '.conf') {
-        $file .= '.conf';
-    }
-
-    # First, check in the CWD
-    if (-f $file) {
-        print "Using config file located in the CWD\n";
-        return $file;
-    }
-
-    # Check in the screen config path of the application
-    $file = scrcfg_file_path($file, $cfg_scr_path);
-    if (-f $file) {
-        print "II: Config file located in the app config path\n";
-        return $file;
-    }
-
-    die "Failed to locate the config file!";
-}
-
-sub scrcfg_file_path {
-    my ($file, $cfg_scr_path) = @_;
-
-    return catfile( $cfg_scr_path, $file );
 }
 
 sub help {
