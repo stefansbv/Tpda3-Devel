@@ -4,11 +4,11 @@ use 5.008009;
 use strict;
 use warnings;
 
-use Tpda3::Db;
+require Tpda3::Db;
 
 =head1 NAME
 
-Tpda3::Devel::Table::Info - The great new Tpda3::Devel::Table::Info!
+Tpda3::Devel::Table::Info - Database table related info.
 
 =head1 VERSION
 
@@ -18,24 +18,17 @@ Version 0.01
 
 our $VERSION = '0.01';
 
-
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
+Return database table related info.
 
     use Tpda3::Devel::Table::Info;
 
-    my $foo = Tpda3::Devel::Table::Info->new();
-    ...
+    my $dti  = Tpda3::Devel::Table::Info->new();
+    my $info = $dti->table_info();
+    my $list = $dti->table_list();
 
-=head1 EXPORT
-
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
-
-=head1 SUBROUTINES/METHODS
+=head1 METHODS
 
 
 =head2 new
@@ -43,42 +36,61 @@ if you don't export anything, such as for a purely object-oriented module.
 =cut
 
 sub new {
- my ( $class, $opt ) = @_;
+    my ( $class, $opt ) = @_;
 
-    my $self = {};
+    my $self = {
+        opt => $opt,
+        dbi => Tpda3::Db->instance,
+    };
 
     bless $self, $class;
-
-    $self->{opt} = $opt;
 
     return $self;
 }
 
-=head2 function1
+=head2 dbh
+
+Database handle.
 
 =cut
 
-sub get_table_info {
+sub dbh {
+    my $self = shift;
+
+    return $self->{dbi}->dbh;
+}
+
+=head2 dbc
+
+Module instance.
+
+=cut
+
+sub dbc {
+    my $self = shift;
+
+    return $self->{dbi}->dbc;
+}
+
+=head2 table_info
+
+Return table informations.
+
+=cut
+
+sub table_info {
     my ($self, $table) = @_;
 
-    $self->{_db} = Tpda3::Db->instance;
-
-    my $dbc = $self->{_db}->dbc;
-    my $dbh = $self->{_db}->dbh;
-
-    unless ( $dbc->table_exists($table) ) {
+    unless ( $self->dbc->table_exists($table) ) {
         print "Table '$table' doesn't exists!\n";
-        return;
+        die;
     }
 
-    # my $cons = $dbc->constraints_list($table);
-    # print Dumper( $cons);
-
-    my $table_info = $dbc->table_info_short($table);
+    my $table_info = $self->dbc->table_info_short($table);
 
     # PK and FK
-    my $pk_keys = $dbc->table_keys($table);
-    my $fk_keys = $dbc->table_keys($table, 'foreign');
+    my $pk_keys = $self->dbc->table_keys($table);
+    my $fk_keys = $self->dbc->table_keys($table, 'foreign');
 
     my @fields;
     my %info;
@@ -99,74 +111,35 @@ sub get_table_info {
     };
 }
 
-sub list_tables {
+=head2 table_list
+
+List database table.
+
+=cut
+
+sub table_list {
     my $self = shift;
 
-    my $args = config_instance_args();
-
-    Tpda3::Config->instance($args);
-
-    # Connect to database
-    my $db = Tpda3::Db->instance;
-
-    my $dbc = $db->dbc;
-    my $dbh = $db->dbh;
-
-    my $list = $dbc->table_list();
-
-    print " > Tables:\n";
-    foreach my $name ( @{$list} ) {
-        print "   - $name\n";
-    }
-
-    return;
+    return $self->dbc->table_list();
 }
 
 =head1 AUTHOR
 
-Stefan Suciu, C<< <stefansbv at users.sourceforge.net> >>
+Stefan Suciu, C<< <stefan\@s2i2.ro> >>
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-tpda3-devel-table-info at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Tpda3-Devel-Table-Info>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
-
-
-
+Please report any bugs or feature requests to the autor.
 
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc Tpda3::Devel::Table::Info
-
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker (report bugs here)
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Tpda3-Devel-Table-Info>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Tpda3-Devel-Table-Info>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Tpda3-Devel-Table-Info>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Tpda3-Devel-Table-Info/>
-
-=back
-
+    perldoc Tpda3::Devel
 
 =head1 ACKNOWLEDGEMENTS
 
+Options processing inspired from App::Ack (C) 2005-2011 Andy Lester.
 
 =head1 LICENSE AND COPYRIGHT
 
@@ -185,7 +158,6 @@ GNU General Public License for more details.
 A copy of the GNU General Public License is available in the source tree;
 if not, write to the Free Software Foundation, Inc.,
 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
 
 =cut
 

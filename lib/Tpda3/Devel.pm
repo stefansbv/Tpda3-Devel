@@ -12,9 +12,9 @@ use Term::ReadKey;
 use File::ShareDir qw(dist_dir);
 use File::Spec::Functions;
 
-use Tpda3::Config;
-use Tpda3::Devel::Config;
-use Tpda3::Devel::Screen;
+require Tpda3::Config;
+require Tpda3::Devel::Config;
+require Tpda3::Devel::Screen;
 
 =head1 NAME
 
@@ -22,11 +22,11 @@ Tpda3::Devel - The great new Tpda3::Devel!
 
 =head1 VERSION
 
-Version 0.01
+Version 0.10
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.10';
 
 =head1 SYNOPSIS
 
@@ -71,8 +71,6 @@ Initializations.
 sub _init {
     my ( $self, $opt ) = @_;
 
-    $self->{opt} = $opt;
-
     # Definitions
     $self->{types} = {
         'blob'              => 'alphanumplus',
@@ -103,6 +101,8 @@ sub _init {
     };
 
     Tpda3::Config->instance($args);
+
+    $self->{opt} = $opt;
 
     return;
 }
@@ -159,23 +159,31 @@ sub get_options {
     return \%opt;
 }
 
-sub make_config {
+=head2 generate
+
+Generate config and module.
+
+=cut
+
+sub generate {
     my $self = shift;
 
-    my $cfg = Tpda3::Devel::Config->new( $self->{opt} );
-    my $config_file;
-    if ( $self->{opt}{ncg} ) {
-        print "Don't generate config, use this one\n";
-        $config_file = $self->{opt}{screen} . '.conf';
-    }
-    else {
-        $config_file = $cfg->make_config();
-    }
+    $self->check_params();
 
-    if ( -f $config_file ) {
-        print "Screen config file is '$config_file'.\n";
+    # Make config file if not option '--no-config-gen'
+    my $cfg = Tpda3::Devel::Config->new( $self->{opt} );
+
+    my $config_file
+        = $self->{opt}{ncg}
+        ? $self->locate_config()
+        : $cfg->generate_config()
+        ;
+
+    # Make screen module
+    if ( $config_file and -f $config_file ) {
+        print " Using config from\n $config_file\n";
         $self->{opt}{config_file} = $config_file;
-        $self->make_screen($config_file);
+        $self->generate_screen($config_file);
     }
     else {
         print "Failed to locate config file!\n";
@@ -184,18 +192,84 @@ sub make_config {
     return;
 }
 
-sub make_screen {
-    my ($self) = @_;
+=head2 locate_config
+
+Locate an existing config file.
+
+TODO!
+
+=cut
+
+sub locate_config {
+    my $self = shift;
+
+    return $self->{opt}{screen} . '.conf';
+}
+
+=head2 check_params
+
+Check parameters or die.
+
+=cut
+
+sub check_params {
+    my $self = shift;
+
+    # Check for table name
+    my $table = $self->{opt}{table};
+    unless ($table) {
+        $self->tables_list();
+        die "Table name is required!";
+    }
+    print "Table name : $table\n";
+
+    # Check screen name or default screen name = table name
+    my $screen = $self->{opt}{screen};
+    $screen = lcfirst $table unless $screen;
+    $self->{opt}{screen} = $screen;
+    print "Screen name: $self->{opt}{screen}\n";
+
+    return;
+}
+
+=head2 tables_list
+
+List the available table names.
+
+=cut
+
+sub tables_list {
+    my $self = shift;
+
+    # Gather info from table(s)
+    require Tpda3::Devel::Table::Info;
+    my $dti = Tpda3::Devel::Table::Info->new();
+
+    my $list = $dti->table_list();
+    print " > Tables:\n";
+    foreach my $name ( @{$list} ) {
+        print "   - $name\n";
+    }
+
+    return;
+}
+
+=head2 generate_screen
+
+Generate screen module.
+
+=cut
+
+sub generate_screen {
+    my ($self, $config_file) = @_;
 
     my $scr = Tpda3::Devel::Screen->new( $self->{opt} );
-    my $screen = $scr->make_screen();
+    my $screen = $scr->generate_screen($config_file);
 
     if ( $screen and -f $screen ) {
         print "Screen module file is '$screen'.\n";
     }
-    else {
-        print "Failed to create screen module file!\n";
-    }
+    print " done.\n";
 
     return;
 }
@@ -237,12 +311,30 @@ sub read_password {
     return $pass;
 }
 
+=head2 help
+
+Print help :)
+
+=cut
+
 sub help {
-    print " help!\n";
+    print "Help!\n";
 }
 
+=head2 version
+
+Print version.
+
+=cut
+
 sub version {
-    print " version\n";
+    my $self = shift;
+
+    my $ver = $VERSION;
+    print "Tpda3 Development Tools v$ver\n";
+    print "(C) 2010-2012 Stefan Suciu\n\n";
+
+    return;
 }
 
 =head1 AUTHOR
@@ -258,28 +350,6 @@ Please report any bugs or feature requests to the autor.
 You can find documentation for this module with the perldoc command.
 
     perldoc Tpda3::Devel
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker (report bugs here)
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Tpda3-Devel>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Tpda3-Devel>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Tpda3-Devel>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Tpda3-Devel/>
-
-=back
 
 =head1 ACKNOWLEDGEMENTS
 

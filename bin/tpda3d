@@ -20,7 +20,7 @@ sub main {
 
     check_options($opt);
 
-    my $dev = Tpda3::Devel->new($opt)->make_config();
+    my $dev = Tpda3::Devel->new($opt)->generate();
 }
 
 sub check_options {
@@ -30,14 +30,12 @@ sub check_options {
         Tpda3::Config->instance()->list_configs( $opt->{list} );
         exit;
     }
-    unless ( $opt->{table} ) {
-        print "Table name is required!\n";
-        die;
-    }
-    unless ( $opt->{screen} ) {
-        print "Screen name is required!\n";
-        die;
-    }
+
+    # # Check for screen name
+    # unless ( $opt->{screen} ) {
+    #     print "Screen name is required!\n";
+    #     die;
+    # }
 }
 
 =head1 NAME

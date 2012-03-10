@@ -3,7 +3,7 @@
 use Test::More tests => 1;
 
 BEGIN {
-    use_ok( 'Tpda3::Devel::Screen' ) || print "Bail out!\n";
+    use_ok( 'Tpda3::Devel' ) || print "Bail out!\n";
 }
 
-diag( "Testing Tpda3::Devel::Screen $Tpda3::Devel::Screen::VERSION, Perl $], $^X" );
+diag( "Testing Tpda3::Devel $Tpda3::Devel::VERSION, Perl $], $^X" );

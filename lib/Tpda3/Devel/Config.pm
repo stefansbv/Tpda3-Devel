@@ -4,12 +4,13 @@ use 5.008009;
 use strict;
 use warnings;
 
+use File::Spec::Functions;
 use Config::General;
 use Tie::IxHash::Easy;
 use List::Compare;
 use Template;
 
-use Tpda3::Devel::Table::Info;
+require Tpda3::Config;
 
 =head1 NAME
 
@@ -43,6 +44,8 @@ if you don't export anything, such as for a purely object-oriented module.
 
 =head2 new
 
+Constructor.
+
 =cut
 
 sub new {
@@ -57,21 +60,24 @@ sub new {
     return $self;
 }
 
-sub make_config {
+=head2 generate_config
+
+Prepare data for the screen configuration file.
+
+=cut
+
+sub generate_config {
     my ($self) = @_;
 
     my $table  = $self->{opt}{table};
     my $screen = $self->{opt}{screen};
-    print "Screen name: $screen\n";
-    print "Table name : $table\n";
 
-    # Gather info from table(s)
+    require Tpda3::Devel::Table::Info;
     my $dti = Tpda3::Devel::Table::Info->new();
-    my $table_info = $dti->get_table_info($table);
-    # print Dumper( $table_info);
 
-    my $maintable = $self->make_config_main($table_info);
-    # make_conf_dep();
+    my $table_info = $dti->table_info($table);
+    my $maintable  = $self->generate_config_main($table_info);
+    # generate_conf_dep();
 
     my $pkfields = $table_info->{pk_keys};
     my $fields   = $table_info->{fields};
@@ -80,7 +86,7 @@ sub make_config {
 
     my %data = (
         maintable   => $maintable,
-        screenname  => lc $screen,
+        screenname  => $screen,
         screendescr => $screen,
         pkfields    => $table_info->{pk_keys},
         fkfields    => $table_info->{fk_keys},
@@ -91,11 +97,13 @@ sub make_config {
     return $self->apply_template(\%data);
 }
 
-=head2 make_conf_main
+=head2 generate_config_main
+
+Generate the L<maintable> section of the config file.
 
 =cut
 
-sub make_config_main {
+sub generate_config_main {
     my ($self, $table_info) = @_;
 
     my $table = $table_info->{name};
@@ -138,18 +146,20 @@ sub make_config_main {
     return $conf->save_string($rec);
 }
 
-sub make_config_dep {
-    my $self = shift;
-    my $table = shift;
+=head2 generate_config_dep
 
-    my $args = config_instance_args();
+Generate the L<deptable> section of the config file.
 
-    Tpda3::Config->instance($args);
+=cut
+
+sub generate_config_dep {
+    my ($self, $table) = @_;
+
+    # Tpda3::Config->instance($args);
 
     # Connect to database
 
-    my $db = Tpda3::Db->instance;
-
+    my $db  = Tpda3::Db->instance;
     my $dbc = $db->dbc;
     my $dbh = $db->dbh;
 
@@ -159,7 +169,6 @@ sub make_config_dep {
     }
 
     # my $cons = $dbc->constraints_list('fact_tr_det');
-    # print Dumper( $cons);
 
     my $info = $dbc->table_info_short($table);
     my $keys = $dbc->table_keys($table);
@@ -219,30 +228,69 @@ sub make_config_dep {
     return $conf->save_string($rec);
 }
 
+=head2 apply_template
+
+Generate a screen configuration file.
+
+=cut
+
 sub apply_template {
     my ($self, $data) = @_;
 
+    my $dci = Tpda3::Devel::Config::Info->new($self->{opt});
+    my $cfg = $dci->config_info();
+    my $cfgname = $cfg->{cfg_name};
+
+    my $cwd = Cwd::cwd();
+    my $scrcfgd = "share/apps/${cfgname}/scr";
+    my $scrd_path = catdir( $cwd, $scrcfgd ); # screen config path
+    if (!-d $scrd_path) {
+        print "Can't put the new config in\n '$scrd_path'\n";
+        die "!!! This tool is supposed to be run from an app source dir !!!\n";
+    }
+
+    my $config_file = lc $self->{opt}{screen} . '.conf';
+
+    # Check if output file exists
+    my $config_path = catfile($scrd_path, $config_file);
+    if (-f $config_path) {
+        print "\n Won't owerwrite existing file:\n '$config_path'\n";
+        print " unless --force is in efect,\n";
+        print "\tbut that's not an option yet ;)\n\n";
+        return $config_path;
+    }
+
+    print "\n Output goes to\n '$scrd_path\n";
+    print " File is '$config_file'\n";
+
     my $tt = Template->new(
         INCLUDE_PATH => $self->{opt}{templ_path},
-        OUTPUT_PATH  => './',
+        OUTPUT_PATH  => $scrd_path,
     );
 
-    my $screen  = lc $self->{opt}{screen} . '.conf';
-
-    $tt->process( 'config.tt', $data, $screen, binmode => ':utf8' )
+    $tt->process( 'config.tt', $data, $config_file, binmode => ':utf8' )
         or die $tt->error(), "\n";
 
-    return $screen;
+    return $config_path;
 }
 
-#-- Subs to handle defaults
+=head1 DEFAULTS
+
+Subs to handle defaults
+
+=cut
+
+=head2 ctrltype
+
+Control type.  The numeric and integer types => Tk::Entry.  The char
+type is good candidate for Tk::JComboBox entries (m).
+
+=cut
 
 sub ctrltype {
     my ($self, $type) = @_;
 
     $type = lc $type;
-
-    # char type is good candidate for Tk::JComboBox entries (m)
 
     #      when column type is ...    ctrl type is ...
     return $type eq q{}               ? 'x'
@@ -294,6 +342,12 @@ sub coltype {
         exists $self->{types}{$type} ? $self->{types}{$type} : 'alphanumplus';
 }
 
+=head2 remove_dupes
+
+Remove key fields.
+
+=cut
+
 sub remove_dupes {
     my ($self, $pkfields, $fields) = @_;
 
@@ -305,16 +359,11 @@ sub remove_dupes {
 
 =head1 AUTHOR
 
-Stefan Suciu, C<< <stefansbv at users.sourceforge.net> >>
+Stefan Suciu, C<< <stefan\@s2i2.ro> >>
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-tpda3-devel-config at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Tpda3-Devel-Config>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
-
-
-
+Please report any bugs or feature requests to the autor.
 
 =head1 SUPPORT
 
@@ -322,32 +371,9 @@ You can find documentation for this module with the perldoc command.
 
     perldoc Tpda3::Devel::Config
 
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker (report bugs here)
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Tpda3-Devel-Config>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Tpda3-Devel-Config>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Tpda3-Devel-Config>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Tpda3-Devel-Config/>
-
-=back
-
-
 =head1 ACKNOWLEDGEMENTS
 
+Options processing inspired from App::Ack (C) 2005-2011 Andy Lester.
 
 =head1 LICENSE AND COPYRIGHT
 
@@ -366,7 +392,6 @@ GNU General Public License for more details.
 A copy of the GNU General Public License is available in the source tree;
 if not, write to the Free Software Foundation, Inc.,
 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
 
 =cut
 
