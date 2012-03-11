@@ -4,8 +4,6 @@ use 5.008009;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use Cwd;
 use Template;
 use Config::General qw{ParseConfig};
@@ -80,11 +78,12 @@ sub generate_screen {
     my $scrd = "lib/Tpda3/Tk/App/${module}";
     my $scrd_path = catdir( $cwd, $scrd ); # screen module path
     if (!-d $scrd_path) {
-        print "Can't put the new screen in\n '$scrd_path'\n";
-        die "!!! This tool is supposed to be run from an app source dir !!!\n";
+        print "\n Can't write the new screen to\n '$scrd_path'\n";
+        print " No such path!\n";
+        die "\n\n  !!! Run '$0' from an Tpda3 application source dir !!!\n\n";
     }
 
-    tie my %cfg, "Tie::IxHash";     # keep the order
+    tie my %cfg, "Tie::IxHash";     # keep the sections order
 
     %cfg = ParseConfig(
         -ConfigFile => $config_path,
@@ -106,7 +105,7 @@ sub generate_screen {
     # Check if output file exists
     my $screen_path = catfile($scrd_path, $screen_module);
     if (-f $screen_path) {
-        print "\n Won't owerwrite existing file:\n '$screen_path'\n";
+        print "\n Won't owerwrite the existing file:\n '$screen_path'\n";
         print " unless --force is in efect,\n";
         print "\tbut that's not an option yet ;)\n\n";
         return;

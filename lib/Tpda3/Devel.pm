@@ -175,18 +175,18 @@ sub generate {
 
     my $config_file
         = $self->{opt}{ncg}
-        ? $self->locate_config()
+        ? $self->locate_config($cfg)
         : $cfg->generate_config()
         ;
 
     # Make screen module
     if ( $config_file and -f $config_file ) {
-        print " Using config from\n $config_file\n";
+        print "\n Using config from\n $config_file\n";
         $self->{opt}{config_file} = $config_file;
         $self->generate_screen($config_file);
     }
     else {
-        print "Failed to locate config file!\n";
+        print " Failed to locate existing config file!\n";
     }
 
     return;
@@ -196,14 +196,15 @@ sub generate {
 
 Locate an existing config file.
 
-TODO!
-
 =cut
 
 sub locate_config {
-    my $self = shift;
+    my ($self, $cfg) = @_;
 
-    return $self->{opt}{screen} . '.conf';
+    my $scr_cfg_path = $cfg->screen_cfg_path();
+    my $scr_cfg_file = $cfg->screen_cfg_file($scr_cfg_path);
+
+    return $scr_cfg_file;
 }
 
 =head2 check_params
@@ -223,9 +224,17 @@ sub check_params {
     }
     print "Table name : $table\n";
 
-    # Check screen name or default screen name = table name
+    # Check screen name or set screen name = table name as default
     my $screen = $self->{opt}{screen};
-    $screen = lcfirst $table unless $screen;
+    if ($screen) {
+        unless (lc $screen eq $table) {
+            die "Lowercased Screen name should match the config name!\n(Here the table name because this tool uses the table name for the screen config name)\n";
+        }
+    }
+    else {
+        $screen = ucfirst $table;
+    }
+
     $self->{opt}{screen} = $screen;
     print "Screen name: $self->{opt}{screen}\n";
 

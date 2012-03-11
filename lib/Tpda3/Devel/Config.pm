@@ -87,7 +87,7 @@ sub generate_config {
     my %data = (
         maintable   => $maintable,
         screenname  => $screen,
-        screendescr => $screen,
+        screendescr => ucfirst $screen,
         pkfields    => $table_info->{pk_keys},
         fkfields    => $table_info->{fk_keys},
         columns     => $columns,
@@ -237,41 +237,66 @@ Generate a screen configuration file.
 sub apply_template {
     my ($self, $data) = @_;
 
-    my $dci = Tpda3::Devel::Config::Info->new($self->{opt});
-    my $cfg = $dci->config_info();
-    my $cfgname = $cfg->{cfg_name};
-
-    my $cwd = Cwd::cwd();
-    my $scrcfgd = "share/apps/${cfgname}/scr";
-    my $scrd_path = catdir( $cwd, $scrcfgd ); # screen config path
-    if (!-d $scrd_path) {
-        print "Can't put the new config in\n '$scrd_path'\n";
-        die "!!! This tool is supposed to be run from an app source dir !!!\n";
-    }
-
-    my $config_file = lc $self->{opt}{screen} . '.conf';
+    my $scr_cfg_name = lc $self->{opt}{screen} . '.conf';
+    my $scr_cfg_path = $self->screen_cfg_path();
 
     # Check if output file exists
-    my $config_path = catfile($scrd_path, $config_file);
-    if (-f $config_path) {
-        print "\n Won't owerwrite existing file:\n '$config_path'\n";
+    my $scr_cfg_file = $self->screen_cfg_file($scr_cfg_path);
+    if (-f $scr_cfg_file) {
+        print "\n Won't owerwrite existing file:\n '$scr_cfg_file'\n";
         print " unless --force is in efect,\n";
         print "\tbut that's not an option yet ;)\n\n";
-        return $config_path;
+        return $scr_cfg_file;
     }
 
-    print "\n Output goes to\n '$scrd_path\n";
-    print " File is '$config_file'\n";
+    print "\n Output goes to\n '$scr_cfg_path\n";
+    print " File is '$scr_cfg_file'\n";
 
     my $tt = Template->new(
         INCLUDE_PATH => $self->{opt}{templ_path},
-        OUTPUT_PATH  => $scrd_path,
+        OUTPUT_PATH  => $scr_cfg_path,
     );
 
-    $tt->process( 'config.tt', $data, $config_file, binmode => ':utf8' )
+    $tt->process( 'config.tt', $data, $scr_cfg_name, binmode => ':utf8' )
         or die $tt->error(), "\n";
 
-    return $config_path;
+    return $scr_cfg_file;
+}
+
+=head2 screen_cfg_path
+
+Screen configurations path.
+
+=cut
+
+sub screen_cfg_path {
+    my $self = shift;
+
+    my $dci          = Tpda3::Devel::Config::Info->new( $self->{opt} );
+    my $cfg          = $dci->config_info();
+    my $cfgname      = $cfg->{cfg_name};
+    my $scr_cfg_path = catdir( Cwd::cwd(), "share/apps/${cfgname}/scr" );
+    if ( !-d $scr_cfg_path ) {
+        print "\n Can't write the new config to\n '$scr_cfg_path'\n";
+        print " No such path!\n";
+        die "\n\n  !!! Run '$0' from an Tpda3 application source dir !!!\n\n";
+    }
+
+    return $scr_cfg_path;
+}
+
+=head2 screen_cfg_file
+
+Screen configuration file name.
+
+=cut
+
+sub screen_cfg_file {
+    my ($self, $scr_cfg_path) = @_;
+
+    my $scr_cfg_file = lc $self->{opt}{screen} . '.conf';
+
+    return catfile($scr_cfg_path, $scr_cfg_file);
 }
 
 =head1 DEFAULTS
