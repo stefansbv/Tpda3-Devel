@@ -1,4 +1,7 @@
 #!perl
+#
+# Generate PerlTk Screen modules for Tpda3 applications.
+#
 
 use strict;
 use warnings;
@@ -30,12 +33,6 @@ sub check_options {
         Tpda3::Config->instance()->list_configs( $opt->{list} );
         exit;
     }
-
-    # # Check for screen name
-    # unless ( $opt->{screen} ) {
-    #     print "Screen name is required!\n";
-    #     die;
-    # }
 }
 
 =head1 NAME
@@ -44,11 +41,13 @@ Tpda3-Devel - Create a screen module and it's configuration.
 
 =head1 SYNOPSIS
 
-tpda3d [ -l [<config-name>]]
+List existing configurations:
 
-tpda3d -c <config-name> [-u <user>] [-p <pass>]
+    tpda3d [ -l [<config-name>]]
 
-tpda3d -c <config-name> -t <table> -s <screen> [-u <user>] [-p <pass>]
+Generate a screen module and a screen configuration for it:
+
+    tpda3d -c <config-name> -t <table> [-s <screen>] [-u <user>] [-p <pass>]
 
 =head1 DESCRIPTION
 
@@ -57,22 +56,13 @@ This is a utility program for Tpda3.
 Extract table informations from a database and create a basic screen
 configuration file and a PerlTk screen module file.
 
-The info is mapped like this:
-
-  conf        info
-  ----------  -------------
-  <name>      name
-  ctrltype    F(type)  e | d
-  readwrite   rw | ro | r
-  state       normal | disabled
-  bgcolor     white
-  numscale    scale    0 if undef
-  findtype    full
-  label       uc(name)
-  width       length (prec for numeric?)
-  coltype     F(type)  alphanumplus, numeric
-
 =head1 CONFIGURATION AND ENVIRONMENT
+
+Requirements:
+
+    Tpda3 v0.46 and a Tpda3 application source.
+
+    (The Tpda3 Test application ClassicModels can be used for testing)
 
 =head1 BUGS AND LIMITATIONS
 
@@ -84,7 +74,7 @@ Patches are welcome.
 
 =head1 AUTHOR
 
-Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]
+Stefan Suciu, C<< <stefan@s2i2.ro> >>
 
 =head1 LICENCE AND COPYRIGHT
 

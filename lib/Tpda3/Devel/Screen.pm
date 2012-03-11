@@ -127,7 +127,7 @@ sub generate_screen {
 
 =head1 AUTHOR
 
-Stefan Suciu, C<< <stefan\@s2i2.ro> >>
+Stefan Suciu, C<< <stefan@s2i2.ro> >>
 
 =head1 BUGS
 
