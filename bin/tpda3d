@@ -16,14 +16,16 @@ if ( !@ARGV ) {
     exit 1;
 }
 
+my $cfname = shift;         # Runtime configuration name
+
 main();
 
 sub main {
-    my $opt = Tpda3::Devel::get_options();
+    my $opt = Tpda3::Devel::get_options($cfname);
 
     check_options($opt);
 
-    my $dev = Tpda3::Devel->new($opt)->generate();
+    my $dev = Tpda3::Devel->new($opt)->process();
 }
 
 sub check_options {

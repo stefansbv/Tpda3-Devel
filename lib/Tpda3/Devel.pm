@@ -71,28 +71,10 @@ Initializations.
 sub _init {
     my ( $self, $opt ) = @_;
 
-    # Definitions
-    $self->{types} = {
-        'blob'              => 'alphanumplus',
-        'char'              => 'alpha',
-        'character varying' => 'alphanumplus',
-        'd_float'           => 'numeric',
-        'date'              => 'date',
-        'decimal'           => 'numeric',
-        'double'            => 'numeric',
-        'float'             => 'numeric',
-        'int64'             => 'integer',
-        'integer'           => 'integer',
-        'numeric'           => 'numeric',
-        'smallint'          => 'integer',
-        'text'              => 'alphanumplus',
-        'time'              => 'time',
-        'timestamp'         => 'timestamp',
-        'varchar'           => 'alphanumplus',
-    };
-
-    my $user = $opt->{user} ? $opt->{user} : $self->read_username();
-    my $pass = $opt->{pass} ? $opt->{pass} : $self->read_password();
+    my $user = $opt->{user};
+    # my $user = $opt->{user} ? $opt->{user} : $self->read_username();
+    my $pass = $opt->{pass};
+    # my $pass = $opt->{pass} ? $opt->{pass} : $self->read_password();
 
     my $args = {
         cfname => $opt->{config},
@@ -114,20 +96,21 @@ Parse command line options.
 =cut
 
 sub get_options {
-    my $self = shift;
+    my $cfname = shift;
 
     my %opt = ();
     my $getopt_specs = {
-        'c|config=s'      => \$opt{config},
-        'l|list:s'        => \$opt{list},
-        't|table:s'       => \$opt{table},
-        'u|user=s'        => \$opt{user},
-        'p|password=s'    => \$opt{pass},
-        's|screen=s'      => \$opt{screen},
-        'g|no-config-gen' => \$opt{ncg},
-        'v|version'       => sub { version(); exit; },
-        'help|?:s'        => sub { shift; help(@_); exit; },
-        'm|man'           => sub {
+        'G|generate'    => \$opt{generate},
+        'U|update'      => \$opt{update},
+        'S|skip-config' => \$opt{skip_config},
+        'c|config=s'    => \$opt{config},
+        's|screen=s'    => \$opt{screen},
+        't|table:s'     => \$opt{table},
+        'u|user=s'      => \$opt{user},
+        'p|password=s'  => \$opt{pass},
+        'l|list:s'      => \$opt{list},
+        'help|?:s'      => sub { shift; help(@_); exit; },
+        'm|man'         => sub {
             require Pod::Usage;
             Pod::Usage::pod2usage(
                 {   -verbose => 2,
@@ -140,12 +123,13 @@ sub get_options {
     my $parser = Getopt::Long::Parser->new();
     $parser->configure( 'bundling', 'no_ignore_case', );
     $parser->getoptions( %{$getopt_specs} ) or
-        die( 'See tpda3dev --help, tpda3dev --man for options.' );
+        die( 'See tpda3d --help, tpda3d --man for usage.' );
 
     # Where are module-level shared data files kept
     my $templ_path = catdir( dist_dir('Tpda3-Devel'), 'templates');
 
     my %defaults = (
+        cfname     => $cfname,
         max_len    => 30,
         templ_path => $templ_path,    # TT templates path
     );
@@ -165,10 +149,41 @@ Generate config and module.
 
 =cut
 
-sub generate {
+sub process {
     my $self = shift;
 
-    $self->check_params();
+    unless ( $self->{opt}{cfname} ) {
+        help(' A configuration name is required! ');
+        exit;
+    }
+
+    if ( $self->{opt}{generate} and $self->{opt}{update} ) {
+        help( " -G or -U, not both! " );
+        exit;
+    }
+
+    if ( $self->{opt}{generate} ) {
+        $self->check_params_gen() and $self->generate();
+    }
+    elsif ( $self->{opt}{update} ) {
+        $self->check_params_upd() and $self->update();
+    }
+    else {
+        help( " -G or -U is required! " );
+        exit;
+    }
+
+    return;
+}
+
+=head2 generate
+
+
+
+=cut
+
+sub generate {
+    my ($self, ) = @_;
 
     # Make config file if not option '--no-config-gen'
     my $cfg = Tpda3::Devel::Config->new( $self->{opt} );
@@ -187,6 +202,9 @@ sub generate {
     }
     else {
         print " Failed to locate existing config file!\n";
+        if ($self->{opt}{ncg}) {
+            print "  Try without -g | --no-config-gen\n";
+        }
     }
 
     return;
@@ -207,13 +225,7 @@ sub locate_config {
     return $scr_cfg_file;
 }
 
-=head2 check_params
-
-Check parameters or die.
-
-=cut
-
-sub check_params {
+sub check_params_gen {
     my $self = shift;
 
     # Check for table name
@@ -227,8 +239,9 @@ sub check_params {
     # Check screen name or set screen name = table name as default
     my $screen = $self->{opt}{screen};
     if ($screen) {
-        unless (lc $screen eq $table) {
-            die "Lowercased Screen name should match the config name!\n(Here the table name because this tool uses the table name for the screen config name)\n";
+        unless ( lc $screen eq $table ) {
+            die
+                "Lowercased Screen name should match the config name!\n(Here the table name because this tool uses the table name for the screen config name)\n";
         }
     }
     else {
@@ -237,6 +250,18 @@ sub check_params {
 
     $self->{opt}{screen} = $screen;
     print "Screen name: $self->{opt}{screen}\n";
+
+    return;
+}
+
+=head2 check_params_upd
+
+
+
+=cut
+
+sub check_params_upd {
+    my $self = shift;
 
     return;
 }
@@ -322,12 +347,101 @@ sub read_password {
 
 =head2 help
 
-Print help :)
+Print usage help.
 
 =cut
 
 sub help {
-    print "Help!\n";
+    my $msg = shift;
+
+    version();
+    print "$msg\n" if $msg;
+
+    print( <<"HELP" );
+
+Usage:
+
+Generate a new screen config file and the coresponding module, or
+update a screen config file.
+
+    tpda3d <config-name> -G [generate-options]
+
+    tpda3d <config-name> -U [update-options]
+
+    <config-name>           Use -l | --list to see available configs.
+
+Info:
+
+  -l, --list                List available application configurations.
+  -?  --help | -m, --man
+
+HELP
+
+    return;
+}
+
+=head2 help_generate
+
+
+
+=cut
+
+sub help_generate {
+
+    version();
+    print( <<"HELP" );
+
+Usage:
+
+Generate a new screen config file and the coresponding module.
+
+    tpda3d <config-name> -G [options]
+
+    <config-name>       Use L<-l | --list> to see available configs.
+
+Options:
+
+  -G, --generate        Generate config.
+  -S, --skip-config     Skip config, use existing screen config file.
+  -t, --table           Table name to process.
+  -c, --config          Screen configuration name.
+  -s, --screen          Screen module name, optional, default is the
+                        config name with the first letter uppercased.
+  -u, --user            User
+  -p, --pass            Pasword
+
+HELP
+
+    return;
+}
+
+=head2 help_update
+
+
+
+=cut
+
+sub help_update {
+
+    version();
+    print( <<"HELP" );
+
+Usage:
+
+Update a screen config file.
+
+    tpda3d <config-name> -U [options]
+
+    <config-name>       Use L<-l | --list> to see available configs.
+
+Options:
+
+  -U, --update          Update a configuration file.
+  -c, --config          Screen configuration name.
+
+HELP
+
+    return;
 }
 
 =head2 version
@@ -362,7 +476,8 @@ You can find documentation for this module with the perldoc command.
 
 =head1 ACKNOWLEDGEMENTS
 
-Options processing inspired from App::Ack (C) 2005-2011 Andy Lester.
+Options processing and Help sub inspired from:
+App::Ack (C) 2005-2011 Andy Lester.
 
 =head1 LICENSE AND COPYRIGHT
 
