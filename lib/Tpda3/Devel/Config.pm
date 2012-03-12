@@ -57,7 +57,41 @@ sub new {
 
     $self->{opt} = $opt;
 
+    $self->_init;
+
     return $self;
+}
+
+=head2 _init
+
+Initializations.
+
+=cut
+
+sub _init {
+    my $self = shift;
+
+    # Definitions
+    $self->{types} = {
+        'blob'              => 'alphanumplus',
+        'char'              => 'alpha',
+        'character varying' => 'alphanumplus',
+        'd_float'           => 'numeric',
+        'date'              => 'date',
+        'decimal'           => 'numeric',
+        'double'            => 'numeric',
+        'float'             => 'numeric',
+        'int64'             => 'integer',
+        'integer'           => 'integer',
+        'numeric'           => 'numeric',
+        'smallint'          => 'integer',
+        'text'              => 'alphanumplus',
+        'time'              => 'time',
+        'timestamp'         => 'timestamp',
+        'varchar'           => 'alphanumplus',
+    };
+
+    return;
 }
 
 =head2 generate_config
@@ -118,7 +152,7 @@ sub generate_config_main {
     tie %{$rec}, 'Tie::IxHash::Easy';
 
     $rec->{maintable}{name} = $table;
-    $rec->{maintable}{view} = "v_$table";
+    $rec->{maintable}{view} = $table; # "v_$table" -> VIEW name
 
     # PK and FK
     $rec->{maintable}{pkcol}{name} = join ',', @{ $table_info->{pk_keys} };
@@ -308,7 +342,8 @@ Subs to handle defaults
 =head2 ctrltype
 
 Control type.  The numeric and integer types => Tk::Entry.  The char
-type is good candidate for Tk::JComboBox entries (m).
+type is good candidate for Tk::JComboBox entries (m).  And of course
+the date type for Tk::DateEntry.
 
 =cut
 

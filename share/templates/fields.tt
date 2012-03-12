@@ -1,6 +1,7 @@
 [% SET top = '%0, 0' %]
 [%- FOREACH key = columns.keys %]
 [%- SET ctrltype = columns.$key.ctrltype -%]
+[%- SET coltype = columns.$key.coltype -%]
 
 [%- IF ctrltype == 'e' -%]
   [%- PROCESS entry.tt -%]

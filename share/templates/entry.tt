@@ -1,16 +1,17 @@
     #- [% columns.$key.label -%] ([% key %])
 
-    my $l[% key %] = $frm_top->Label(
-        -text => '[% columns.$key.label -%]',
-    );
+    my $l[% key %] = $frm_top->Label( -text => '[% columns.$key.label -%]' );
     $l[% key %]->form(
-        -top  => [ [% top %] ],
-        -left => [ %0, 0 ],
+        -top     => [ [% top %] ],
+        -left    => [ %0, 0 ],
         -padleft => 5,
     );
 
     my $e[% key %] = $frm_top->MEntry(
-        -width => [% columns.$key.width -%],
+        -width              => [% columns.$key.width -%],
+    [%- IF coltype == 'numeric' %]
+        -justify            => 'right',
+    [%- END %]
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
