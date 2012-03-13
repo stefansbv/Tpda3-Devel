@@ -173,7 +173,7 @@ sub generate_config_main {
         $rec->{maintable}{columns}{$field}{readwrite} = 'rw';
         $rec->{maintable}{columns}{$field}{findtype}  = 'full';
         $rec->{maintable}{columns}{$field}{bgcolor}   = 'white';
-        $rec->{maintable}{columns}{$field}{coltype}   = $self->coltype($type);
+        $rec->{maintable}{columns}{$field}{datatype}   = $self->datatype($type);
     }
     print " done\n";
 
@@ -254,7 +254,7 @@ sub generate_config_dep {
             readwrite => 'rw',
             tag       => 'ro_center',
             numscale  => $self->numscale( $v->{scale} ),
-            coltype   => $self->coltype($type),
+            datatype   => $self->datatype($type),
         };
     }
     print " done\n";
@@ -387,13 +387,13 @@ sub len {
     return ($len > $max_len) ? $max_len : $len;
 }
 
-=head2 coltype
+=head2 datatype
 
 Column type.
 
 =cut
 
-sub coltype {
+sub datatype {
     my ($self, $type) = @_;
 
     $type = lc $type;

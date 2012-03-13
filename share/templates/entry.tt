@@ -9,7 +9,7 @@
 
     my $e[% key %] = $frm_top->MEntry(
         -width              => [% columns.$key.width -%],
-    [%- IF coltype == 'numeric' %]
+    [%- IF datatype == 'numeric' %]
         -justify            => 'right',
     [%- END %]
         -disabledbackground => $self->{bg},
