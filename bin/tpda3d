@@ -7,8 +7,6 @@ use strict;
 use warnings;
 use utf8;
 
-use Data::Dumper;
-
 use Tpda3::Devel;
 
 if ( !@ARGV ) {
@@ -16,12 +14,10 @@ if ( !@ARGV ) {
     exit 1;
 }
 
-my $cfname = shift;         # Runtime configuration name
-
 main();
 
 sub main {
-    my $opt = Tpda3::Devel::get_options($cfname);
+    my $opt = Tpda3::Devel::get_options();
 
     check_options($opt);
 

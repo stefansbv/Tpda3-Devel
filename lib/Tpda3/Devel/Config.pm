@@ -4,13 +4,13 @@ use 5.008009;
 use strict;
 use warnings;
 
+use Cwd;
 use File::Spec::Functions;
 use Config::General;
 use Tie::IxHash::Easy;
 use List::Compare;
 use Template;
-
-require Tpda3::Config;
+#require Tpda3::Config;
 
 =head1 NAME
 
@@ -104,14 +104,14 @@ sub generate_config {
     my ($self) = @_;
 
     my $table  = $self->{opt}{table};
-    my $screen = $self->{opt}{screen};
+    my $module = $self->{opt}{module};
 
     require Tpda3::Devel::Table::Info;
     my $dti = Tpda3::Devel::Table::Info->new();
 
     my $table_info = $dti->table_info($table);
     my $maintable  = $self->generate_config_main($table_info);
-    # generate_conf_dep();
+    #my $deptable   = $self->generate_conf_dep();
 
     my $pkfields = $table_info->{pk_keys};
     my $fields   = $table_info->{fields};
@@ -120,8 +120,8 @@ sub generate_config {
 
     my %data = (
         maintable   => $maintable,
-        screenname  => $screen,
-        screendescr => ucfirst $screen,
+        modulename  => $module,
+        moduledescr => ucfirst $module,
         pkfields    => $table_info->{pk_keys},
         fkfields    => $table_info->{fk_keys},
         columns     => $columns,
@@ -264,14 +264,14 @@ sub generate_config_dep {
 
 =head2 apply_template
 
-Generate a screen configuration file.
+Generate a module configuration file.
 
 =cut
 
 sub apply_template {
     my ($self, $data) = @_;
 
-    my $scr_cfg_name = lc $self->{opt}{screen} . '.conf';
+    my $scr_cfg_name = lc $self->{opt}{module} . '.conf';
     my $scr_cfg_path = $self->screen_cfg_path();
 
     # Check if output file exists
@@ -306,14 +306,14 @@ Screen configurations path.
 sub screen_cfg_path {
     my $self = shift;
 
-    my $dci          = Tpda3::Devel::Config::Info->new( $self->{opt} );
-    my $cfg          = $dci->config_info();
-    my $cfgname      = $cfg->{cfg_name};
+    my $dci     = Tpda3::Devel::Config::Info->new( $self->{opt} );
+    my $cfgname = $dci->config_info()->{cfg_name};
+
     my $scr_cfg_path = catdir( Cwd::cwd(), "share/apps/${cfgname}/scr" );
     if ( !-d $scr_cfg_path ) {
         print "\n Can't write the new config to\n '$scr_cfg_path'\n";
         print " No such path!\n";
-        die "\n\n  !!! Run '$0' from an Tpda3 application source dir !!!\n\n";
+        die "\n\n  !!! Run '$0' from a Tpda3 application source dir !!!\n\n";
     }
 
     return $scr_cfg_path;
@@ -328,7 +328,7 @@ Screen configuration file name.
 sub screen_cfg_file {
     my ($self, $scr_cfg_path) = @_;
 
-    my $scr_cfg_file = lc $self->{opt}{screen} . '.conf';
+    my $scr_cfg_file = lc $self->{opt}{config} . '.conf';
 
     return catfile($scr_cfg_path, $scr_cfg_file);
 }

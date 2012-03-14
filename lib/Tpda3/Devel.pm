@@ -15,6 +15,7 @@ use File::Spec::Functions;
 require Tpda3::Config;
 require Tpda3::Devel::Config;
 require Tpda3::Devel::Screen;
+require Tpda3::Devel::Config::Update;
 
 =head1 NAME
 
@@ -77,7 +78,7 @@ sub _init {
     # my $pass = $opt->{pass} ? $opt->{pass} : $self->read_password();
 
     my $args = {
-        cfname => $opt->{config},
+        cfname => $opt->{cfname},
         user   => $user,
         pass   => $pass,
     };
@@ -96,15 +97,14 @@ Parse command line options.
 =cut
 
 sub get_options {
-    my $cfname = shift;
 
     my %opt = ();
     my $getopt_specs = {
         'G|generate'    => \$opt{generate},
         'U|update'      => \$opt{update},
-        'S|skip-config' => \$opt{skip_config},
+        's|skip-config' => \$opt{skip_config},
         'c|config=s'    => \$opt{config},
-        's|screen=s'    => \$opt{screen},
+        'M|module=s'    => \$opt{module},
         't|table:s'     => \$opt{table},
         'u|user=s'      => \$opt{user},
         'p|password=s'  => \$opt{pass},
@@ -128,14 +128,24 @@ sub get_options {
     # Where are module-level shared data files kept
     my $templ_path = catdir( dist_dir('Tpda3-Devel'), 'templates');
 
+    my $cfname = $ARGV[0];                # runtime configuration name
+
     my %defaults = (
         cfname     => $cfname,
         max_len    => 30,
         templ_path => $templ_path,    # TT templates path
     );
 
+    # Screen config file name - default is table name
+    $opt{config} = $opt{table}
+        if $opt{table} and !$opt{config};
+
+    # Screen module file name - default is config name
+    $opt{module} = ucfirst $opt{config}
+        if $opt{config} and !$opt{module};
+
     while ( my ( $key, $value ) = each %defaults ) {
-        if ( not defined $opt{$key} ) {
+        unless ( defined $opt{$key} ) {
             $opt{$key} = $value;
         }
     }
@@ -163,14 +173,64 @@ sub process {
     }
 
     if ( $self->{opt}{generate} ) {
-        $self->check_params_gen() and $self->generate();
+        $self->check_params_gen();
+        $self->generate();
     }
     elsif ( $self->{opt}{update} ) {
-        $self->check_params_upd() and $self->update();
+        $self->check_params_upd();
+        $self->update();
     }
     else {
         help( " -G or -U is required! " );
         exit;
+    }
+
+    return;
+}
+
+sub check_params_gen {
+    my $self = shift;
+
+    # Check for table name
+    my $table = $self->{opt}{table};
+    unless ($table) {
+        $self->tables_list();
+        die "Table name is required!";
+    }
+    print "Table name : $table\n";
+
+    # Check config name
+    my $config = $self->{opt}{config};
+    unless ($config) {
+        die "Failed to set default config name!";
+    }
+
+    # Check screen name or set screen name = table name as default
+    my $screen_module = $self->{opt}{module};
+    unless ($screen_module) {
+        die "No screen module name!";
+    }
+    unless ( lc $screen_module eq $config ) {
+        die "Lowercased Screen name should match the config name!";
+    }
+
+    return;
+}
+
+=head2 check_params_upd
+
+
+
+=cut
+
+sub check_params_upd {
+    my $self = shift;
+
+    # Check config name
+    my $config = $self->{opt}{config};
+    unless ($config) {
+        $self->config_list();
+        die "The config name is required!";
     }
 
     return;
@@ -210,6 +270,16 @@ sub generate {
     return;
 }
 
+sub update {
+    my $self = shift;
+
+    my $cfg = Tpda3::Devel::Config::Update->new( $self->{opt} );
+
+    $cfg->config_update();
+
+    return;
+}
+
 =head2 locate_config
 
 Locate an existing config file.
@@ -223,47 +293,6 @@ sub locate_config {
     my $scr_cfg_file = $cfg->screen_cfg_file($scr_cfg_path);
 
     return $scr_cfg_file;
-}
-
-sub check_params_gen {
-    my $self = shift;
-
-    # Check for table name
-    my $table = $self->{opt}{table};
-    unless ($table) {
-        $self->tables_list();
-        die "Table name is required!";
-    }
-    print "Table name : $table\n";
-
-    # Check screen name or set screen name = table name as default
-    my $screen = $self->{opt}{screen};
-    if ($screen) {
-        unless ( lc $screen eq $table ) {
-            die
-                "Lowercased Screen name should match the config name!\n(Here the table name because this tool uses the table name for the screen config name)\n";
-        }
-    }
-    else {
-        $screen = ucfirst $table;
-    }
-
-    $self->{opt}{screen} = $screen;
-    print "Screen name: $self->{opt}{screen}\n";
-
-    return;
-}
-
-=head2 check_params_upd
-
-
-
-=cut
-
-sub check_params_upd {
-    my $self = shift;
-
-    return;
 }
 
 =head2 tables_list
@@ -284,6 +313,14 @@ sub tables_list {
     foreach my $name ( @{$list} ) {
         print "   - $name\n";
     }
+
+    return;
+}
+
+sub config_list {
+    my $self = shift;
+
+    Tpda3::Config->instance()->list_config_files;
 
     return;
 }
@@ -402,10 +439,10 @@ Generate a new screen config file and the coresponding module.
 Options:
 
   -G, --generate        Generate config.
-  -S, --skip-config     Skip config, use existing screen config file.
+  -s, --skip-config     Skip config, use existing screen config file.
   -t, --table           Table name to process.
   -c, --config          Screen configuration name.
-  -s, --screen          Screen module name, optional, default is the
+  -n, --name            Screen module name, optional, default is the
                         config name with the first letter uppercased.
   -u, --user            User
   -p, --pass            Pasword
