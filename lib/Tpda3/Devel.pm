@@ -153,9 +153,9 @@ sub get_options {
     return \%opt;
 }
 
-=head2 generate
+=head2 process
 
-Generate config and module.
+Process.
 
 =cut
 
@@ -195,6 +195,7 @@ sub check_params_gen {
     my $table = $self->{opt}{table};
     unless ($table) {
         $self->tables_list();
+        help_generate();
         die "Table name is required!";
     }
     print "Table name : $table\n";
@@ -401,11 +402,11 @@ Usage:
 Generate a new screen config file and the coresponding module, or
 update a screen config file.
 
-    tpda3d <config-name> -G [generate-options]
+    tpda3d <app-cfg> -G [generate-options]
 
-    tpda3d <config-name> -U [update-options]
+    tpda3d <app-cfg> -U [update-options]
 
-    <config-name>           Use -l | --list to see available configs.
+    <app-cfg>           Use -l | --list to see available configs.
 
 Info:
 
@@ -432,9 +433,7 @@ Usage:
 
 Generate a new screen config file and the coresponding module.
 
-    tpda3d <config-name> -G [options]
-
-    <config-name>       Use L<-l | --list> to see available configs.
+    tpda3d <app-cfg> -G [options]
 
 Options:
 
@@ -467,9 +466,7 @@ Usage:
 
 Update a screen config file.
 
-    tpda3d <config-name> -U [options]
-
-    <config-name>       Use L<-l | --list> to see available configs.
+    tpda3d <app-cfg> -U [options]
 
 Options:
 

@@ -1,3 +1,4 @@
+
 Tpda3-Devel
 
 Generate PerlTk Screen modules for Tpda3 applications.
@@ -20,19 +21,12 @@ To install this module, run the following commands:
     make install
 
 
-USAGE
-
-From and Tpda3 application source directory, run:
-
-    tpda3d -c <config-name> -t <table> [-s <screen>] [-u <user>] [-p <pass>]
-
-
 SUPPORT AND DOCUMENTATION
 
 After installing, you can find documentation for this module with the
 perldoc command.
 
-    perldoc Tpda3::Devel
+    tpda3d --help
 
 
 LICENSE AND COPYRIGHT

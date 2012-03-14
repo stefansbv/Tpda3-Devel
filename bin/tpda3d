@@ -35,17 +35,21 @@ sub check_options {
 
 =head1 NAME
 
-Tpda3-Devel - Create a screen module and it's configuration.
+Tpda3-Devel - Create a screen module and it's configuration or update
+an existing screen configuration.
 
 =head1 SYNOPSIS
 
 List existing configurations:
 
-    tpda3d [ -l [<config-name>]]
+ tpda3d [ -l [<app-cfg>]]
 
 Generate a screen module and a screen configuration for it:
 
-    tpda3d -c <config-name> -t <table> [-s <screen>] [-u <user>] [-p <pass>]
+    tpda3d <app-cfg> -G -t <table> [-c <scr-cfg>] [-m <module>]
+                     [-u <user>] [-p <pass>]
+
+    tpda3d <app-cfg> -U -c <scr-cfg>
 
 =head1 DESCRIPTION
 

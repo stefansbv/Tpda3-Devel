@@ -364,12 +364,16 @@ sub make_maintable {
     foreach my $field ( keys %{ $data->{columns} } ) {
         $rec->{maintable}{columns}{$field}{label}
             = $data->{columns}{$field}{label};
+
         $rec->{maintable}{columns}{$field}{state}
             = $data->{columns}{$field}{state};
+
         $rec->{maintable}{columns}{$field}{ctrltype}
             = $data->{columns}{$field}{ctrltype};
+
         $rec->{maintable}{columns}{$field}{width}
             = $data->{columns}{$field}{width};
+
         if (exists $data->{columns}{$field}{places} ) {
             $rec->{maintable}{columns}{$field}{numscale}
                 = $data->{columns}{$field}{places};
@@ -378,6 +382,7 @@ sub make_maintable {
             $rec->{maintable}{columns}{$field}{numscale}
                 = $data->{columns}{$field}{numscale};
         }
+
         if ( exists $data->{columns}{$field}{rw} ) {
             $rec->{maintable}{columns}{$field}{readwrite}
                 = $data->{columns}{$field}{rw};
@@ -386,19 +391,24 @@ sub make_maintable {
             $rec->{maintable}{columns}{$field}{readwrite}
                 = $data->{columns}{$field}{readwrite};
         }
+
         $rec->{maintable}{columns}{$field}{findtype}
             = $data->{columns}{$field}{findtype};
+
         $rec->{maintable}{columns}{$field}{bgcolor}
             = $data->{columns}{$field}{bgcolor};
-        $rec->{maintable}{columns}{$field}{coltype}
-            = $data->{columns}{$field}{validation};
+
         if ( exists $data->{columns}{$field}{validation} ) {
-            $rec->{maintable}{columns}{$field}{coltype}
+            $rec->{maintable}{columns}{$field}{datatype}
                 = $data->{columns}{$field}{validation};
         }
-        else {
-            $rec->{maintable}{columns}{$field}{coltype}
+        elsif ( exists $data->{columns}{$field}{coltype}) {
+            $rec->{maintable}{columns}{$field}{datatype}
                 = $data->{columns}{$field}{coltype};
+        }
+        else {
+            $rec->{maintable}{columns}{$field}{datatype}
+                = $data->{columns}{$field}{datatype};
         }
     }
 
@@ -438,12 +448,16 @@ sub make_deptable {
         foreach my $field ( keys %{ $data->{$tm_ds}{columns} } ) {
             $rec->{deptable}{$tm_ds}{columns}{$field}{id}
                 = $data->{$tm_ds}{columns}{$field}{id};
+
             $rec->{deptable}{$tm_ds}{columns}{$field}{label}
                 = $data->{$tm_ds}{columns}{$field}{label};
+
             $rec->{deptable}{$tm_ds}{columns}{$field}{tag}
                 = $data->{$tm_ds}{columns}{$field}{tag};
+
             $rec->{deptable}{$tm_ds}{columns}{$field}{width}
                 = $data->{$tm_ds}{columns}{$field}{width};
+
             if ( exists $data->{$tm_ds}{columns}{$field}{places} ) {
                 $rec->{deptable}{$tm_ds}{columns}{$field}{numscale}
                     = $data->{$tm_ds}{columns}{$field}{places};
@@ -452,6 +466,7 @@ sub make_deptable {
                 $rec->{deptable}{$tm_ds}{columns}{$field}{numscale}
                     = $data->{$tm_ds}{columns}{$field}{numscale};
             }
+
             if ( exists $data->{$tm_ds}{columns}{$field}{rw} ) {
                 $rec->{deptable}{$tm_ds}{columns}{$field}{readwrite}
                     = $data->{$tm_ds}{columns}{$field}{rw};
@@ -460,13 +475,18 @@ sub make_deptable {
                 $rec->{deptable}{$tm_ds}{columns}{$field}{readwrite}
                     = $data->{$tm_ds}{columns}{$field}{readwrite};
             }
+
             if ( exists $data->{$tm_ds}{columns}{$field}{validation} ) {
-                $rec->{deptable}{$tm_ds}{columns}{$field}{coltype}
+                $rec->{deptable}{$tm_ds}{columns}{$field}{datatype}
                     = $data->{$tm_ds}{columns}{$field}{validation};
             }
-            else {
-                $rec->{deptable}{$tm_ds}{columns}{$field}{coltype}
+            elsif ( exists $data->{$tm_ds}{columns}{$field}{coltype} ) {
+                $rec->{deptable}{$tm_ds}{columns}{$field}{datatype}
                     = $data->{$tm_ds}{columns}{$field}{coltype};
+            }
+            else {
+                $rec->{deptable}{$tm_ds}{columns}{$field}{datatype}
+                    = $data->{$tm_ds}{columns}{$field}{datatype};
             }
         }
     }
