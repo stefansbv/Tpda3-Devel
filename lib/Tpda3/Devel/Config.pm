@@ -111,7 +111,7 @@ sub generate_config {
 
     my $table_info = $dti->table_info($table);
     my $maintable  = $self->generate_config_main($table_info);
-    #my $deptable   = $self->generate_conf_dep();
+    my $deptable   = $self->generate_config_dep($table);
 
     my $pkfields = $table_info->{pk_keys};
     my $fields   = $table_info->{fields};
@@ -120,6 +120,7 @@ sub generate_config {
 
     my %data = (
         maintable   => $maintable,
+        deptable    => $deptable,
         modulename  => $module,
         moduledescr => ucfirst $module,
         pkfields    => $table_info->{pk_keys},
@@ -188,8 +189,6 @@ Generate the L<deptable> section of the config file.
 
 sub generate_config_dep {
     my ($self, $table) = @_;
-
-    # Tpda3::Config->instance($args);
 
     # Connect to database
 
@@ -272,23 +271,31 @@ sub apply_template {
     my ($self, $data) = @_;
 
     my $scr_cfg_name = lc $self->{opt}{module} . '.conf';
-    my $scr_cfg_path = $self->screen_cfg_path();
 
-    # Check if output file exists
-    my $scr_cfg_file = $self->screen_cfg_file($scr_cfg_path);
-    if (-f $scr_cfg_file) {
-        print "\n Won't owerwrite existing file:\n '$scr_cfg_file'\n";
-        print " unless --force is in efect,\n";
-        print "\tbut that's not an option yet ;)\n\n";
-        return $scr_cfg_file;
+    my ($outputh_path, $scr_cfg_file);
+    if ( $self->{opt}{force} ) {
+        $outputh_path = '.';
+        $scr_cfg_file = $scr_cfg_name;
+    }
+    else {
+        $outputh_path = $self->screen_cfg_path();
+
+        # Check if output file exists
+        $scr_cfg_file = $self->screen_cfg_file($outputh_path);
+        if ( -f $scr_cfg_file ) {
+            print "\n Won't owerwrite existing file:\n '$scr_cfg_file'\n";
+            print " unless --force is in efect,\n";
+            print "\tbut that's not an option yet ;)\n\n";
+            return $scr_cfg_file;
+        }
     }
 
-    print "\n Output goes to\n '$scr_cfg_path\n";
+    print "\n Output goes to\n '$outputh_path'\n";
     print " File is '$scr_cfg_file'\n";
 
     my $tt = Template->new(
         INCLUDE_PATH => $self->{opt}{templ_path},
-        OUTPUT_PATH  => $scr_cfg_path,
+        OUTPUT_PATH  => $outputh_path,
     );
 
     $tt->process( 'config.tt', $data, $scr_cfg_name, binmode => ':utf8' )

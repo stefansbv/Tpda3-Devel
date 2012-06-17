@@ -47,7 +47,6 @@ sub new {
     bless $self, $class;
 
     $self->{opt} = $opt;
-
     $self->{cfg} = Tpda3::Config->instance;
 
     return $self;
@@ -192,10 +191,11 @@ sub make_screen {
     my $rec = {};
     tie %{$rec}, 'Tie::IxHash::Easy';
 
-    $rec->{screen}{name}            = $data->{name};
-    $rec->{screen}{description}     = $data->{description};
-    $rec->{screen}{style}           = $data->{style};
-    $rec->{screen}{geometry}        = $data->{geometry};
+    $rec->{screen}{version}     = 3;
+    $rec->{screen}{name}        = $data->{name};
+    $rec->{screen}{description} = $data->{description};
+    $rec->{screen}{style}       = $data->{style};
+    $rec->{screen}{geometry}    = $data->{geometry};
 
     if ( exists $data->{details}{detail} ) {
         $rec->{screen}{details}{match}  = $data->{details}{match};
@@ -371,8 +371,19 @@ sub make_maintable {
         $rec->{maintable}{columns}{$field}{ctrltype}
             = $data->{columns}{$field}{ctrltype};
 
-        $rec->{maintable}{columns}{$field}{width}
-            = $data->{columns}{$field}{width};
+        if (exists $data->{columns}{$field}{width} ) {
+            # It's pre v3, migrate to v3
+            $rec->{maintable}{columns}{$field}{displ_width}
+                = $data->{columns}{$field}{width};
+            $rec->{maintable}{columns}{$field}{valid_width}
+                = $data->{columns}{$field}{width};
+        }
+        else {
+            $rec->{maintable}{columns}{$field}{displ_width}
+                = $data->{columns}{$field}{displ_width};
+            $rec->{maintable}{columns}{$field}{valid_width}
+                = $data->{columns}{$field}{valid_width};
+        }
 
         if (exists $data->{columns}{$field}{places} ) {
             $rec->{maintable}{columns}{$field}{numscale}
@@ -455,8 +466,18 @@ sub make_deptable {
             $rec->{deptable}{$tm_ds}{columns}{$field}{tag}
                 = $data->{$tm_ds}{columns}{$field}{tag};
 
-            $rec->{deptable}{$tm_ds}{columns}{$field}{width}
-                = $data->{$tm_ds}{columns}{$field}{width};
+            if ( exists $data->{$tm_ds}{columns}{$field}{width} ) {
+                $rec->{deptable}{$tm_ds}{columns}{$field}{displ_width}
+                    = $data->{$tm_ds}{columns}{$field}{width};
+                $rec->{deptable}{$tm_ds}{columns}{$field}{valid_width}
+                    = $data->{$tm_ds}{columns}{$field}{width};
+            }
+            else {
+                $rec->{deptable}{$tm_ds}{columns}{$field}{displ_width}
+                    = $data->{$tm_ds}{columns}{$field}{displ_width};
+                $rec->{deptable}{$tm_ds}{columns}{$field}{valid_width}
+                    = $data->{$tm_ds}{columns}{$field}{valid_width};
+            }
 
             if ( exists $data->{$tm_ds}{columns}{$field}{places} ) {
                 $rec->{deptable}{$tm_ds}{columns}{$field}{numscale}

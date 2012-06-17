@@ -29,7 +29,7 @@ requires 'Tpda3' => '0.46';
 
 build_requires 'Test::More';
 
-auto_install;
+#auto_install;
 
 install_share 'share';
 install_script 'bin/tpda3d';

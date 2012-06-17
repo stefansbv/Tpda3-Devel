@@ -109,6 +109,7 @@ sub get_options {
         'u|user=s'      => \$opt{user},
         'p|password=s'  => \$opt{pass},
         'l|list:s'      => \$opt{list},
+        'f|force'       => \$opt{force},
         'help|?:s'      => sub { shift; help(@_); exit; },
         'm|man'         => sub {
             require Pod::Usage;
