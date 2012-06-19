@@ -49,8 +49,6 @@ TODO: {
     "placeholder date/time"       => qr(Date/time)
   );
 
-  module_boilerplate_ok('lib/Tpda3/Devel/Screen.pm');
-
+  module_boilerplate_ok('lib/Tpda3/Devel.pm');
 
 }
-

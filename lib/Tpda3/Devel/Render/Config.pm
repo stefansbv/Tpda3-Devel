@@ -1,4 +1,4 @@
-package Tpda3::Devel::Config;
+package Tpda3::Devel::Render::Config;
 
 use 5.008009;
 use strict;
@@ -10,11 +10,12 @@ use Config::General;
 use Tie::IxHash::Easy;
 use List::Compare;
 use Template;
-#require Tpda3::Config;
+
+require Tpda3::Devel::Info::App;
 
 =head1 NAME
 
-Tpda3::Devel::Config - The great new Tpda3::Devel::Config!
+Tpda3::Devel::Render::Config - Create a screen configuration file.
 
 =head1 VERSION
 
@@ -33,7 +34,6 @@ Perhaps a little code snippet.
     use Tpda3::Devel::Config;
 
     my $foo = Tpda3::Devel::Config->new();
-    ...
 
 =head1 EXPORT
 
@@ -106,8 +106,8 @@ sub generate_config {
     my $table  = $self->{opt}{table};
     my $module = $self->{opt}{module};
 
-    require Tpda3::Devel::Table::Info;
-    my $dti = Tpda3::Devel::Table::Info->new();
+    require Tpda3::Devel::Info::Table;
+    my $dti = Tpda3::Devel::Info::Table->new();
 
     my $table_info = $dti->table_info($table);
     my $maintable  = $self->generate_config_main($table_info);
@@ -281,7 +281,7 @@ sub apply_template {
         $outputh_path = $self->screen_cfg_path();
 
         # Check if output file exists
-        $scr_cfg_file = $self->screen_cfg_file($outputh_path);
+        $scr_cfg_file = $self->screen_cfg_file();
         if ( -f $scr_cfg_file ) {
             print "\n Won't owerwrite existing file:\n '$scr_cfg_file'\n";
             print " unless --force is in efect,\n";
@@ -313,17 +313,7 @@ Screen configurations path.
 sub screen_cfg_path {
     my $self = shift;
 
-    my $dci     = Tpda3::Devel::Config::Info->new( $self->{opt} );
-    my $cfgname = $dci->config_info()->{cfg_name};
-
-    my $scr_cfg_path = catdir( Cwd::cwd(), "share/apps/${cfgname}/scr" );
-    if ( !-d $scr_cfg_path ) {
-        print "\n Can't write the new config to\n '$scr_cfg_path'\n";
-        print " No such path!\n";
-        die "\n\n  !!! Run '$0' from a Tpda3 application source dir !!!\n\n";
-    }
-
-    return $scr_cfg_path;
+    return Tpda3::Devel::Info::App->get_scrcfg_path()
 }
 
 =head2 screen_cfg_file
@@ -333,11 +323,11 @@ Screen configuration file name.
 =cut
 
 sub screen_cfg_file {
-    my ($self, $scr_cfg_path) = @_;
+    my $self = shift;
 
     my $scr_cfg_file = lc $self->{opt}{config} . '.conf';
 
-    return catfile($scr_cfg_path, $scr_cfg_file);
+    return catfile( $self->screen_cfg_path, $scr_cfg_file );
 }
 
 =head1 DEFAULTS

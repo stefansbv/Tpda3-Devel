@@ -1,4 +1,4 @@
-package Tpda3::Devel::Config::Info;
+package Tpda3::Devel::Info::Config;
 
 use 5.008009;
 use strict;
@@ -11,7 +11,7 @@ require Tpda3::Config;
 
 =head1 NAME
 
-Tpda3::Devel::Config::Info - Tpda3 application config related info.
+Tpda3::Devel::Info::Config - Tpda3 application config related info.
 
 =head1 VERSION
 
@@ -23,10 +23,10 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-    use Tpda3::Devel::Config::Info;
+    use Tpda3::Devel::Info::Config;
 
-    my $dci = Tpda3::Devel::Config::Info->new();
-    my info = $dci->config_info();
+    my $ic = Tpda3::Devel::Info::Config->new();
+    my $ic = $dci->config_info();
 
 =head1 METHODS
 
@@ -41,7 +41,7 @@ sub new {
 
     bless $self, $class;
 
-    $self->{opt} = $opt;
+    Tpda3::Config->instance($opt);
 
     return $self;
 }
@@ -57,20 +57,42 @@ sub config_info {
 
     my $appcfg = Tpda3::Config->instance();
 
-    my $cfg_name   = $appcfg->cfname;
-    my $cfg_apps   = $appcfg->cfapps;
-    my $cfg_module = $appcfg->application->{module};
+    my $name   = $appcfg->cfname;
+    my $apps   = $appcfg->cfapps;
+    my $module = $appcfg->application->{module};
 
-    # Check configured widget type
-    my $cfg_widget = $appcfg->application->{widgetset};
-    die "Fatal!: $cfg_widget toolkit not supported!"
-        unless $cfg_widget eq 'Tk';
+    # Check configured toolkit type
+    my $toolkit = $appcfg->application->{widgetset};
+    die "Fatal!: $toolkit toolkit not supported!"
+        unless $toolkit eq 'Tk';
 
     return {
-        cfg_name   => $cfg_name,
-        cfg_apps   => $cfg_apps,
-        cfg_module => $cfg_module,
+        name     => $name,
+        apps_dir => $apps,
+        module   => $module,
     };
+}
+
+=head2 list_configs
+
+Call list_configs method from Tpda3::Config.
+
+=cut
+
+sub list_configs {
+    my ($self) = @_;
+
+    Tpda3::Config->instance()->list_configs;
+
+    return;
+}
+
+sub list_config_files {
+    my $self = shift;
+
+    Tpda3::Config->instance()->list_config_files;
+
+    return;
 }
 
 =head1 AUTHOR
@@ -85,7 +107,7 @@ Please report any bugs or feature requests to the autor.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc Tpda3::Devel::Config::Info
+    perldoc Tpda3::Devel::Info::Config
 
 =head1 ACKNOWLEDGEMENTS
 
@@ -111,4 +133,4 @@ if not, write to the Free Software Foundation, Inc.,
 
 =cut
 
-1; # End of Tpda3::Devel::Config::Info
+1; # End of Tpda3::Devel::Info::Config

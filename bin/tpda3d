@@ -10,7 +10,7 @@ use utf8;
 use Tpda3::Devel;
 
 if ( !@ARGV ) {
-    Tpda3::Devel::help();
+    Tpda3::Devel::usage(1);
     exit 1;
 }
 
@@ -21,14 +21,27 @@ sub main {
 
     check_options($opt);
 
-    my $dev = Tpda3::Devel->new($opt)->process();
+    Tpda3::Devel->new($opt)->process();
 }
+
+=head2 check_options
+
+Check and process info options first, then check for options that
+exclude ...
+
+=cut
 
 sub check_options {
     my $opt = shift;
 
     if ( defined $opt->{list} ) {
-        Tpda3::Config->instance()->list_configs( $opt->{list} );
+        require Tpda3::Devel::Info::Config;
+        Tpda3::Devel::Info::Config->new->list_configs;
+        exit;
+    }
+
+    if ( $opt->{generate} and $opt->{update} ) {
+        print "Error: -G or -U, not both! \n";
         exit;
     }
 }
@@ -40,16 +53,19 @@ an existing screen configuration.
 
 =head1 SYNOPSIS
 
-List existing configurations:
+   tpda3d <app-cfg> -G
 
- tpda3d [ -l [<app-cfg>]]
+Generate a new Tpda3 application directory tree:
 
-Generate a screen module and a screen configuration for it:
+   tpda3d <app-cfg> -U -M [<module-name>]
 
-    tpda3d <app-cfg> -G -t <table> [-c <scr-cfg>] [-m <module>]
-                     [-u <user>] [-p <pass>]
+Generate a new screen and the coresponding configuration file, if one
+doesn't exists.
 
-    tpda3d <app-cfg> -U -c <scr-cfg>
+Info:
+
+ -l, --list                List available application configurations.
+ -?  --help | -m, --man
 
 =head1 DESCRIPTION
 

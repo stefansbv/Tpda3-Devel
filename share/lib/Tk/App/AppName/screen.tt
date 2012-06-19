@@ -1,0 +1,6 @@
+[% PROCESS component/header.tt %]
+[% PROCESS component/frames.tt %]
+[% PROCESS component/fields.tt %]
+[% PROCESS component/fieldsmap.tt %]
+[% PROCESS component/footer.tt %]
+[% PROCESS component/pod.tt %]

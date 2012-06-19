@@ -16,3 +16,4 @@ classicmodels
 errors.txt
 TAGS
 *.conf
+cover_db/

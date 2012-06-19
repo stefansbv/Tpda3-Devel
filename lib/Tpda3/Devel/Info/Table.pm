@@ -1,4 +1,4 @@
-package Tpda3::Devel::Table::Info;
+package Tpda3::Devel::Info::Table;
 
 use 5.008009;
 use strict;
@@ -8,7 +8,7 @@ require Tpda3::Db;
 
 =head1 NAME
 
-Tpda3::Devel::Table::Info - Database table related info.
+Tpda3::Devel::Info::Table - Database table related info.
 
 =head1 VERSION
 
@@ -22,9 +22,9 @@ our $VERSION = '0.01';
 
 Return database table related info.
 
-    use Tpda3::Devel::Table::Info;
+    use Tpda3::Devel::Info::Table;
 
-    my $dti  = Tpda3::Devel::Table::Info->new();
+    my $dti  = Tpda3::Devel::Info::Table->new();
     my $info = $dti->table_info();
     my $list = $dti->table_list();
 
@@ -36,11 +36,10 @@ Return database table related info.
 =cut
 
 sub new {
-    my ( $class, $opt ) = @_;
+    my ( $class ) = @_;
 
     my $self = {
-        opt => $opt,
-        dbi => Tpda3::Db->instance,
+        dbi => Tpda3::Db->instance(),
     };
 
     bless $self, $class;
@@ -161,4 +160,4 @@ if not, write to the Free Software Foundation, Inc.,
 
 =cut
 
-1; # End of Tpda3::Devel::Table::Info
+1; # End of Tpda3::Devel::Info::Table
