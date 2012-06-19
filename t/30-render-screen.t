@@ -1,6 +1,6 @@
 #!perl
 
-use Test::More tests => 8;
+use Test::More tests => 7;
 use Test::Exception;
 
 BEGIN {
@@ -11,16 +11,10 @@ BEGIN {
 
 use_ok('Tpda3::Devel::Render');
 
-is( Tpda3::Devel::Render::get_template_for('config'),
-    'config.tt', 'template for config' );
-
 is( Tpda3::Devel::Render::get_template_for('screen'),
     'screen.tt', 'template for screen' );
 
 dies_ok { Tpda3::Devel::Render->get_template_for('fail-test') };
-
-ok( -d Tpda3::Devel::Render::get_output_path_for('config'),
-    'output path for config' );
 
 ok( -d Tpda3::Devel::Render::get_output_path_for('screen'),
     'output path for screen' );
@@ -29,17 +23,18 @@ dies_ok { Tpda3::Devel::Render->get_output_path_for('fail-test') };
 
 # Render
 
+my %cfg =  ();
+
 my %data = (
-    maintable   => '',
-    deptable    => '',
-    screenname  => 'scrtest',
-    screendescr => 'Screen Test',
-    pkfields    => '',
-    fkfields    => '',
-    columns     => '',
+    copy_author => 'Ștefan Suciu',
+    copy_email  => 'stefan at s2i2 .ro',
+    copy_year   => '2012',
+    module      => 'ScrTest',
+    screen      => 'scrtest',
+    columns     => $cfg{maintable}{columns},
 );
 
-ok( Tpda3::Devel::Render->render( 'config', 'scrtest.conf', \%data ),
-    'render config file' );
+ok( Tpda3::Devel::Render->render( 'screen', 'ScrTest.pm', \%data ),
+    'render screen module file' );
 
 # done

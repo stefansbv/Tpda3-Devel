@@ -4,14 +4,12 @@ use 5.008009;
 use strict;
 use warnings;
 
-use Cwd;
-use File::Spec::Functions;
 use Config::General;
 use Tie::IxHash::Easy;
 use List::Compare;
-use Template;
 
-require Tpda3::Devel::Info::App;
+require Tpda3::Devel::Info::Table;
+require Tpda3::Devel::Render;
 
 =head1 NAME
 
@@ -31,16 +29,16 @@ Quick summary of what the module does.
 
 Perhaps a little code snippet.
 
-    use Tpda3::Devel::Config;
+    require Tpda3::Devel::Render::Config;
 
-    my $foo = Tpda3::Devel::Config->new();
+    my $foo = Tpda3::Devel::Render::Config->new();
 
 =head1 EXPORT
 
 A list of functions that can be exported.  You can delete this section
 if you don't export anything, such as for a purely object-oriented module.
 
-=head1 SUBROUTINES/METHODS
+=head1 METHODS
 
 =head2 new
 
@@ -94,24 +92,23 @@ sub _init {
     return;
 }
 
-=head2 generate_config
+=head2 prepare_config_data
 
 Prepare data for the screen configuration file.
 
 =cut
 
-sub generate_config {
+sub prepare_config_data {
     my ($self) = @_;
 
     my $table  = $self->{opt}{table};
     my $module = $self->{opt}{module};
 
-    require Tpda3::Devel::Info::Table;
     my $dti = Tpda3::Devel::Info::Table->new();
 
     my $table_info = $dti->table_info($table);
-    my $maintable  = $self->generate_config_main($table_info);
-    my $deptable   = $self->generate_config_dep($table);
+    my $maintable  = $self->prepare_config_data_main($table_info);
+    my $deptable   = $self->prepare_config_data_dep($table);
 
     my $pkfields = $table_info->{pk_keys};
     my $fields   = $table_info->{fields};
@@ -129,16 +126,16 @@ sub generate_config {
     );
 
     # Assemble using a template
-    return $self->apply_template(\%data);
+    return $self->render_config(\%data);
 }
 
-=head2 generate_config_main
+=head2 prepare_config_data_main
 
 Generate the L<maintable> section of the config file.
 
 =cut
 
-sub generate_config_main {
+sub prepare_config_data_main {
     my ($self, $table_info) = @_;
 
     my $table = $table_info->{name};
@@ -181,13 +178,13 @@ sub generate_config_main {
     return $conf->save_string($rec);
 }
 
-=head2 generate_config_dep
+=head2 prepare_config_data_dep
 
 Generate the L<deptable> section of the config file.
 
 =cut
 
-sub generate_config_dep {
+sub prepare_config_data_dep {
     my ($self, $table) = @_;
 
     # Connect to database
@@ -253,7 +250,7 @@ sub generate_config_dep {
             readwrite => 'rw',
             tag       => 'ro_center',
             numscale  => $self->numscale( $v->{scale} ),
-            datatype   => $self->datatype($type),
+            datatype  => $self->datatype($type),
         };
     }
     print " done\n";
@@ -261,73 +258,24 @@ sub generate_config_dep {
     return $conf->save_string($rec);
 }
 
-=head2 apply_template
+=head2 render_config
 
 Generate a module configuration file.
 
+Parameters:
+
+The screen configuration file name and the configuration data.
+
 =cut
 
-sub apply_template {
+sub render_config {
     my ($self, $data) = @_;
 
     my $scr_cfg_name = lc $self->{opt}{module} . '.conf';
 
-    my ($outputh_path, $scr_cfg_file);
-    if ( $self->{opt}{force} ) {
-        $outputh_path = '.';
-        $scr_cfg_file = $scr_cfg_name;
-    }
-    else {
-        $outputh_path = $self->screen_cfg_path();
+    Tpda3::Devel::Render->render( 'config', $scr_cfg_name, $data );
 
-        # Check if output file exists
-        $scr_cfg_file = $self->screen_cfg_file();
-        if ( -f $scr_cfg_file ) {
-            print "\n Won't owerwrite existing file:\n '$scr_cfg_file'\n";
-            print " unless --force is in efect,\n";
-            print "\tbut that's not an option ;)\n\n";
-            return $scr_cfg_file;
-        }
-    }
-
-    print "\n Output goes to\n '$outputh_path'\n";
-    print " File is '$scr_cfg_file'\n";
-
-    my $tt = Template->new(
-        INCLUDE_PATH => $self->{opt}{templ_path},
-        OUTPUT_PATH  => $outputh_path,
-    );
-
-    $tt->process( 'config.tt', $data, $scr_cfg_name, binmode => ':utf8' )
-        or die $tt->error(), "\n";
-
-    return $scr_cfg_file;
-}
-
-=head2 screen_cfg_path
-
-Screen configurations path.
-
-=cut
-
-sub screen_cfg_path {
-    my $self = shift;
-
-    return Tpda3::Devel::Info::App->get_scrcfg_path()
-}
-
-=head2 screen_cfg_file
-
-Screen configuration file name.
-
-=cut
-
-sub screen_cfg_file {
-    my $self = shift;
-
-    my $scr_cfg_file = lc $self->{opt}{config} . '.conf';
-
-    return catfile( $self->screen_cfg_path, $scr_cfg_file );
+    return $scr_cfg_name;
 }
 
 =head1 DEFAULTS
@@ -426,7 +374,7 @@ Please report any bugs or feature requests to the autor.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc Tpda3::Devel::Config
+    perldoc Tpda3::Devel::Render::Config
 
 =head1 ACKNOWLEDGEMENTS
 
@@ -452,4 +400,4 @@ if not, write to the Free Software Foundation, Inc.,
 
 =cut
 
-1; # End of Tpda3::Devel::Config
+1; # End of Tpda3::Devel::Render::Config
