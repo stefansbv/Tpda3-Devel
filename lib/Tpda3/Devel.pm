@@ -9,7 +9,6 @@ use Data::Dumper;
 use Getopt::Long;
 use Pod::Usage;
 use Term::ReadKey;
-use File::ShareDir qw(dist_dir);
 use File::Spec::Functions;
 
 require Tpda3::Devel::Info::Config;
@@ -124,30 +123,30 @@ sub get_options {
     $parser->getoptions( %{$getopt_specs} ) or
         die( 'See tpda3d --help, tpda3d --man for usage.' );
 
-    # Where are module-level shared data files kept
-    my $templ_path = catdir( dist_dir('Tpda3-Devel'), 'templates');
+    # # Where are module-level shared data files kept
+    # my $templ_path = catdir( dist_dir('Tpda3-Devel'), 'templates');
 
     my $cfname = $ARGV[0];                # runtime configuration name
 
-    my %defaults = (
-        cfname     => $cfname,
-        max_len    => 30,
-        templ_path => $templ_path,    # TT templates path
-    );
+    # my %defaults = (
+    #     cfname     => $cfname,
+    #     max_len    => 30,
+    #     templ_path => $templ_path,    # TT templates path
+    # );
 
-    # Screen config file name - default is table name
-    $opt{config} = $opt{table}
-        if $opt{table} and !$opt{config};
+    # # Screen config file name - default is table name
+    # $opt{config} = $opt{table}
+    #     if $opt{table} and !$opt{config};
 
-    # Screen module file name - default is config name
-    $opt{module} = ucfirst $opt{config}
-        if $opt{config} and !$opt{module};
+    # # Screen module file name - default is config name
+    # $opt{module} = ucfirst $opt{config}
+    #     if $opt{config} and !$opt{module};
 
-    while ( my ( $key, $value ) = each %defaults ) {
-        unless ( defined $opt{$key} ) {
-            $opt{$key} = $value;
-        }
-    }
+    # while ( my ( $key, $value ) = each %defaults ) {
+    #     unless ( defined $opt{$key} ) {
+    #         $opt{$key} = $value;
+    #     }
+    # }
 
     return \%opt;
 }

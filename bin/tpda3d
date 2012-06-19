@@ -48,8 +48,9 @@ sub check_options {
 
 =head1 NAME
 
-Tpda3-Devel - Create a screen module and it's configuration or update
-an existing screen configuration.
+Create a new Tpda3 application or a new screen module and it's
+coresponding screen configuration or update an existing screen
+configuration.
 
 =head1 SYNOPSIS
 

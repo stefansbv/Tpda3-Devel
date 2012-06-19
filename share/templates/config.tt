@@ -19,25 +19,6 @@
 
 # Column names in the 'List' tab table, chosen from the field names
 # from the main table view. The order is preserved.
-#
-# The 'lookup' label is used as returning column value from the List
-# when the selected record is loaded in the screen. There can be up to
-# 2 lookup labels.
-#
-# The 'column' labels are used to show relevant information for the user.
-# Their number is limitted to the number of columns of the view.
-#
-# In the example there is only one 'lookup' label, so it must be
-# surrounded by [] and many 'column' labels, without []:
-#
-# <list_header>
-#   lookup               = [ ordernumber ]
-#   column               = customername
-#   column               = orderdate
-#   column               = requireddate
-#   column               = shippeddate
-# </list_header>
-#
 <list_header>
 [%- IF pkfields.size == 1 -%]
  [% FOREACH pk IN pkfields %]
@@ -67,7 +48,11 @@
 # Table attributes
 # Main table
 # PK and FK columns attributes: "state = disabled"
-[% maintable -%]
+[% IF deptable -%]
+[% maintable %]
+[%- ELSE -%]
+<maintable/>
+[% END -%]
 
 # Dependent tables with TableMatrix label
 [% IF deptable -%]

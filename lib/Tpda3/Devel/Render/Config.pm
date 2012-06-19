@@ -285,7 +285,7 @@ sub apply_template {
         if ( -f $scr_cfg_file ) {
             print "\n Won't owerwrite existing file:\n '$scr_cfg_file'\n";
             print " unless --force is in efect,\n";
-            print "\tbut that's not an option yet ;)\n\n";
+            print "\tbut that's not an option ;)\n\n";
             return $scr_cfg_file;
         }
     }
