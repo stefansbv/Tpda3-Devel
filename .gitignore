@@ -19,3 +19,4 @@ TAGS
 cover_db/
 lib/Tpda3/Tk/App/NewApp/ScrTest.pm
 share/apps/newapp/scrtest.conf
+lib/Tpda3/Tk/App/NewApp.pm

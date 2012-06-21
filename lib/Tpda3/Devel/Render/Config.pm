@@ -327,7 +327,7 @@ sub len {
     my ($self, $len) = @_;
 
     $len ||= 10;
-    my $max_len = $self->{opt}{max_len};
+    my $max_len = 30;                   # max length, hardwired config
 
     return ($len > $max_len) ? $max_len : $len;
 }

@@ -1,6 +1,6 @@
 #!perl
 #
-# Generate PerlTk Screen modules for Tpda3 applications.
+# Tpda3 Application Development.
 #
 
 use strict;
@@ -26,8 +26,7 @@ sub main {
 
 =head2 check_options
 
-Check and process info options first, then check for options that
-exclude ...
+Check if list option and execute.
 
 =cut
 
@@ -39,29 +38,25 @@ sub check_options {
         Tpda3::Devel::Info::Config->new->list_configs;
         exit;
     }
-
-    if ( $opt->{generate} and $opt->{update} ) {
-        print "Error: -G or -U, not both! \n";
-        exit;
-    }
 }
 
 =head1 NAME
 
-Create a new Tpda3 application or a new screen module and it's
-coresponding screen configuration or update an existing screen
-configuration.
+Tpda3 Application Development.
 
 =head1 SYNOPSIS
 
-   tpda3d <app-cfg> -G
+Generate a new Tpda3 application:
 
-Generate a new Tpda3 application directory tree:
+   tpda3d <app-name>
 
-   tpda3d <app-cfg> -U -M [<module-name>]
+Generate a new Tpda3 screen:
 
-Generate a new screen and the coresponding configuration file, if one
-doesn't exists.
+   tpda3d -G <scr-name> -t table [-c scr-cfg]
+
+Update a Tpda3 screen config:
+
+   tpda3d <app-cfg> -G -c scr-cfg
 
 Info:
 
@@ -70,18 +65,45 @@ Info:
 
 =head1 DESCRIPTION
 
-This is a utility program for Tpda3.
+Utility program to create or extend Tpda3 application modules.
+
+The current mode is automagicaly determined by checking if two paths
+exists relative to the CWD: L<< lib/Tpda3/Tk/App >> and L<< share/apps >>.  If
+the paths exists then enters in update mode, else in create mode.
+
+=head2 Create mode
+
+Create a new Tpda3 application module directory tree from template.
+
+=head2 Update mode
+
+Updates an existing application.  Create a new screen module and the
+coresponding screen configuration, or update an existing screen
+configuration to the current version.
 
 Extract table informations from a database and create a basic screen
 configuration file and a PerlTk screen module file.
+
+The parameters are:
+
+=over
+
+=item  <scr-name>     required, the name of the new screen module
+
+=item  <table>        required, the name of the main table
+
+=item  [scr-cfg]      optional, the name of the screen config
+
+=back
+
+If the screen config name is not provided then is set to lower case of
+the screen name.
 
 =head1 CONFIGURATION AND ENVIRONMENT
 
 Requirements:
 
-    Tpda3 v0.46 and a Tpda3 application source.
-
-    (The Tpda3 Test application ClassicModels can be used for testing)
+    Tpda3 v0.46.
 
 =head1 BUGS AND LIMITATIONS
 

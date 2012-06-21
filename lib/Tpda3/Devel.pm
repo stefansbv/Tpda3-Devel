@@ -3,6 +3,7 @@ package Tpda3::Devel;
 use 5.008009;
 use strict;
 use warnings;
+use Ouch;
 
 use Data::Dumper;
 
@@ -10,12 +11,10 @@ use Getopt::Long;
 use Pod::Usage;
 use Term::ReadKey;
 use File::Spec::Functions;
+use File::ShareDir qw(dist_dir);
 
 require Tpda3::Devel::Info::Config;
-# require Tpda3::Config;
-# require Tpda3::Devel::Config;
-# require Tpda3::Devel::Screen;
-# require Tpda3::Devel::Config::Update;
+require Tpda3::Config::Utils;
 
 =head1 NAME
 
@@ -43,10 +42,6 @@ the screen config exists use it.
 Update the screen configuration file (to the current version).
 
 =head1 SYNOPSIS
-
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
 
     use Tpda3::Devel;
 
@@ -89,7 +84,7 @@ sub _init {
     };
 
     # Tpda3::Config->instance($args);
-    Tpda3::Devel::Info::Config->new($args);
+#    Tpda3::Devel::Info::Config->new($args);
 
     $self->{opt} = $opt;
 
@@ -98,7 +93,7 @@ sub _init {
 
 =head2 get_options
 
-Parse command line options.
+Parse and return the command line options.
 
 =cut
 
@@ -106,15 +101,13 @@ sub get_options {
 
     my %opt          = ();
     my $getopt_specs = {
-        'G|generate'   => \$opt{generate},
-        'U|update'     => \$opt{update},
-        'c|config=s'   => \$opt{config},
-        'M|module=s'   => \$opt{module},
-        't|table:s'    => \$opt{table},
+        'G|module:s'   => \$opt{module},
+        'c|config=s'   => \$opt{scrcfg},
+        't|table=s'    => \$opt{table},
         'u|user=s'     => \$opt{user},
         'p|password=s' => \$opt{pass},
         'l|list:s'     => \$opt{list},
-        'help|?:s'     => sub { usage(1) },
+        'help|?'       => sub { usage(1) },
         'm|man'        => sub { usage(2) },
     };
 
@@ -123,30 +116,11 @@ sub get_options {
     $parser->getoptions( %{$getopt_specs} ) or
         die( 'See tpda3d --help, tpda3d --man for usage.' );
 
-    # # Where are module-level shared data files kept
-    # my $templ_path = catdir( dist_dir('Tpda3-Devel'), 'templates');
+    $opt{cfname} = $ARGV[0];   # the first parameter interpreted as
+                               # cfname or application name
 
-    my $cfname = $ARGV[0];                # runtime configuration name
-
-    # my %defaults = (
-    #     cfname     => $cfname,
-    #     max_len    => 30,
-    #     templ_path => $templ_path,    # TT templates path
-    # );
-
-    # # Screen config file name - default is table name
-    # $opt{config} = $opt{table}
-    #     if $opt{table} and !$opt{config};
-
-    # # Screen module file name - default is config name
-    # $opt{module} = ucfirst $opt{config}
-    #     if $opt{config} and !$opt{module};
-
-    # while ( my ( $key, $value ) = each %defaults ) {
-    #     unless ( defined $opt{$key} ) {
-    #         $opt{$key} = $value;
-    #     }
-    # }
+    # Screen config file name - default is table name
+    $opt{config} = $opt{table} if $opt{table} and !$opt{config};
 
     return \%opt;
 }
@@ -160,25 +134,116 @@ Process.
 sub process {
     my $self = shift;
 
-# print Dumper( $self->{opt} );
+    # Determine the working mode.
 
-    # Check options and parameters
-
-    unless ( $self->{opt}{cfname} ) {
-        usage_info('A configuration name is required!: <app-cfg> parameter.');
-    }
-
-    if ( $self->{opt}{generate} ) {
-        $self->check_params_gen();
-        $self->generate();
-    }
-    elsif ( $self->{opt}{update} ) {
-        $self->check_params_upd();
-        #$self->update();
+    my $mode;
+    if (    Tpda3::Devel::Info::App::check_app_path()
+        and Tpda3::Devel::Info::App::check_cfg_path() )
+    {
+        # Update mode
+        $mode = 'update';
     }
     else {
-        usage_info('Option -G or -U is required!');
+        # Create mode
+        $mode = 'create';
     }
+
+    my $name = $self->{opt}{cfname};
+
+    my $ret =
+         $mode eq q{}       ? 'error'
+       : $mode eq 'create'  ? $self->new_app($name)
+       : $mode eq 'update'  ? $self->update_app($name)
+       :                      die("Unknown mode: '$mode'");
+
+    return;
+}
+
+=head2 new_app
+
+Create new application tree and populate with files from template.
+
+=cut
+
+sub new_app {
+    my ( $self, $module, $app_cfg ) = @_;
+
+    my $moduledir = "Tpda3-$module";
+    my $cfname    = defined($app_cfg) ? $app_cfg : lc($module);
+
+    print " Create module dir.\n";
+    Tpda3::Config::Utils->create_path($moduledir);
+
+    print "Populate module dir.\n";
+    my $sharedir = catdir( dist_dir('Tpda3-Devel'), 'dirtree' );
+    my $sharedir_module = catdir( $sharedir, 'module' );
+    my $sharedir_config = catdir( $sharedir, 'config' );
+
+    File::Copy::Recursive::dircopy( $sharedir_module, $moduledir )
+        or ouch 'CfgInsErr', "Failed to copy module tree to '$moduledir'";
+
+    print " Create configuration path.\n";
+    my $configdir = catdir( $moduledir, 'share', 'apps', $cfname );
+    Tpda3::Config::Utils->create_path($configdir);
+
+    print " Populate config dir.\n";
+    File::Copy::Recursive::dircopy( $sharedir_config, $configdir )
+        or ouch 'CfgInsErr', "Failed to copy module tree to '$configdir'";
+
+    return;
+}
+
+=head2 update_app
+
+Set a submode of the update mode.
+
+=over
+
+=item I<new-scr>     Create new screen and the coresponding config
+
+If the I<-G> option - the screen module name, has a value.
+
+=item I<new-cfg>     Create or update a screen config
+
+If the I<-c> option has a value and the screen config file exists
+update it else create new config.
+
+=back
+
+=cut
+
+sub update_app {
+    my $self = shift;
+
+    my ( $submode, $module );
+    if ( defined $self->{opt}{module} ) {
+
+        # New screen
+        $module ||= q{};    # default empty
+        if ($module) {
+            $submode = 'new-scr';
+        }
+        else {
+            $submode = 'upd-scr';
+        }
+
+    }
+    else {
+
+        # New / Update config
+        $submode = 'upd-scr';
+    }
+
+    print " sub mode $submode\n";
+
+    # # Check for table name
+    # my $table = $self->{opt}{table};
+    # unless ($table) {
+    #     print "A table name is required: -t <table>\n";
+    #     $self->tables_list();
+    #     exit;
+    # }
+    # print "Table name : $table\n";
 
     return;
 }
@@ -202,16 +267,6 @@ Check screen name or set screen name = table name as default
 =cut
 
 sub check_params_gen {
-    my $self = shift;
-
-    # Check for table name
-    my $table = $self->{opt}{table};
-    unless ($table) {
-        print "A table name is required: -t <table>\n";
-        $self->tables_list();
-        exit;
-    }
-    print "Table name : $table\n";
 
 #    Is realy config name required?
 
@@ -308,28 +363,6 @@ sub locate_config {
     return $scr_cfg_file;
 }
 
-=head2 tables_list
-
-List the available table names in alphabetic order.
-
-=cut
-
-sub tables_list {
-    my $self = shift;
-
-    # Gather info from table(s)
-    require Tpda3::Devel::Info::Table;
-    my $dti = Tpda3::Devel::Info::Table->new();
-
-    my $list = $dti->table_list();
-    print " > Tables:\n";
-    foreach my $name ( sort @{$list} ) {
-        print "   - $name\n";
-    }
-
-    return;
-}
-
 =head2 generate_screen
 
 Generate screen module.
@@ -350,46 +383,9 @@ sub generate_screen {
     return;
 }
 
-=head2 read_username
-
-Read use name.
-
-=cut
-
-sub read_username {
-    my $self = shift;
-
-    print 'Enter your username: ';
-
-    my $user = ReadLine(0);
-    chomp $user;
-
-    return $user;
-}
-
-=head2 read_password
-
-Read password.
-
-=cut
-
-sub read_password {
-    my $self = shift;
-
-    print 'Enter your password: ';
-
-    ReadMode('noecho');
-    my $pass = ReadLine(0);
-    print "\n";
-    chomp $pass;
-    ReadMode('normal');
-
-    return $pass;
-}
-
 =head2 version
 
-Print version.
+Print application version.
 
 =cut
 
@@ -402,6 +398,12 @@ sub version {
 
     return;
 }
+
+=head2 usage
+
+Usage.
+
+=cut
 
 sub usage {
     my $verbose = shift;
@@ -431,6 +433,28 @@ sub usage_info {
     usage(1);
 
     exit;
+}
+
+=head2 tables_list
+
+List the available table names in alphabetic order.
+
+=cut
+
+sub tables_list {
+    my $self = shift;
+
+    # Gather info from table(s)
+    require Tpda3::Devel::Info::Table;
+    my $dti = Tpda3::Devel::Info::Table->new();
+
+    my $list = $dti->table_list();
+    print " > Tables:\n";
+    foreach my $name ( sort @{$list} ) {
+        print "   - $name\n";
+    }
+
+    return;
 }
 
 =head1 AUTHOR

@@ -58,7 +58,7 @@ Check and return the application config path.
 
 sub check_cfg_path {
 
-    my $app_cfg_path = catdir( Cwd::cwd(), "share/apps" );
+    my $app_cfg_path = catdir( Cwd::cwd(), 'share/apps' );
 
     if ( -d $app_cfg_path ) {
         return $app_cfg_path;
@@ -73,7 +73,10 @@ sub check_cfg_path {
 
 =head2 get_app_name
 
-Return the current application name
+Return the current application name.
+
+First check if a subdirecrory exists in C<$app_path>, then check if a
+module with the same name exists, if true, return the name.
 
 =cut
 
@@ -87,13 +90,20 @@ sub get_app_name {
 
     my $no = scalar @{$dirlist};
     if ( $no == 0 ) {
-        print "No application found!\n";
+        print "No application path found!\n";
         print " in '$app_path':\n";
         return;
     }
-    else {
-        return $dirlist->[0];                # should be only one
-    }
+
+    my $candidate = $dirlist->[0];           # should be only one
+
+    return unless $candidate;                # no app name!
+
+    my $app_module = catfile($app_path, "$candidate.pm");
+
+    return $candidate if -f $app_module;
+
+    return;                                  # no app name!
 }
 
 =head2 get_cfg_name

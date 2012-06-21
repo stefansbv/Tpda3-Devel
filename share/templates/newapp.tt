@@ -1,13 +1,14 @@
-package [% name %];
+package Tpda3::Tk::App::[% name %];
 
 use strict;
 use warnings;
+use utf8;
 
 use 5.008009;
 
 =head1 NAME
 
-[% name %] - [% description %].
+Tpda3::Tk::App::[% name %] - [% description %].
 
 =head1 VERSION
 
@@ -28,7 +29,7 @@ Used only for the version information.
 =cut
 
 sub application_name {
-    return 'AppName  - Persoane si Activitati';
+    return '[% name %] - [% description %]';
 }
 
 =head1 AUTHOR
@@ -41,7 +42,7 @@ sub application_name {
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc [% name %]
+    perldoc Tpda3::Tk::App::[% name %]
 
 =head1 ACKNOWLEDGEMENTS
 
@@ -65,4 +66,4 @@ if not, write to the Free Software Foundation, Inc.,
 
 =cut
 
-1; # End of [% name %]
+1; # End of Tpda3::Tk::App::[% name %]

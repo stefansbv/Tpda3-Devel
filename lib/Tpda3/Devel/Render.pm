@@ -79,6 +79,7 @@ sub get_template_for {
          $type eq q{}       ? die("Empty type argument")
        : $type eq 'config'  ? 'config.tt'
        : $type eq 'screen'  ? 'screen.tt'
+       : $type eq 'newapp'  ? 'newapp.tt'
        :                      die("Unknown type $type")
        ;
 
@@ -99,31 +100,36 @@ sub get_output_path_for {
 
     my $path =
          $type eq q{}       ? ''
-       : $type eq 'config'  ? screen_cfg_path()
-       : $type eq 'screen'  ? screen_module_path()
+       : $type eq 'config'  ? _screen_cfg_path()
+       : $type eq 'screen'  ? _screen_module_path()
+       : $type eq 'newapp'  ? _newapp_module_path()
        :                      die("Unknown type $type");
 
     return $path;
 }
 
-=head2 screen_cfg_path
+=head2 _screen_cfg_path
 
 Screen configurations path.
 
 =cut
 
-sub screen_cfg_path {
-    return Tpda3::Devel::Info::App->get_scrcfg_path()
+sub _screen_cfg_path {
+    return catdir(Tpda3::Devel::Info::App->get_scrcfg_path(), 'scr');
 }
 
-=head2 screen_screen_path
+=head2 _screen_screen_path
 
 Screen configurations path.
 
 =cut
 
-sub screen_module_path {
-    return Tpda3::Devel::Info::App->get_screen_path()
+sub _screen_module_path {
+    return Tpda3::Devel::Info::App->get_screen_path();
+}
+
+sub _newapp_module_path {
+    return Tpda3::Devel::Info::App->check_app_path();
 }
 
 =head1 AUTHOR

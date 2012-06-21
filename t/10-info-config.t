@@ -1,6 +1,6 @@
 #!perl
 
-# use Data::Dumper;
+#use Data::Dumper;
 use Test::More tests => 5;
 
 BEGIN {
@@ -16,11 +16,11 @@ my $args = {
 };
 
 my $ic  = Tpda3::Devel::Info::Config->new($args);
-my $icd = $ic->config_info();
-# diag Dumper( $icd );
+my $info = $ic->config_info();
+#diag Dumper( $info );
 
-like($icd->{apps_dir}, qr/\.tpda3\/apps$/, 'check apps_dir');
-is($icd->{name}, 'test-tk', 'check config name');
-is($icd->{module}, 'Test', 'check app module name');
+like($info->{apps_dir}, qr/\.tpda3\/apps$/, 'check apps_dir');
+is($info->{name}, 'test-tk', 'check config name');
+is($info->{module}, 'Test', 'check app module name');
 
 # done

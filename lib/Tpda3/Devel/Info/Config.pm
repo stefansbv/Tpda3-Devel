@@ -4,10 +4,13 @@ use 5.008009;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 use File::Basename;
 use File::Spec::Functions;
 
 require Tpda3::Config;
+require Tpda3::Devel::Info::App;
 
 =head1 NAME
 
@@ -41,9 +44,22 @@ sub new {
 
     bless $self, $class;
 
-    Tpda3::Config->instance($opt);
+    $self->_init($opt);
 
     return $self;
+}
+
+sub _init {
+    my ($self, $opt) = @_;
+
+    unless ( exists $opt->{cfname} and $opt->{cfname} ) {
+        # Try to guess the config name
+        $opt->{cfname} = Tpda3::Devel::Info::App::get_cfg_name();
+    }
+
+    Tpda3::Config->instance($opt);
+
+    return;
 }
 
 =head2 config_info

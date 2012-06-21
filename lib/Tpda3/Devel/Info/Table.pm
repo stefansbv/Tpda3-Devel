@@ -30,7 +30,6 @@ Return database table related info.
 
 =head1 METHODS
 
-
 =head2 new
 
 =cut
