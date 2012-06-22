@@ -1,9 +1,6 @@
 #
 # Tpda3::Db test script
 #
-# From Class::Singleton test script
-#   by Andy Wardley <abw@wardley.org>
-
 use strict;
 use warnings;
 
@@ -14,9 +11,9 @@ use lib qw( lib ../lib );
 use Tpda3::Config;
 
 my $args = {
-    cfname => 'appname',
-    user   => 'user',
-    pass   => 'pass',
+    cfname => [% appname %],
+    user   => undef,
+    pass   => undef,
 };
 
 my $c1 = Tpda3::Config->instance($args);
