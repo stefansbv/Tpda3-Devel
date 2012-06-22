@@ -48,7 +48,7 @@ sub new {
 
     bless $self, $class;
 
-    $self->{opt} = $opt;
+    $self->{param} = $opt;
 
     return $self;
 }
@@ -62,13 +62,16 @@ Generate screen module.
 sub generate_screen {
     my ($self, $file) = @_;
 
-    my $screen = $self->{opt}{module};
+    my $screen = $self->{param}{module};
 
-    my $dci = Tpda3::Devel::Info::Config->new($self->{opt});
+    die unless $screen;
+
+    my $dci = Tpda3::Devel::Info::Config->new($self->{param});
     my $cfg = $dci->config_info();
     my $module = $cfg->{cfg_module};
 
-    my $config_file = Tpda3::Devel::Info::App->get_scrcfg_file($file);
+    my $app_info = Tpda3::Devel::Info::App->new();
+    my $config_file = $app_info->get_scrcfg_file($file);
 
     tie my %cfg, "Tie::IxHash";     # keep the sections order
 
@@ -87,10 +90,10 @@ sub generate_screen {
         columns     => $cfg{maintable}{columns},
     );
 
-    my $module      = ucfirst $self->{opt}{module} . '.pm';
-    my $output_path = Tpda3::Devel::Info::App->get_screen_module_path();
+    my $module_file = ucfirst $self->{param}{module} . '.pm';
+    my $output_path = $app_info->get_screen_module_path();
 
-    Tpda3::Devel::Render->render( 'screen', $module, \%data, $output_path );
+    Tpda3::Devel::Render->render( 'screen', $module_file, \%data, $output_path );
 
     return;
 }

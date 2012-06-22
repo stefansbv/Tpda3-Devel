@@ -3,6 +3,7 @@ package Tpda3::Devel::Render::Config;
 use 5.008009;
 use strict;
 use warnings;
+use utf8;
 
 use Config::General;
 use Tie::IxHash::Easy;
@@ -49,7 +50,7 @@ sub new {
 
     bless $self, $class;
 
-    $self->{opt} = $opt;
+    $self->{param} = $opt;
 
     $self->_init;
 
@@ -97,22 +98,22 @@ Prepare data for the screen configuration file and create new file.
 sub generate_config {
     my $self = shift;
 
-    require Tpda3::Devel::Info::App;
-    $self->{opt}{cfname}
-        = $self->{opt}{cfname}
-        ? $self->{opt}{cfname}
-        : Tpda3::Devel::Info::App::get_cfg_name();
+    my $app_info = Tpda3::Devel::Info::App->new();
+    $self->{param}{cfname}
+        = $self->{param}{cfname}
+        ? $self->{param}{cfname}
+        : $app_info->get_cfg_name();
 
-    die unless $self->{opt}{cfname};
+    die unless $self->{param}{cfname};
 
-    print " Config name is '", $self->{opt}{cfname}, "'\n";
+    print " Config name is '", $self->{param}{cfname}, "'\n";
 
-    my $ic = Tpda3::Devel::Info::Config->new($self->{opt});
+    my $ic = Tpda3::Devel::Info::Config->new($self->{param});
     my $it = Tpda3::Devel::Info::Table->new();
 
-    my $table_info = $it->table_info( $self->{opt}{table} );
+    my $table_info = $it->table_info( $self->{param}{table} );
     my $maintable  = $self->prepare_config_data_main($table_info);
-    my $deptable   = $self->prepare_config_data_dep($self->{opt}{table});
+    my $deptable   = $self->prepare_config_data_dep($self->{param}{table});
 
     my $pkfields = $table_info->{pk_keys};
     my $fields   = $table_info->{fields};
@@ -122,8 +123,8 @@ sub generate_config {
     my %data = (
         maintable   => $maintable,
         deptable    => $deptable,
-        modulename  => $self->{opt}{module},
-        moduledescr => ucfirst $self->{opt}{module},
+        modulename  => $self->{param}{module},
+        moduledescr => ucfirst $self->{param}{module},
         pkfields    => $table_info->{pk_keys},
         fkfields    => $table_info->{fk_keys},
         columns     => $columns,
@@ -275,12 +276,14 @@ The screen configuration file name and the configuration data.
 sub render_config {
     my ($self, $data) = @_;
 
-    my $file_name   = lc $self->{opt}{module} . '.conf';
-    my $output_path = Tpda3::Devel::Info::App->get_scrcfg_path();
+    my $file_name   = lc $self->{param}{module} . '.conf';
+
+    my $app_info = Tpda3::Devel::Info::App->new();
+    my $output_path = $app_info->get_screen_config_path();
 
     Tpda3::Devel::Render->render( 'config', $file_name, $data, $output_path );
 
-    return $scr_cfg_name;
+    return;
 }
 
 =head1 DEFAULTS

@@ -3,6 +3,8 @@ package Tpda3::Devel;
 use 5.008009;
 use strict;
 use warnings;
+
+use Data::Dumper;
 use Ouch;
 use utf8;
 
@@ -11,10 +13,15 @@ use Pod::Usage;
 use Term::ReadKey;
 use File::Spec::Functions;
 use File::ShareDir qw(dist_dir);
+use File::Copy::Recursive;
 
 require Tpda3::Devel::Info::App;
 require Tpda3::Devel::Info::Config;
 require Tpda3::Config::Utils;
+require Tpda3::Devel::Info::Table;
+require Tpda3::Devel::Render::NewApp;
+require Tpda3::Devel::Render::Config;
+require Tpda3::Devel::Render::Screen;
 
 =head1 NAME
 
@@ -83,7 +90,7 @@ sub _init {
         pass   => $pass,
     };
 
-    $self->{opt} = $opt;
+    $self->{param} = $opt;
 
     return;
 }
@@ -133,22 +140,31 @@ I<create> mode and execute the appropriate method.
 sub process_command {
     my $self = shift;
 
-    my $name = $self->{opt}{cfname};
+    my $name = $self->{param}{cfname};
 
+    my $app_info = Tpda3::Devel::Info::App->new();
     my $mode;
-    if (    Tpda3::Devel::Info::App->check_app_path()
-        and Tpda3::Devel::Info::App->check_cfg_path() )
+    if (    $app_info->check_app_path()
+        and $app_info->check_cfg_path() )
     {
+
         #  Update mode
         print "Update mode\n";
         $self->update_app($name);
         return;
     }
     else {
+
         # Create mode
         print "Create mode\n";
         die "New app - required parameter: <name> \n" unless $name;
-        $self->new_app($name);
+        $self->{param}{appname} = $name;
+        $self->{param}{appconf}
+            = $self->{param}{config}
+            ? $self->{param}{config}
+            : lc($name);    # app-cfg defaults to lc(app-name)
+
+        $self->new_app();
         return;
     }
 
@@ -164,10 +180,15 @@ Create new application tree and populate with files from template.
 =cut
 
 sub new_app {
-    my ( $self, $module, $app_cfg ) = @_;
+    my $self = shift;
+
+    my $module  = $self->{param}{appname};
+    my $appconf = $self->{param}{appconf};
 
     my $moduledir = "Tpda3-$module";
-    my $cfname    = defined($app_cfg) ? $app_cfg : lc($module);
+
+    ouch 'Abort', "Application '$moduledir' already exists!"
+        if -d $moduledir;    # do not overwrite!
 
     print " Create module dir '$moduledir'.\n";
     Tpda3::Config::Utils->create_path($moduledir);
@@ -177,16 +198,27 @@ sub new_app {
     my $sharedir_module = catdir( $sharedir, 'module' );
     my $sharedir_config = catdir( $sharedir, 'config' );
 
+    $File::Copy::Recursive::KeepMode = 0;
+
     File::Copy::Recursive::dircopy( $sharedir_module, $moduledir )
         or ouch 'CfgInsErr', "Failed to copy module tree to '$moduledir'";
 
-    print " Create configuration path.\n";
-    my $configdir = catdir( $moduledir, 'share', 'apps', $cfname );
+    print " Create configuration path '$appconf'.\n";
+    my $configdir = catdir( $moduledir, 'share', 'apps', $appconf );
     Tpda3::Config::Utils->create_path($configdir);
+    print " $configdir\n";
 
     print " Populate config dir.\n";
     File::Copy::Recursive::dircopy( $sharedir_config, $configdir )
         or ouch 'CfgInsErr', "Failed to copy module tree to '$configdir'";
+
+    print " Make application module. '$module'\n";
+    my $newapp = Tpda3::Devel::Render::NewApp->new( $self->{param} );
+    my $libapp_path = $newapp->generate_newapp();
+
+    my $scrmoduledir = catdir($libapp_path, $module);
+    print " Create screens module dir '$scrmoduledir'.\n";
+    Tpda3::Config::Utils->create_path($scrmoduledir);
 
     return;
 }
@@ -211,8 +243,8 @@ update it else create new config.
 sub update_app {
     my $self = shift;
 
-    if ( defined $self->{opt}{module} ) {
-        my $module  = $self->{opt}{module};
+    if ( defined $self->{param}{module} ) {
+        my $module  = $self->{param}{module};
         print " New screen:\n";
         die "Abort."
             unless $self->check_required_params( 'module', 'table',
@@ -220,7 +252,7 @@ sub update_app {
         $self->command_generate();
     }
 
-    if ( defined $self->{opt}{update} ) {
+    if ( defined $self->{param}{update} ) {
         print " Update screen config:\n";
         die "Abort." unless $self->check_required_params('config');
     }
@@ -240,7 +272,7 @@ sub check_required_params {
     my $check = 0;
     my $count = 0;
     foreach my $para (@req) {
-        if ( exists $self->{opt}{$para} and $self->{opt}{$para} ) {
+        if ( exists $self->{param}{$para} and $self->{param}{$para} ) {
             $check++;
         }
         else {
@@ -265,9 +297,8 @@ sub help_config {
     my $self = shift;
 
     # Check config name
-    my $config = $self->{opt}{config};
+    my $config = $self->{param}{config};
     unless ($config) {
-        require Tpda3::Devel::Info::Config;
         Tpda3::Devel::Info::Config->new->list_config_files();
     }
 
@@ -290,15 +321,13 @@ sub command_generate {
         print "Use existing screen config file: $config_file\n";
     }
     else {
-        require Tpda3::Devel::Render::Config;
-        my $conf = Tpda3::Devel::Render::Config->new( $self->{opt} );
+        my $conf = Tpda3::Devel::Render::Config->new( $self->{param} );
         $config_file = $conf->generate_config();
     }
 
     #-- Make screen module
 
-    require Tpda3::Devel::Render::Screen;
-    my $scr    = Tpda3::Devel::Render::Screen->new( $self->{opt} );
+    my $scr    = Tpda3::Devel::Render::Screen->new( $self->{param} );
     my $screen = $scr->generate_screen($config_file);
 
     return;
@@ -313,7 +342,7 @@ Update a screen config.
 sub command_update {
     my $self = shift;
 
-    Tpda3::Devel::Config::Update->new( $self->{opt} )->config_update();
+    Tpda3::Devel::Config::Update->new( $self->{param} )->config_update();
 
     return;
 }
@@ -327,8 +356,9 @@ Try to locate an existing config file and return the name if found.
 sub locate_config {
     my ($self, $cfg) = @_;
 
-    my $scrcfg_name = lc $self->{opt}{module} . '.conf';
-    my $scrcfg_file = Tpda3::Devel::Info::App->get_scrcfg_file($scrcfg_name);
+    my $app_info = Tpda3::Devel::Info::App->new();
+    my $scrcfg_name = lc $self->{param}{module} . '.conf';
+    my $scrcfg_file = $app_info->get_scrcfg_file($scrcfg_name);
 
     return $scrcfg_name if -f $scrcfg_file;
 
@@ -397,7 +427,6 @@ sub tables_list {
     my $self = shift;
 
     # Gather info from table(s)
-    require Tpda3::Devel::Info::Table;
     my $dti = Tpda3::Devel::Info::Table->new();
 
     my $list = $dti->table_list();

@@ -52,7 +52,8 @@ sub _init {
 
     unless ( exists $opt->{cfname} and $opt->{cfname} ) {
         # Try to guess the config name
-        $opt->{cfname} = Tpda3::Devel::Info::App::get_cfg_name();
+        my $app_info = Tpda3::Devel::Info::App->new();
+        $opt->{cfname} = $app_info->get_cfg_name();
     }
 
     Tpda3::Config->instance($opt);

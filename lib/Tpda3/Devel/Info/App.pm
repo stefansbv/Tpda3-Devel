@@ -32,6 +32,18 @@ our $VERSION = '0.01';
 
 =head1 METHODS
 
+=head2 new
+
+Constructor.
+
+=cut
+
+sub new {
+    my $class = shift;
+
+    bless {}, $class;
+}
+
 =head2 check_app_path
 
 Check and return the application path.
@@ -46,7 +58,7 @@ sub check_app_path {
         return $app_path;
     }
     else {
-        # warn " No app path!: '$app_path'";
+        warn " No app path!: '$app_path'";
         return;
     }
 }
@@ -85,10 +97,9 @@ module with the same name exists, if true, return the name.
 sub get_app_name {
     my $self = shift;
 
-    my $app_path = check_app_path();
+    my $app_path = $self->check_app_path();
     return unless ($app_path);
 
-    print " $app_path\n";
     my $dirlist = Tpda3::Config::Utils->find_subdirs($app_path);
 
     my $no = scalar @{$dirlist};
@@ -109,6 +120,18 @@ sub get_app_name {
     return;                                  # no app name!
 }
 
+=head2 get_app_module_path
+
+This is not supposed to be called from an application dir.
+
+=cut
+
+sub get_app_module_path {
+    my ($self, $module) = @_;
+
+    return catdir( "Tpda3-$module", 'lib/Tpda3/Tk/App' );
+}
+
 =head2 get_cfg_name
 
 Return the current application config name.
@@ -118,7 +141,7 @@ Return the current application config name.
 sub get_cfg_name {
     my $self = shift;
 
-    my $app_cfg_path = check_cfg_path();
+    my $app_cfg_path = $self->check_cfg_path();
     return unless ($app_cfg_path);
 
     my $dirlist = Tpda3::Config::Utils->find_subdirs($app_cfg_path);
@@ -142,37 +165,37 @@ Return the application screen modules path.
 sub get_screen_module_path {
     my $self = shift;
 
-    my $app_path = check_app_path();
-    my $app_name = get_app_name();
+    my $app_path = $self->check_app_path();
+    my $app_name = $self->get_app_name();
 
     return catdir($app_path, $app_name);
 }
 
-=head2 get_scrcfg_path
+=head2 get_screen_config_path
 
 Get the application screen config path.
 
 =cut
 
-sub get_scrcfg_path {
+sub get_screen_config_path {
     my $self = shift;
 
-    my $cfg_path = check_cfg_path();
-    my $cfg_name = get_cfg_name();
+    my $cfg_path = $self->check_cfg_path();
+    my $cfg_name = $self->get_cfg_name();
 
     return catdir($cfg_path, 'scr', $cfg_name);
 }
 
-=head2 get_scrcfg_file
+=head2 get_screen_config_file
 
 Get the application screen config fully qualified path.
 
 =cut
 
-sub get_scrcfg_file {
+sub get_screen_config_file {
     my ($self, $file) = @_;
 
-    return catfile( $self->get_scrcfg_path, $file );
+    return catfile( $self->get_screen_config_path, $file );
 }
 
 =head1 AUTHOR

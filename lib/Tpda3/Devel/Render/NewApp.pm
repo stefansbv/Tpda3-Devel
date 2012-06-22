@@ -3,6 +3,7 @@ package Tpda3::Devel::Render::NewApp;
 use 5.008009;
 use strict;
 use warnings;
+use utf8;
 
 require Tpda3::Devel::Info::App;
 require Tpda3::Devel::Render;
@@ -42,7 +43,7 @@ sub new {
 
     bless $self, $class;
 
-    $self->{opt} = $opt;
+    $self->{param} = $opt;
 
     return $self;
 }
@@ -54,9 +55,11 @@ Generate screen module.
 =cut
 
 sub generate_newapp {
-    my ($self) = @_;
+    my $self = shift;
 
-    my $module = $self->{opt}{module};
+    my $module = $self->{param}{appname};
+
+    die "Need a module name!" unless $module;
 
     # TODO: Make user (developer) config with this data
     my %data = (
@@ -67,11 +70,12 @@ sub generate_newapp {
         copy_year   => '2012',
     );
 
-    my $output_path = Tpda3::Devel::Info::App->check_app_path();
+    my $app_info = Tpda3::Devel::Info::App->new();
+    my $output_path = $app_info->get_app_module_path($module);
 
-    Tpda3::Devel::Render->render( 'newapp', $module, \%data, $output_path );
+    Tpda3::Devel::Render->render( 'newapp', "$module.pm", \%data, $output_path );
 
-    return;
+    return $output_path;
 }
 
 =head1 AUTHOR
