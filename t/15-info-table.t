@@ -3,10 +3,7 @@
 #use Data::Dumper;
 use Test::More tests => 9;
 
-BEGIN {
-    use_ok( 'Tpda3::Devel' ) || print "Bail out!\n";
-}
-
+use_ok('Tpda3::Devel');
 use_ok('Tpda3::Devel::Info::Config');
 use_ok('Tpda3::Devel::Info::Table');
 

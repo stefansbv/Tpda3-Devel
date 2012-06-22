@@ -39,13 +39,14 @@ Check and return the application path.
 =cut
 
 sub check_app_path {
+    my $self = shift;
 
     my $app_path = catdir( Cwd::cwd(), 'lib/Tpda3/Tk/App' );
     if ( -d $app_path ) {
         return $app_path;
     }
     else {
-        warn " No app path!: '$app_path'";
+        # warn " No app path!: '$app_path'";
         return;
     }
 }
@@ -57,6 +58,7 @@ Check and return the application config path.
 =cut
 
 sub check_cfg_path {
+    my $self = shift;
 
     my $app_cfg_path = catdir( Cwd::cwd(), 'share/apps' );
 
@@ -64,7 +66,7 @@ sub check_cfg_path {
         return $app_cfg_path;
     }
     else {
-        warn " No cfg path!: '$app_cfg_path'";
+        # warn " No cfg path!: '$app_cfg_path'";
         return;
     }
 
@@ -81,6 +83,7 @@ module with the same name exists, if true, return the name.
 =cut
 
 sub get_app_name {
+    my $self = shift;
 
     my $app_path = check_app_path();
     return unless ($app_path);
@@ -113,6 +116,7 @@ Return the current application config name.
 =cut
 
 sub get_cfg_name {
+    my $self = shift;
 
     my $app_cfg_path = check_cfg_path();
     return unless ($app_cfg_path);
@@ -129,13 +133,14 @@ sub get_cfg_name {
     }
 }
 
-=head2 get_screen_path
+=head2 get_screen_module_path
 
 Return the application screen modules path.
 
 =cut
 
-sub get_screen_path {
+sub get_screen_module_path {
+    my $self = shift;
 
     my $app_path = check_app_path();
     my $app_name = get_app_name();
@@ -150,11 +155,24 @@ Get the application screen config path.
 =cut
 
 sub get_scrcfg_path {
+    my $self = shift;
 
     my $cfg_path = check_cfg_path();
     my $cfg_name = get_cfg_name();
 
-    return catdir($cfg_path, $cfg_name);
+    return catdir($cfg_path, 'scr', $cfg_name);
+}
+
+=head2 get_scrcfg_file
+
+Get the application screen config fully qualified path.
+
+=cut
+
+sub get_scrcfg_file {
+    my ($self, $file) = @_;
+
+    return catfile( $self->get_scrcfg_path, $file );
 }
 
 =head1 AUTHOR

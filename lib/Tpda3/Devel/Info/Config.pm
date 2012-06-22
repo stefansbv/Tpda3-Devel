@@ -4,8 +4,6 @@ use 5.008009;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use File::Basename;
 use File::Spec::Functions;
 
@@ -103,7 +101,13 @@ sub list_configs {
     return;
 }
 
-sub list_config_files {
+=head2 list_scrcfg_files
+
+List the available screen configuration files.
+
+=cut
+
+sub list_scrcfg_files {
     my $self = shift;
 
     Tpda3::Config->instance()->list_config_files;

@@ -21,7 +21,7 @@ sub main {
 
     check_options($opt);
 
-    Tpda3::Devel->new($opt)->process();
+    Tpda3::Devel->new($opt)->process_command();
 }
 
 =head2 check_options
@@ -48,15 +48,15 @@ Tpda3 Application Development.
 
 Generate a new Tpda3 application:
 
-   tpda3d <app-name>
+   tpda3d <app-name> [-c <app-cfg>]
 
-Generate a new Tpda3 screen:
+Generate a new Tpda3 screen module and screen configuration:
 
-   tpda3d -G <scr-name> -t table [-c scr-cfg]
+   tpda3d [<app-cfg>] -M <scr-name> -t <table> [-c <scr-cfg>]
 
-Update a Tpda3 screen config:
+Update a Tpda3 screen configuration:
 
-   tpda3d <app-cfg> -G -c scr-cfg
+   tpda3d [<app-cfg>] -U -c <scr-cfg>
 
 Info:
 

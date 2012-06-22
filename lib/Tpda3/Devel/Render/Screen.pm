@@ -3,12 +3,15 @@ package Tpda3::Devel::Render::Screen;
 use 5.008009;
 use strict;
 use warnings;
+use utf8;
 
 use Config::General qw{ParseConfig};
 use File::Spec::Functions;
+use Tie::IxHash;
 
-require Tpda3::Devel::Render;
+require Tpda3::Devel::Info::App;
 require Tpda3::Devel::Info::Config;
+require Tpda3::Devel::Render;
 
 =head1 NAME
 
@@ -57,27 +60,20 @@ Generate screen module.
 =cut
 
 sub generate_screen {
-    my ($self, $config_path) = @_;
+    my ($self, $file) = @_;
 
-    my $screen = $self->{opt}{screen};
+    my $screen = $self->{opt}{module};
 
     my $dci = Tpda3::Devel::Info::Config->new($self->{opt});
     my $cfg = $dci->config_info();
     my $module = $cfg->{cfg_module};
 
-    my $cwd = Cwd::cwd();
-    my $scrd = "lib/Tpda3/Tk/App/${module}";
-    my $scrd_path = catdir( $cwd, $scrd ); # screen module path
-    if (!-d $scrd_path) {
-        print "\n Can't write the new screen to\n '$scrd_path'\n";
-        print " No such path!\n";
-        die "\n\n  !!! Run '$0' from an Tpda3 application source dir !!!\n\n";
-    }
+    my $config_file = Tpda3::Devel::Info::App->get_scrcfg_file($file);
 
     tie my %cfg, "Tie::IxHash";     # keep the sections order
 
     %cfg = ParseConfig(
-        -ConfigFile => $config_path,
+        -ConfigFile => $config_file,
         -Tie        => 'Tie::IxHash',
     );
 
@@ -91,37 +87,12 @@ sub generate_screen {
         columns     => $cfg{maintable}{columns},
     );
 
-    my $screen_module = ucfirst $self->{opt}{screen} . '.pm';
+    my $module      = ucfirst $self->{opt}{module} . '.pm';
+    my $output_path = Tpda3::Devel::Info::App->get_screen_module_path();
 
-    Tpda3::Devel::Render->render( 'screen', $screen_module, \%data );
+    Tpda3::Devel::Render->render( 'screen', $module, \%data, $output_path );
 
     return;
-}
-
-=head2 screen_cfg_path
-
-Screen configurations path.
-
-=cut
-
-sub screen_cfg_path {
-    my $self = shift;
-
-    return Tpda3::Devel::Info::App->get_scrcfg_path();
-}
-
-=head2 screen_cfg_file
-
-Screen configuration file name.
-
-=cut
-
-sub screen_cfg_file {
-    my $self = shift;
-
-    my $scr_cfg_file = lc $self->{opt}{config} . '.conf';
-
-    return catfile( $self->screen_cfg_path, $scr_cfg_file );
 }
 
 =head1 AUTHOR

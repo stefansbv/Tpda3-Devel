@@ -4,8 +4,7 @@ use 5.008009;
 use strict;
 use warnings;
 use Ouch;
-
-use Data::Dumper;
+use utf8;
 
 use Getopt::Long;
 use Pod::Usage;
@@ -13,6 +12,7 @@ use Term::ReadKey;
 use File::Spec::Functions;
 use File::ShareDir qw(dist_dir);
 
+require Tpda3::Devel::Info::App;
 require Tpda3::Devel::Info::Config;
 require Tpda3::Config::Utils;
 
@@ -83,9 +83,6 @@ sub _init {
         pass   => $pass,
     };
 
-    # Tpda3::Config->instance($args);
-#    Tpda3::Devel::Info::Config->new($args);
-
     $self->{opt} = $opt;
 
     return;
@@ -101,7 +98,8 @@ sub get_options {
 
     my %opt          = ();
     my $getopt_specs = {
-        'G|module:s'   => \$opt{module},
+        'M|module:s'   => \$opt{module},
+        'U|update'     => \$opt{update},
         'c|config=s'   => \$opt{scrcfg},
         't|table=s'    => \$opt{table},
         'u|user=s'     => \$opt{user},
@@ -125,36 +123,36 @@ sub get_options {
     return \%opt;
 }
 
-=head2 process
+=head2 process_command
 
-Process.
+If the CWD is in a Tpda3 module dir, switch to I<update> mode, else to
+I<create> mode and execute the appropriate method.
 
 =cut
 
-sub process {
+sub process_command {
     my $self = shift;
-
-    # Determine the working mode.
-
-    my $mode;
-    if (    Tpda3::Devel::Info::App::check_app_path()
-        and Tpda3::Devel::Info::App::check_cfg_path() )
-    {
-        # Update mode
-        $mode = 'update';
-    }
-    else {
-        # Create mode
-        $mode = 'create';
-    }
 
     my $name = $self->{opt}{cfname};
 
-    my $ret =
-         $mode eq q{}       ? 'error'
-       : $mode eq 'create'  ? $self->new_app($name)
-       : $mode eq 'update'  ? $self->update_app($name)
-       :                      die("Unknown mode: '$mode'");
+    my $mode;
+    if (    Tpda3::Devel::Info::App->check_app_path()
+        and Tpda3::Devel::Info::App->check_cfg_path() )
+    {
+        #  Update mode
+        print "Update mode\n";
+        $self->update_app($name);
+        return;
+    }
+    else {
+        # Create mode
+        print "Create mode\n";
+        die "New app - required parameter: <name> \n" unless $name;
+        $self->new_app($name);
+        return;
+    }
+
+    die "What to do?";
 
     return;
 }
@@ -171,10 +169,10 @@ sub new_app {
     my $moduledir = "Tpda3-$module";
     my $cfname    = defined($app_cfg) ? $app_cfg : lc($module);
 
-    print " Create module dir.\n";
+    print " Create module dir '$moduledir'.\n";
     Tpda3::Config::Utils->create_path($moduledir);
 
-    print "Populate module dir.\n";
+    print " Populate module dir.\n";
     my $sharedir = catdir( dist_dir('Tpda3-Devel'), 'dirtree' );
     my $sharedir_module = catdir( $sharedir, 'module' );
     my $sharedir_config = catdir( $sharedir, 'config' );
@@ -195,13 +193,11 @@ sub new_app {
 
 =head2 update_app
 
-Set a submode of the update mode.
-
 =over
 
 =item I<new-scr>     Create new screen and the coresponding config
 
-If the I<-G> option - the screen module name, has a value.
+If the I<-M> option - the screen module name, has a value.
 
 =item I<new-cfg>     Create or update a screen config
 
@@ -215,170 +211,126 @@ update it else create new config.
 sub update_app {
     my $self = shift;
 
-    my ( $submode, $module );
     if ( defined $self->{opt}{module} ) {
+        my $module  = $self->{opt}{module};
+        print " New screen:\n";
+        die "Abort."
+            unless $self->check_required_params( 'module', 'table',
+                    'config' );
+        $self->command_generate();
+    }
 
-        # New screen
-        $module ||= q{};    # default empty
-        if ($module) {
-            $submode = 'new-scr';
+    if ( defined $self->{opt}{update} ) {
+        print " Update screen config:\n";
+        die "Abort." unless $self->check_required_params('config');
+    }
+
+    return;
+}
+
+=head2 check_required_params
+
+Check a list of parameters.
+
+=cut
+
+sub check_required_params {
+    my ($self, @req) = @_;
+
+    my $check = 0;
+    my $count = 0;
+    foreach my $para (@req) {
+        if ( exists $self->{opt}{$para} and $self->{opt}{$para} ) {
+            $check++;
         }
         else {
-            $submode = 'upd-scr';
+            print "  Required parameter: -$para\n";
+            my $method = "help_$para";
+            $self->$method if $self->can($method); # show some help
+            $check--;
         }
-
-    }
-    else {
-
-        # New / Update config
-        $submode = 'upd-scr';
+        $count++;
     }
 
-    print " sub mode $submode\n";
-
-    # # Check for table name
-    # my $table = $self->{opt}{table};
-    # unless ($table) {
-    #     print "A table name is required: -t <table>\n";
-    #     $self->tables_list();
-    #     exit;
-    # }
-    # print "Table name : $table\n";
-
-    return;
+    return ($check == $count);
 }
 
-=head2 check_params_gen
+=head2 help_config
 
-Check for required parameters.
-
-=over
-
-=item B<table> The table name
-
-=item B<module> Screen module name
-
-Check screen name or set screen name = table name as default
-
-=item B<-init> <config-name>
-
-=back
+Show list of the available app configs.
 
 =cut
 
-sub check_params_gen {
-
-#    Is realy config name required?
-
-    # # Check config name
-    # my $config = $self->{opt}{config};
-    # unless ($config) {
-    #     die "Failed to set default config name!";
-    # }
-
-    # # Check screen name or set screen name = table name as default
-    # my $screen_module = $self->{opt}{module};
-    # unless ($screen_module) {
-    #     die "No screen module name!";
-    # }
-    # unless ( lc $screen_module eq $config ) {
-    #     die "Lowercased Screen name should match the config name!";
-    # }
-
-    return;
-}
-
-=head2 check_params_upd
-
-=cut
-
-sub check_params_upd {
+sub help_config {
     my $self = shift;
 
     # Check config name
     my $config = $self->{opt}{config};
     unless ($config) {
         require Tpda3::Devel::Info::Config;
-        Tpda3::Devel::Info::Config->new->list_config_files;
+        Tpda3::Devel::Info::Config->new->list_config_files();
     }
 
     return;
 }
 
-=head2 generate
+=head2 command_generate
+
+Generate screen config and module.
 
 =cut
 
-sub generate {
-    my ($self, ) = @_;
+sub command_generate {
+    my $self = shift;
 
-    # Make config file if not option '--no-config-gen'
-    require Tpda3::Devel::Render::Config;
-    my $cfg = Tpda3::Devel::Render::Config->new( $self->{opt} );
+    #-- Check if config file exists and make new if not
 
-    my $config_file
-        = $self->{opt}{ncg}
-        ? $self->locate_config($cfg)
-        : $cfg->generate_config()
-        ;
-
-    # Make screen module
-    if ( $config_file and -f $config_file ) {
-        print "\n Using config from\n $config_file\n";
-        $self->{opt}{config_file} = $config_file;
-        $self->generate_screen($config_file);
+    my $config_file = $self->locate_config();
+    if ($config_file) {
+        print "Use existing screen config file: $config_file\n";
     }
     else {
-        print " Failed to locate existing config file!\n";
-        if ($self->{opt}{ncg}) {
-            print "  Try without -g | --no-config-gen\n";
-        }
+        require Tpda3::Devel::Render::Config;
+        my $conf = Tpda3::Devel::Render::Config->new( $self->{opt} );
+        $config_file = $conf->generate_config();
     }
+
+    #-- Make screen module
+
+    require Tpda3::Devel::Render::Screen;
+    my $scr    = Tpda3::Devel::Render::Screen->new( $self->{opt} );
+    my $screen = $scr->generate_screen($config_file);
 
     return;
 }
 
-sub update {
+=head2 command_update
+
+Update a screen config.
+
+=cut
+
+sub command_update {
     my $self = shift;
 
-    my $cfg = Tpda3::Devel::Config::Update->new( $self->{opt} );
-
-    $cfg->config_update();
+    Tpda3::Devel::Config::Update->new( $self->{opt} )->config_update();
 
     return;
 }
 
 =head2 locate_config
 
-Locate an existing config file.
+Try to locate an existing config file and return the name if found.
 
 =cut
 
 sub locate_config {
     my ($self, $cfg) = @_;
 
-    my $scr_cfg_path = $cfg->screen_cfg_path();
-    my $scr_cfg_file = $cfg->screen_cfg_file($scr_cfg_path);
+    my $scrcfg_name = lc $self->{opt}{module} . '.conf';
+    my $scrcfg_file = Tpda3::Devel::Info::App->get_scrcfg_file($scrcfg_name);
 
-    return $scr_cfg_file;
-}
-
-=head2 generate_screen
-
-Generate screen module.
-
-=cut
-
-sub generate_screen {
-    my ($self, $config_file) = @_;
-
-    my $scr = Tpda3::Devel::Screen->new( $self->{opt} );
-    my $screen = $scr->generate_screen($config_file);
-
-    if ( $screen and -f $screen ) {
-        print "Screen module file is '$screen'.\n";
-    }
-    print " done.\n";
+    return $scrcfg_name if -f $scrcfg_file;
 
     return;
 }

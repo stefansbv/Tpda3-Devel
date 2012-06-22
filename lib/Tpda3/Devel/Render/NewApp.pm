@@ -4,6 +4,7 @@ use 5.008009;
 use strict;
 use warnings;
 
+require Tpda3::Devel::Info::App;
 require Tpda3::Devel::Render;
 
 =head1 NAME
@@ -66,7 +67,9 @@ sub generate_newapp {
         copy_year   => '2012',
     );
 
-    Tpda3::Devel::Render->render( 'newapp', $module, \%data );
+    my $output_path = Tpda3::Devel::Info::App->check_app_path();
+
+    Tpda3::Devel::Render->render( 'newapp', $module, \%data, $output_path );
 
     return;
 }

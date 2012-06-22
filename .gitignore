@@ -17,6 +17,6 @@ errors.txt
 TAGS
 *.conf
 cover_db/
-lib/Tpda3/Tk/App/NewApp/ScrTest.pm
-share/apps/newapp/scrtest.conf
-lib/Tpda3/Tk/App/NewApp.pm
+t/output/ScrTest.pm
+t/output/scrtest.conf
+t/output/NewApp.pm

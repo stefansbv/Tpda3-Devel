@@ -41,10 +41,9 @@ Generate a file from templates.
 =cut
 
 sub render {
-    my ($self, $type, $output_file, $data) = @_;
+    my ($self, $type, $output_file, $data, $output_path) = @_;
 
-    my $template    = get_template_for($type);
-    my $output_path = get_output_path_for($type);
+    my $template = $self->get_template_for($type);
 
     # Where are module-level shared data files kept
     my $templ_path = catdir( dist_dir('Tpda3-Devel'), 'templates');
@@ -71,7 +70,7 @@ I<screen>.
 =cut
 
 sub get_template_for {
-    my $type = shift;
+    my ($self, $type) = @_;
 
     die "The type argument is required" unless defined $type;
 
@@ -84,52 +83,6 @@ sub get_template_for {
        ;
 
     return $template;
-}
-
-=head2 get_output_path_for
-
-Return the output path for one of the two known types: I<config> or
-I<screen>.
-
-=cut
-
-sub get_output_path_for {
-    my $type = shift;
-
-    die "The type argument is required" unless defined $type;
-
-    my $path =
-         $type eq q{}       ? ''
-       : $type eq 'config'  ? _screen_cfg_path()
-       : $type eq 'screen'  ? _screen_module_path()
-       : $type eq 'newapp'  ? _newapp_module_path()
-       :                      die("Unknown type $type");
-
-    return $path;
-}
-
-=head2 _screen_cfg_path
-
-Screen configurations path.
-
-=cut
-
-sub _screen_cfg_path {
-    return catdir(Tpda3::Devel::Info::App->get_scrcfg_path(), 'scr');
-}
-
-=head2 _screen_screen_path
-
-Screen configurations path.
-
-=cut
-
-sub _screen_module_path {
-    return Tpda3::Devel::Info::App->get_screen_path();
-}
-
-sub _newapp_module_path {
-    return Tpda3::Devel::Info::App->check_app_path();
 }
 
 =head1 AUTHOR

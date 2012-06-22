@@ -1,25 +1,18 @@
 #!perl
 
-use Test::More tests => 7;
+use Test::More tests => 5;
 use Test::Exception;
 
-BEGIN {
-    use_ok( 'Tpda3::Devel' ) || print "Bail out!\n";
-}
+use_ok('Tpda3::Devel');
 
 # Check functions
 
 use_ok('Tpda3::Devel::Render');
 
-is( Tpda3::Devel::Render::get_template_for('screen'),
+is( Tpda3::Devel::Render->get_template_for('screen'),
     'screen.tt', 'template for screen' );
 
 dies_ok { Tpda3::Devel::Render->get_template_for('fail-test') };
-
-ok( -d Tpda3::Devel::Render::get_output_path_for('screen'),
-    'output path for screen' );
-
-dies_ok { Tpda3::Devel::Render->get_output_path_for('fail-test') };
 
 # Render
 
@@ -34,7 +27,8 @@ my %data = (
     columns     => $cfg{maintable}{columns},
 );
 
-ok( Tpda3::Devel::Render->render( 'screen', 'ScrTest.pm', \%data ),
+my $out = 't/output';
+ok( Tpda3::Devel::Render->render( 'screen', 'ScrTest.pm', \%data, $out ),
     'render screen module file' );
 
 # done

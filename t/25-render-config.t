@@ -1,25 +1,18 @@
 #!perl
 
-use Test::More tests => 7;
+use Test::More tests => 5;
 use Test::Exception;
 
-BEGIN {
-    use_ok( 'Tpda3::Devel' ) || print "Bail out!\n";
-}
+use_ok('Tpda3::Devel');
 
 # Check functions
 
 use_ok('Tpda3::Devel::Render');
 
-is( Tpda3::Devel::Render::get_template_for('config'),
+is( Tpda3::Devel::Render->get_template_for('config'),
     'config.tt', 'template for config' );
 
 dies_ok { Tpda3::Devel::Render->get_template_for('fail-test') };
-
-ok( -d Tpda3::Devel::Render::get_output_path_for('config'),
-    'output path for config' );
-
-dies_ok { Tpda3::Devel::Render->get_output_path_for('fail-test') };
 
 # Render
 
@@ -33,7 +26,8 @@ my %data = (
     columns     => '',
 );
 
-ok( Tpda3::Devel::Render->render( 'config', 'scrtest.conf', \%data ),
+my $out = 't/output';
+ok( Tpda3::Devel::Render->render( 'config', 'scrtest.conf', \%data, $out ),
     'render config file' );
 
 # done

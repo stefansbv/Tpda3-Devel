@@ -8,6 +8,7 @@ use Config::General;
 use Tie::IxHash::Easy;
 use List::Compare;
 
+require Tpda3::Devel::Info::App;
 require Tpda3::Devel::Info::Table;
 require Tpda3::Devel::Render;
 
@@ -32,11 +33,6 @@ Perhaps a little code snippet.
     require Tpda3::Devel::Render::Config;
 
     my $foo = Tpda3::Devel::Render::Config->new();
-
-=head1 EXPORT
-
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
 
 =head1 METHODS
 
@@ -92,23 +88,31 @@ sub _init {
     return;
 }
 
-=head2 prepare_config_data
+=head2 generate_config
 
-Prepare data for the screen configuration file.
+Prepare data for the screen configuration file and create new file.
 
 =cut
 
-sub prepare_config_data {
-    my ($self) = @_;
+sub generate_config {
+    my $self = shift;
 
-    my $table  = $self->{opt}{table};
-    my $module = $self->{opt}{module};
+    require Tpda3::Devel::Info::App;
+    $self->{opt}{cfname}
+        = $self->{opt}{cfname}
+        ? $self->{opt}{cfname}
+        : Tpda3::Devel::Info::App::get_cfg_name();
 
-    my $dti = Tpda3::Devel::Info::Table->new();
+    die unless $self->{opt}{cfname};
 
-    my $table_info = $dti->table_info($table);
+    print " Config name is '", $self->{opt}{cfname}, "'\n";
+
+    my $ic = Tpda3::Devel::Info::Config->new($self->{opt});
+    my $it = Tpda3::Devel::Info::Table->new();
+
+    my $table_info = $it->table_info( $self->{opt}{table} );
     my $maintable  = $self->prepare_config_data_main($table_info);
-    my $deptable   = $self->prepare_config_data_dep($table);
+    my $deptable   = $self->prepare_config_data_dep($self->{opt}{table});
 
     my $pkfields = $table_info->{pk_keys};
     my $fields   = $table_info->{fields};
@@ -118,8 +122,8 @@ sub prepare_config_data {
     my %data = (
         maintable   => $maintable,
         deptable    => $deptable,
-        modulename  => $module,
-        moduledescr => ucfirst $module,
+        modulename  => $self->{opt}{module},
+        moduledescr => ucfirst $self->{opt}{module},
         pkfields    => $table_info->{pk_keys},
         fkfields    => $table_info->{fk_keys},
         columns     => $columns,
@@ -271,9 +275,10 @@ The screen configuration file name and the configuration data.
 sub render_config {
     my ($self, $data) = @_;
 
-    my $scr_cfg_name = lc $self->{opt}{module} . '.conf';
+    my $file_name   = lc $self->{opt}{module} . '.conf';
+    my $output_path = Tpda3::Devel::Info::App->get_scrcfg_path();
 
-    Tpda3::Devel::Render->render( 'config', $scr_cfg_name, $data );
+    Tpda3::Devel::Render->render( 'config', $file_name, $data, $output_path );
 
     return $scr_cfg_name;
 }
