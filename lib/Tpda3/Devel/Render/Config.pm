@@ -106,6 +106,10 @@ sub generate_config {
 
     die unless $self->{param}{cfname};
 
+    my $screen = $self->{param}{screen};
+
+    die unless $screen;
+
     print " Config name is '", $self->{param}{cfname}, "'\n";
 
     my $ic = Tpda3::Devel::Info::Config->new($self->{param});
@@ -123,8 +127,8 @@ sub generate_config {
     my %data = (
         maintable   => $maintable,
         deptable    => $deptable,
-        modulename  => $self->{param}{module},
-        moduledescr => ucfirst $self->{param}{module},
+        modulename  => $screen,
+        moduledescr => $screen,
         pkfields    => $table_info->{pk_keys},
         fkfields    => $table_info->{fk_keys},
         columns     => $columns,
@@ -276,7 +280,7 @@ The screen configuration file name and the configuration data.
 sub render_config {
     my ($self, $data) = @_;
 
-    my $file_name   = lc $self->{param}{module} . '.conf';
+    my $file_name = lc $self->{param}{config} . '.conf';
 
     my $app_info = Tpda3::Devel::Info::App->new();
     my $output_path = $app_info->get_screen_config_path();

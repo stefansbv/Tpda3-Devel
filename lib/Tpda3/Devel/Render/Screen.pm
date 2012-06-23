@@ -62,16 +62,16 @@ Generate screen module.
 sub generate_screen {
     my ($self, $file) = @_;
 
-    my $screen = $self->{param}{module};
+    my $screen = $self->{param}{screen};
 
-    die unless $screen;
+    die "A screen name is required!" unless $screen;
 
     my $dci = Tpda3::Devel::Info::Config->new($self->{param});
     my $cfg = $dci->config_info();
     my $module = $cfg->{cfg_module};
 
     my $app_info = Tpda3::Devel::Info::App->new();
-    my $config_file = $app_info->get_scrcfg_file($file);
+    my $config_file = $app_info->get_screen_config_file($file);
 
     tie my %cfg, "Tie::IxHash";     # keep the sections order
 
@@ -85,22 +85,27 @@ sub generate_screen {
         copy_author => 'Ștefan Suciu',
         copy_email  => 'stefan@s2i2.ro',
         copy_year   => '2012',
-        module      => $cfg->{cfg_module},
-        screen      => ucfirst $screen,
+        module      => $app_info->get_app_name(),
+        screen      => $screen,
         columns     => $cfg{maintable}{columns},
     );
 
-    my $module_file = ucfirst $self->{param}{module} . '.pm';
+    my $screen_file = "$screen.pm";
     my $output_path = $app_info->get_screen_module_path();
 
-    Tpda3::Devel::Render->render( 'screen', $module_file, \%data, $output_path );
+    if ( -f catfile($output_path, $screen_file) ) {
+        print " Won't overwrite '$screen_file'\n";
+        return;
+    }
+
+    Tpda3::Devel::Render->render( 'screen', $screen_file, \%data, $output_path );
 
     return;
 }
 
 =head1 AUTHOR
 
-Stefan Suciu, C<< <stefan@s2i2.ro> >>
+Ştefan Suciu, C<< <stefan@s2i2.ro> >>
 
 =head1 BUGS
 

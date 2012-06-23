@@ -75,11 +75,12 @@ sub get_template_for {
     die "The type argument is required" unless defined $type;
 
     my $template =
-         $type eq q{}       ? die("Empty type argument")
-       : $type eq 'config'  ? 'config.tt'
-       : $type eq 'screen'  ? 'screen.tt'
-       : $type eq 'newapp'  ? 'newapp.tt'
-       :                      die("Unknown type $type")
+         $type eq q{}              ? die("Empty type argument")
+       : $type eq 'config'         ? 'config.tt'
+       : $type eq 'config-update'  ? 'config-refactor.tt'
+       : $type eq 'screen'         ? 'screen.tt'
+       : $type eq 'newapp'         ? 'newapp.tt'
+       :                             die("Unknown type $type")
        ;
 
     return $template;

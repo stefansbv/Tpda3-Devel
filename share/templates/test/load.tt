@@ -12,4 +12,4 @@ use_ok('Tpda3');
 
 #-- Tpda3-AppName application
 
-use_ok('Tpda3::Tk::App::[% appname %]::[% scrname %]');
+use_ok('[% appname %]');

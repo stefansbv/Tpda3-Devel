@@ -52,7 +52,7 @@ Generate a new Tpda3 application:
 
 Generate a new Tpda3 screen module and screen configuration:
 
-   tpda3d [<app-cfg>] -M <scr-name> -t <table> [-c <scr-cfg>]
+   tpda3d [<app-cfg>] -S <scr-name> -t <table[,table]> [-c <scr-cfg>]
 
 Update a Tpda3 screen configuration:
 
@@ -61,7 +61,7 @@ Update a Tpda3 screen configuration:
 Info:
 
  -l, --list                List available application configurations.
- -?  --help | -m, --man
+ -?, --help | -m, --man
 
 =head1 DESCRIPTION
 

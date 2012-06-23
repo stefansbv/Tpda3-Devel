@@ -89,7 +89,7 @@ sub check_cfg_path {
 
 Return the current application name.
 
-First check if a subdirecrory exists in C<$app_path>, then check if a
+First check if a subdirectory exists in C<$app_path>, then check if a
 module with the same name exists, if true, return the name.
 
 =cut
@@ -183,7 +183,7 @@ sub get_screen_config_path {
     my $cfg_path = $self->check_cfg_path();
     my $cfg_name = $self->get_cfg_name();
 
-    return catdir($cfg_path, 'scr', $cfg_name);
+    return catdir($cfg_path, $cfg_name, 'scr');
 }
 
 =head2 get_screen_config_file

@@ -22,6 +22,7 @@ require Tpda3::Devel::Info::Table;
 require Tpda3::Devel::Render::NewApp;
 require Tpda3::Devel::Render::Config;
 require Tpda3::Devel::Render::Screen;
+require Tpda3::Devel::Edit::Config;
 
 =head1 NAME
 
@@ -85,7 +86,7 @@ sub _init {
     my $pass = $opt->{pass};
 
     my $args = {
-        cfname => $opt->{cfname},
+        param0 => $opt->{param0},
         user   => $user,
         pass   => $pass,
     };
@@ -99,16 +100,27 @@ sub _init {
 
 Parse and return the command line options.
 
+Parameters:
+ <app-name> | <app-conf>
+ -c config                : screen config file name without
+                            the suffix (.conf)
+ -t table-main, table-dep : the database main table name and
+                            optional dependent table
+ -S screen                : screen module name without the suffix (.pm)
+ -U                       : update screen config file
+ -u, --user               : user name
+ -p, --password           : password
+
 =cut
 
 sub get_options {
 
     my %opt          = ();
     my $getopt_specs = {
-        'M|module:s'   => \$opt{module},
+        'S|screen:s'   => \$opt{screen},
         'U|update'     => \$opt{update},
-        'c|config=s'   => \$opt{scrcfg},
-        't|table=s'    => \$opt{table},
+        'c|config=s'   => \$opt{config},
+        't|tables=s'   => \$opt{table},
         'u|user=s'     => \$opt{user},
         'p|password=s' => \$opt{pass},
         'l|list:s'     => \$opt{list},
@@ -121,7 +133,7 @@ sub get_options {
     $parser->getoptions( %{$getopt_specs} ) or
         die( 'See tpda3d --help, tpda3d --man for usage.' );
 
-    $opt{cfname} = $ARGV[0];   # the first parameter interpreted as
+    $opt{param0} = $ARGV[0];   # the first parameter interpreted as
                                # cfname or application name
 
     # Screen config file name - default is table name
@@ -140,26 +152,28 @@ I<create> mode and execute the appropriate method.
 sub process_command {
     my $self = shift;
 
-    my $name = $self->{param}{cfname};
-
     my $app_info = Tpda3::Devel::Info::App->new();
     my $mode;
     if (    $app_info->check_app_path()
         and $app_info->check_cfg_path() )
     {
 
-        #  Update mode
-        print "Update mode\n";
-        $self->update_app($name);
+        # Update screen config files to the latest version
+        my $name = $self->{param}{param0}; # pam pam ;)
+        $name = $app_info->get_cfg_name() unless $name;
+        print "Update mode for '$name'\n";
+        $self->{param}{cfname} = $name;
+        $self->update_app();
         return;
     }
     else {
 
-        # Create mode
+        # Create new screen modules and config files
         print "Create mode\n";
+        my $name = $self->{param}{param0}; # pam pam ;)
         die "New app - required parameter: <name> \n" unless $name;
-        $self->{param}{appname} = $name;
-        $self->{param}{appconf}
+        $self->{param}{cfname} = $name;
+        $self->{param}{config}
             = $self->{param}{config}
             ? $self->{param}{config}
             : lc($name);    # app-cfg defaults to lc(app-name)
@@ -198,15 +212,14 @@ sub new_app {
     my $sharedir_module = catdir( $sharedir, 'module' );
     my $sharedir_config = catdir( $sharedir, 'config' );
 
-    $File::Copy::Recursive::KeepMode = 0;
+    $File::Copy::Recursive::KeepMode = 0; # mode 644
 
     File::Copy::Recursive::dircopy( $sharedir_module, $moduledir )
         or ouch 'CfgInsErr', "Failed to copy module tree to '$moduledir'";
 
-    print " Create configuration path '$appconf'.\n";
+    print " Create config path '$appconf'.\n";
     my $configdir = catdir( $moduledir, 'share', 'apps', $appconf );
     Tpda3::Config::Utils->create_path($configdir);
-    print " $configdir\n";
 
     print " Populate config dir.\n";
     File::Copy::Recursive::dircopy( $sharedir_config, $configdir )
@@ -225,36 +238,24 @@ sub new_app {
 
 =head2 update_app
 
-=over
-
-=item I<new-scr>     Create new screen and the coresponding config
-
-If the I<-M> option - the screen module name, has a value.
-
-=item I<new-cfg>     Create or update a screen config
-
-If the I<-c> option has a value and the screen config file exists
-update it else create new config.
-
-=back
+Create new screen and the config file ...
 
 =cut
 
 sub update_app {
     my $self = shift;
 
-    if ( defined $self->{param}{module} ) {
-        my $module  = $self->{param}{module};
+    if ( defined $self->{param}{screen} ) {
+        my $module = $self->{param}{screen};
         print " New screen:\n";
-        die "Abort."
-            unless $self->check_required_params( 'module', 'table',
-                    'config' );
+        die "Abort." unless $self->check_required_params( 'screen', 'table' );
         $self->command_generate();
     }
 
-    if ( defined $self->{param}{update} ) {
-        print " Update screen config:\n";
+    if ( $self->{param}{update} ) {
         die "Abort." unless $self->check_required_params('config');
+        my $tdec = Tpda3::Devel::Edit::Config->new( $self->{param} );
+        $tdec->config_update();
     }
 
     return;
@@ -299,7 +300,32 @@ sub help_config {
     # Check config name
     my $config = $self->{param}{config};
     unless ($config) {
-        Tpda3::Devel::Info::Config->new->list_config_files();
+        Tpda3::Devel::Info::Config->new->list_scrcfg_files();
+    }
+
+    return;
+}
+
+=head2 help_table
+
+Show list of the available tables (and views?) in the database.
+
+=cut
+
+sub help_table {
+    my $self = shift;
+
+    # Check table name (again)
+    my $tables = $self->{param}{table};
+    return if $tables;
+
+    # Gather info from the database
+    Tpda3::Devel::Info::Config->new( $self->{param} );
+    my $dti = Tpda3::Devel::Info::Table->new();
+    my $list = $dti->table_list();
+    print " > Tables:\n";
+    foreach my $name ( sort @{$list} ) {
+        print "   - $name\n";
     }
 
     return;
@@ -333,20 +359,6 @@ sub command_generate {
     return;
 }
 
-=head2 command_update
-
-Update a screen config.
-
-=cut
-
-sub command_update {
-    my $self = shift;
-
-    Tpda3::Devel::Config::Update->new( $self->{param} )->config_update();
-
-    return;
-}
-
 =head2 locate_config
 
 Try to locate an existing config file and return the name if found.
@@ -357,8 +369,8 @@ sub locate_config {
     my ($self, $cfg) = @_;
 
     my $app_info = Tpda3::Devel::Info::App->new();
-    my $scrcfg_name = lc $self->{param}{module} . '.conf';
-    my $scrcfg_file = $app_info->get_scrcfg_file($scrcfg_name);
+    my $scrcfg_name = lc $self->{param}{screen} . '.conf';
+    my $scrcfg_file = $app_info->get_screen_config_file($scrcfg_name);
 
     return $scrcfg_name if -f $scrcfg_file;
 
@@ -415,27 +427,6 @@ sub usage_info {
     usage(1);
 
     exit;
-}
-
-=head2 tables_list
-
-List the available table names in alphabetic order.
-
-=cut
-
-sub tables_list {
-    my $self = shift;
-
-    # Gather info from table(s)
-    my $dti = Tpda3::Devel::Info::Table->new();
-
-    my $list = $dti->table_list();
-    print " > Tables:\n";
-    foreach my $name ( sort @{$list} ) {
-        print "   - $name\n";
-    }
-
-    return;
 }
 
 =head1 AUTHOR
