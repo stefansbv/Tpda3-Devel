@@ -91,7 +91,11 @@ sub _init {
         pass   => $pass,
     };
 
+    $self->{app_info} = Tpda3::Devel::Info::App->new();
+
     $self->{param} = $opt;
+
+    # $self->make_param_defaults();
 
     return;
 }
@@ -136,10 +140,65 @@ sub get_options {
     $opt{param0} = $ARGV[0];   # the first parameter interpreted as
                                # cfname or application name
 
-    # Screen config file name - default is table name
-    $opt{config} = $opt{table} if $opt{table} and !$opt{config};
-
     return \%opt;
+}
+
+=head2 make_param_config
+
+Screen config parameter.
+
+=cut
+
+sub make_param_config {
+    my $self = shift;
+
+    my $scrcfg_name = $self->{param}{config};
+
+    unless ($scrcfg_name) {
+
+        # Fallback to lc (screen-name)
+        my $screen_name = $self->{param}{screen};
+        if ($screen_name) {
+            $scrcfg_name = lc $screen_name;
+        }
+        else {
+            die "Can not determine config name!";
+        }
+    }
+
+    my $scrcfg_fn   = "$scrcfg_name.conf";
+    my $scrcfg_ap   = $self->{app_info}->get_screen_config_ap();
+    my $scrcfg_apfn = $self->{app_info}->get_screen_config_apfn($scrcfg_fn);
+
+    $self->{param}{config_fn}   = $scrcfg_fn;
+    $self->{param}{config_ap}   = $scrcfg_ap;
+    $self->{param}{config_apfn} = $scrcfg_apfn;
+
+    return;
+}
+
+=head2 make_param_screen
+
+Screen name parameter.
+
+=cut
+
+sub make_param_screen {
+    my $self = shift;
+
+    my $screen_name = $self->{param}{screen};
+
+    return unless $screen_name;
+
+    my $screen_fn   = "$screen_name.pm";
+    my $screen_ap   = $self->{app_info}->get_screen_module_ap();
+    my $screen_apfn = $self->{app_info}->get_screen_module_apfn($screen_fn);
+
+    $self->{param}{screen_fn}   = $screen_fn;
+    $self->{param}{screen_ap}   = $screen_ap;
+    $self->{param}{screen_apfn} = $screen_apfn;
+
+    return;
 }
 
 =head2 process_command
@@ -152,25 +211,48 @@ I<create> mode and execute the appropriate method.
 sub process_command {
     my $self = shift;
 
-    my $app_info = Tpda3::Devel::Info::App->new();
     my $mode;
-    if (    $app_info->check_app_path()
-        and $app_info->check_cfg_path() )
+    if (    $self->{app_info}->check_app_path()
+        and $self->{app_info}->check_cfg_path() )
     {
 
-        # Update screen config files to the latest version
-        my $name = $self->{param}{param0}; # pam pam ;)
-        $name = $app_info->get_cfg_name() unless $name;
-        print "Update mode for '$name'\n";
-        $self->{param}{cfname} = $name;
-        $self->update_app();
+        # CWD is a Tpda3 application dir.
+        # Create new screen module and config file or
+        #  update screen config files to the latest version.
+
+        my $cfg_name = $self->{param}{param0};    # pam pam ;)
+        $cfg_name    = $self->{app_info}->get_cfg_name() unless $cfg_name;
+        $self->{param}{cfname} = $cfg_name;
+        my $app_name = $self->{app_info}->get_app_name();
+        print "Update application: $app_name ($cfg_name)\n";
+
+        if ( $self->{param}{update} ) {
+
+            # Update a screen configuration file
+            $self->make_param_config();       # config
+            die "Abort." unless $self->check_required_params('config');
+            my $tdec = Tpda3::Devel::Edit::Config->new( $self->{param} );
+            $tdec->config_update();
+        }
+        else {
+
+            # Create a new screen module
+            $self->make_param_screen();       # screen
+            $self->make_param_config();       # config
+            die "Abort."
+                unless $self->check_required_params( 'screen', 'table' );
+            $self->command_generate();
+        }
+
+        # $self->update_app();
         return;
     }
     else {
 
-        # Create new screen modules and config files
-        print "Create mode\n";
-        my $name = $self->{param}{param0}; # pam pam ;)
+        # Create a new Tpda3 application tree
+
+        print "Create new application\n";
+        my $name = $self->{param}{param0};    # pam pam ;)
         die "New app - required parameter: <name> \n" unless $name;
         $self->{param}{cfname} = $name;
         $self->{param}{config}
@@ -178,7 +260,8 @@ sub process_command {
             ? $self->{param}{config}
             : lc($name);    # app-cfg defaults to lc(app-name)
 
-        $self->new_app();
+        $self->new_app_tree();
+
         return;
     }
 
@@ -187,13 +270,13 @@ sub process_command {
     return;
 }
 
-=head2 new_app
+=head2 new_app_tree
 
-Create new application tree and populate with files from template.
+Create new application tree and populate with files from templates.
 
 =cut
 
-sub new_app {
+sub new_app_tree {
     my $self = shift;
 
     my $module  = $self->{param}{appname};
@@ -366,15 +449,11 @@ Try to locate an existing config file and return the name if found.
 =cut
 
 sub locate_config {
-    my ($self, $cfg) = @_;
+    my $self = shift;
 
-    my $app_info = Tpda3::Devel::Info::App->new();
-    my $scrcfg_name = lc $self->{param}{screen} . '.conf';
-    my $scrcfg_file = $app_info->get_screen_config_file($scrcfg_name);
+    my $scrcfg_fn = $self->{param}{config_fn};
 
-    return $scrcfg_name if -f $scrcfg_file;
-
-    return;
+    return $scrcfg_fn if -f $self->{param}{config_apfn};
 }
 
 =head2 version
@@ -388,7 +467,7 @@ sub version {
 
     my $ver = $VERSION;
     print "Tpda3 Development Tools v$ver\n";
-    print "(C) 2010-2012 Stefan Suciu\n\n";
+    print "(C) 2010-2012 Ştefan Suciu\n\n";
 
     return;
 }
@@ -431,7 +510,7 @@ sub usage_info {
 
 =head1 AUTHOR
 
-Stefan Suciu, C<< <stefan@s2i2.ro> >>
+Ştefan Suciu, C<< <stefan@s2i2.ro> >>
 
 =head1 BUGS
 
@@ -450,7 +529,7 @@ App::Ack (C) 2005-2011 Andy Lester.
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2012 Stefan Suciu.
+Copyright 2012 Ştefan Suciu.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

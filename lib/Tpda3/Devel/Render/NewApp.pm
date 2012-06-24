@@ -71,7 +71,7 @@ sub generate_newapp {
     );
 
     my $app_info = Tpda3::Devel::Info::App->new();
-    my $output_path = $app_info->get_app_module_path($module);
+    my $output_path = $app_info->get_app_module_rp($module);
 
     Tpda3::Devel::Render->render( 'newapp', "$module.pm", \%data, $output_path );
 

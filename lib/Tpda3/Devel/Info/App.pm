@@ -120,13 +120,14 @@ sub get_app_name {
     return;                                  # no app name!
 }
 
-=head2 get_app_module_path
+=head2 get_app_module_rp
 
-This is not supposed to be called from an application dir.
+Tpda3 application module relative path.  This is not supposed to be
+called from an application dir.
 
 =cut
 
-sub get_app_module_path {
+sub get_app_module_rp {
     my ($self, $module) = @_;
 
     return catdir( "Tpda3-$module", 'lib/Tpda3/Tk/App' );
@@ -156,13 +157,13 @@ sub get_cfg_name {
     }
 }
 
-=head2 get_screen_module_path
+=head2 get_screen_module_ap
 
-Return the application screen modules path.
+Return the application screen modules absolute path.
 
 =cut
 
-sub get_screen_module_path {
+sub get_screen_module_ap {
     my $self = shift;
 
     my $app_path = $self->check_app_path();
@@ -171,13 +172,25 @@ sub get_screen_module_path {
     return catdir($app_path, $app_name);
 }
 
-=head2 get_screen_config_path
+=head2 get_screen_module_apfn
 
-Get the application screen config path.
+Get the application screen module absolute path and file name.
 
 =cut
 
-sub get_screen_config_path {
+sub get_screen_module_apfn {
+    my ($self, $file) = @_;
+
+    return catfile( $self->get_screen_module_ap, $file );
+}
+
+=head2 get_screen_config_ap
+
+Get the application screen config absolute path.
+
+=cut
+
+sub get_screen_config_ap {
     my $self = shift;
 
     my $cfg_path = $self->check_cfg_path();
@@ -186,16 +199,16 @@ sub get_screen_config_path {
     return catdir($cfg_path, $cfg_name, 'scr');
 }
 
-=head2 get_screen_config_file
+=head2 get_screen_config_apfn
 
-Get the application screen config fully qualified path.
+Get the application screen config absolute path and file name.
 
 =cut
 
-sub get_screen_config_file {
+sub get_screen_config_apfn {
     my ($self, $file) = @_;
 
-    return catfile( $self->get_screen_config_path, $file );
+    return catfile( $self->get_screen_config_ap, $file );
 }
 
 =head1 AUTHOR

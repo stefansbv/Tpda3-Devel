@@ -66,12 +66,10 @@ sub generate_screen {
 
     die "A screen name is required!" unless $screen;
 
-    my $dci = Tpda3::Devel::Info::Config->new($self->{param});
-    my $cfg = $dci->config_info();
-    my $module = $cfg->{cfg_module};
-
     my $app_info = Tpda3::Devel::Info::App->new();
-    my $config_file = $app_info->get_screen_config_file($file);
+    my $cfg_info = Tpda3::Devel::Info::Config->new($self->{param});
+
+    my $config_file = $self->{param}{config_fpn};
 
     tie my %cfg, "Tie::IxHash";     # keep the sections order
 
@@ -90,15 +88,15 @@ sub generate_screen {
         columns     => $cfg{maintable}{columns},
     );
 
-    my $screen_file = "$screen.pm";
-    my $output_path = $app_info->get_screen_module_path();
+    my $screen_fn   = $self->{param}{screen_fn}; #"$screen.pm";
+    my $output_path = $self->{param}{screen_ap};
 
-    if ( -f catfile($output_path, $screen_file) ) {
-        print " Won't overwrite '$screen_file'\n";
+    if ( -f catfile($output_path, $screen_fn) ) {
+        print " Won't overwrite '$screen_fn'\n";
         return;
     }
 
-    Tpda3::Devel::Render->render( 'screen', $screen_file, \%data, $output_path );
+    Tpda3::Devel::Render->render( 'screen', $screen_fn, \%data, $output_path );
 
     return;
 }

@@ -48,7 +48,7 @@ sub new {
 
     bless $self, $class;
 
-    $self->{opt} = $opt;
+    $self->{param} = $opt;
 
     return $self;
 }
@@ -63,22 +63,23 @@ preserve | edit the comments and the order of the sections.
 sub config_update {
     my $self = shift;
 
-    print Dumper( $self->{opt} );
+    print Dumper( $self->{param} );
     my $app_info = Tpda3::Devel::Info::App->new();
-    my $scr_cfg_name = $self->{opt}{config} . '.conf';
-    my $scr_cfg_path = $app_info->get_screen_config_path();
-    my $scr_cfg_file = $app_info->get_screen_config_file($scr_cfg_name);
 
-    my $data = $self->prepare_config_data($scr_cfg_file);
+    my $scrcfg_fn = $self->{param}{config_fn};
+    my $scrcfg_ap = $self->{param}{config_ap};
+    my $scrcfg_apfn = $self->{param}{config_apfn};
+
+    my $data = $self->prepare_config_data($scrcfg_apfn);
 
     # Backup existing config file
-    my $backup_ok = $self->backup_config( $scr_cfg_path, $scr_cfg_name );
+    my $backup_ok = $self->backup_config( $scrcfg_ap, $scrcfg_fn );
     unless ($backup_ok) {
         die "Backup of old config file failed!";
     }
 
-    Tpda3::Devel::Render->render( 'config-update', $scr_cfg_name, $data,
-        $scr_cfg_path );
+    Tpda3::Devel::Render->render( 'config-update', $scrcfg_fn, $data,
+        $scrcfg_ap );
 
     return;
 }
@@ -90,12 +91,12 @@ Prepare and return config data.
 =cut
 
 sub prepare_config_data {
-    my ($self, $scr_cfg_file) = @_;
+    my ($self, $scrcfg_fn) = @_;
 
     tie my %cfg, "Tie::IxHash";    # keep the order
 
     %cfg = ParseConfig(
-        -ConfigFile => $scr_cfg_file,
+        -ConfigFile => $scrcfg_fn,
         -Tie        => 'Tie::IxHash',
     );
 
@@ -131,10 +132,10 @@ Copy the old config file with and I<.orig> suffix.
 =cut
 
 sub backup_config {
-    my ($self, $scr_cfg_path, $scr_cfg_name ) = @_;
+    my ($self, $scrcfg_ap, $scrcfg_fn ) = @_;
 
-    my $file_old = catfile($scr_cfg_path, $scr_cfg_name);
-    my $file_bak = catfile($scr_cfg_path, "$scr_cfg_name.orig");
+    my $file_old = catfile($scrcfg_ap, $scrcfg_fn);
+    my $file_bak = catfile($scrcfg_ap, "$scrcfg_fn.orig");
 
     if ( copy($file_old, $file_bak) ) {
         return 1;

@@ -9,7 +9,6 @@ use Config::General;
 use Tie::IxHash::Easy;
 use List::Compare;
 
-require Tpda3::Devel::Info::App;
 require Tpda3::Devel::Info::Table;
 require Tpda3::Devel::Render;
 
@@ -98,19 +97,9 @@ Prepare data for the screen configuration file and create new file.
 sub generate_config {
     my $self = shift;
 
-    my $app_info = Tpda3::Devel::Info::App->new();
-    $self->{param}{cfname}
-        = $self->{param}{cfname}
-        ? $self->{param}{cfname}
-        : $app_info->get_cfg_name();
-
-    die unless $self->{param}{cfname};
-
     my $screen = $self->{param}{screen};
 
-    die unless $screen;
-
-    print " Config name is '", $self->{param}{cfname}, "'\n";
+    die "Need a screen name!" unless $screen;
 
     my $ic = Tpda3::Devel::Info::Config->new($self->{param});
     my $it = Tpda3::Devel::Info::Table->new();
@@ -280,12 +269,10 @@ The screen configuration file name and the configuration data.
 sub render_config {
     my ($self, $data) = @_;
 
-    my $file_name = lc $self->{param}{config} . '.conf';
+    my $scrcfg_fn   = $self->{param}{config_fn};
+    my $output_path = $self->{param}{config_ap};
 
-    my $app_info = Tpda3::Devel::Info::App->new();
-    my $output_path = $app_info->get_screen_config_path();
-
-    Tpda3::Devel::Render->render( 'config', $file_name, $data, $output_path );
+    Tpda3::Devel::Render->render( 'config', $scrcfg_fn, $data, $output_path );
 
     return;
 }
