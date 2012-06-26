@@ -63,11 +63,10 @@ preserve | edit the comments and the order of the sections.
 sub config_update {
     my $self = shift;
 
-    print Dumper( $self->{param} );
     my $app_info = Tpda3::Devel::Info::App->new();
 
-    my $scrcfg_fn = $self->{param}{config_fn};
-    my $scrcfg_ap = $self->{param}{config_ap};
+    my $scrcfg_fn   = $self->{param}{config_fn};
+    my $scrcfg_ap   = $self->{param}{config_ap};
     my $scrcfg_apfn = $self->{param}{config_apfn};
 
     my $data = $self->prepare_config_data($scrcfg_apfn);
@@ -88,6 +87,9 @@ sub config_update {
 
 Prepare and return config data.
 
+Force array is on, so we must take special care about [ field ]
+constructs.
+
 =cut
 
 sub prepare_config_data {
@@ -95,10 +97,14 @@ sub prepare_config_data {
 
     tie my %cfg, "Tie::IxHash";    # keep the order
 
-    %cfg = ParseConfig(
+    my $conf = Config::General->new(
+        -UTF8       => 1,
+        -ForceArray => 1,
         -ConfigFile => $scrcfg_fn,
         -Tie        => 'Tie::IxHash',
     );
+
+    %cfg = $conf->getall;
 
     my $screen          = make_screen( $cfg{screen} );
     my $defaultreport   = make_defaultreport( $cfg{defaultreport} );
@@ -106,8 +112,11 @@ sub prepare_config_data {
     my $lists_ds        = make_lists_ds( $cfg{lists_ds} );
     my $list_header     = make_list_header( $cfg{list_header} );
     my $bindings        = make_bindings( $cfg{bindings} );
+    my $tablebindings   = make_tablebindings( $cfg{tablebindings} );
     my $maintable       = make_maintable( $cfg{maintable} );
     my $deptable        = make_deptable( $cfg{deptable} );
+    my $scrtoolbar      = make_scrtoolbar( $cfg{scrtoolbar} );
+    my $toolbar         = make_toolbar( $cfg{toolbar} );
 
     my %data = (
         screen          => $screen,
@@ -116,10 +125,11 @@ sub prepare_config_data {
         lists_ds        => $lists_ds,
         list_header     => $list_header,
         bindings        => $bindings,
-        tablebindings   => $cfg{tablebindings},
+        tablebindings   => $tablebindings,
         maintable       => $maintable,
         deptable        => $deptable,
-        toolbar         => $cfg{toolbar},
+        scrtoolbar      => $scrtoolbar,
+        toolbar         => $toolbar,
     );
 
     return \%data;
@@ -169,7 +179,7 @@ sub make_screen {
     my $rec = {};
     tie %{$rec}, 'Tie::IxHash::Easy';
 
-    $rec->{screen}{version}     = 3;
+    $rec->{screen}{version}     = 4;
     $rec->{screen}{name}        = $data->{name};
     $rec->{screen}{description} = $data->{description};
     $rec->{screen}{style}       = $data->{style};
@@ -262,14 +272,10 @@ sub make_lists_ds {
     my $rec = {};
     tie %{$rec}, 'Tie::IxHash::Easy';
 
-    my $idx = 0;
-    foreach my $field ( keys %{ $data } ) {
-        $rec->{lists_ds}[$idx]{$field}{table}   = $data->{$field}{table};
-        $rec->{lists_ds}[$idx]{$field}{code}    = $data->{$field}{code};
-        $rec->{lists_ds}[$idx]{$field}{name}    = $data->{$field}{name};
-        $rec->{lists_ds}[$idx]{$field}{default} = $data->{$field}{default};
-        $rec->{lists_ds}[$idx]{$field}{orderby} = $data->{$field}{orderby};
-        $idx++;
+    foreach my $field ( keys %{$data} ) {
+        foreach my $key ( keys %{ $data->{$field} } ) {
+            $rec->{lists_ds}{$field}{$key} = $data->{$field}{$key};
+        }
     }
 
     return $conf->save_string($rec);
@@ -295,8 +301,20 @@ sub make_list_header {
     my $rec = {};
     tie %{$rec}, 'Tie::IxHash::Easy';
 
-    foreach my $field ( keys %{ $data } ) {
-        $rec->{list_header}{$field} = $data->{$field};
+    foreach my $field ( keys %{$data} ) {
+        if ( ref $data->{$field} eq 'ARRAY' ) {
+            my @fields = @{ $data->{$field} };
+            if ( scalar @fields == 1 ) {
+                my $field_value = join ' ', @{ $data->{$field} };
+                $rec->{list_header}{$field} = "[ $field_value ]";
+            }
+            else {
+                push @{$rec->{list_header}{$field}}, $_ foreach @fields;
+            }
+        }
+        else {
+            $rec->{list_header}{$field} = $data->{$field};
+        }
     }
 
     return $conf->save_string($rec);
@@ -309,7 +327,7 @@ bindings.
 =cut
 
 sub make_bindings {
-    my ($data) = @_;
+    my $data = shift;
 
     return unless keys %{$data};
 
@@ -323,21 +341,108 @@ sub make_bindings {
     tie %{$rec}, 'Tie::IxHash::Easy';
 
     foreach my $field ( keys %{$data} ) {
-        my $record = $data->{$field};
-        $rec->{bindings}{$field}{table}  = $data->{$field}{table};
-        $rec->{bindings}{$field}{search} = $data->{$field}{search};
-        if ( exists $data->{$field}{field}
-            and ref( $data->{$field}{field} ) eq 'ARRAY' )
-        {
-            my $idx = 0;
-            my @fld = @{ $data->{$field}{field} };
-            foreach my $det (@fld) {
-                $rec->{bindings}{$field}{field}[$idx] = $det;
-                $idx++;
+
+        # table
+        $rec->{bindings}{$field}{table} = $data->{$field}{table};
+
+        # search
+        if ( ref $data->{$field}{search} ) {
+            foreach my $search ( keys %{ $data->{$field}{search} } ) {
+                if (ref $data->{$field}{search}{$search} ) {
+                    # v3
+                    $rec->{bindings}{$field}{search}{$search}
+                        = $data->{$field}{search}{$search}{name};
+                }
+                else {
+                    # v4
+                    $rec->{bindings}{$field}{search}{$search}
+                        = $data->{$field}{search}{$search};
+                }
             }
         }
         else {
+            $rec->{bindings}{$field}{search} = $data->{$field}{search};
+        }
+
+        # field - lokup
+        if ( ref $data->{$field}{field} eq 'HASH' ) {
+            foreach my $lookup ( keys %{ $data->{$field}{field} } ) {
+                if ( ref $data->{$field}{field}{lookup} ) {
+                    # v3
+                    $rec->{bindings}{$field}{field}{$lookup}
+                        = $data->{$field}{field}{$lookup}{name};
+                }
+                else {
+                    # v4
+                    $rec->{bindings}{$field}{field}{$lookup}
+                        = $data->{$field}{field}{$lookup};
+                }
+            }
+        }
+        elsif ( ref $data->{$field}{field} eq 'ARRAY' ) {
+            my $field_value = join ' ',@{ $data->{$field}{field} };
+            $rec->{bindings}{$field}{field} = "[ $field_value ]";
+        }
+        else {
             $rec->{bindings}{$field}{field} = $data->{$field}{field};
+        }
+    }
+
+    return $conf->save_string($rec);
+}
+
+
+=head2 make_tablebindings
+
+Table bindings (Tk::TM).
+
+=cut
+
+sub make_tablebindings {
+    my $data = shift;
+
+    return unless keys %{$data};
+
+    my $conf = Config::General->new(
+        -AllowMultiOptions => 1,
+        -SplitPolicy       => 'equalsign',
+        -Tie               => "Tie::IxHash",
+    );
+
+    my $rec = {};
+    tie %{$rec}, 'Tie::IxHash::Easy';
+
+    foreach my $tm_ds ( keys %{$data} ) {
+        foreach my $section ( keys %{ $data->{$tm_ds} } ) {
+            foreach my $field ( keys %{ $data->{$tm_ds}{$section} } ) {
+                foreach
+                    my $key ( keys %{ $data->{$tm_ds}{$section}{$field} } )
+                {
+                    $rec->{tablebindings}{$tm_ds}{$section}{$field}{$key}
+                        = $data->{$tm_ds}{$section}{$field}{$key};
+                    if (ref $data->{$tm_ds}{$section}{$field}{$key} eq
+                        'ARRAY' )
+                    {
+                        my @fields
+                            = @{ $data->{$tm_ds}{$section}{$field}{$key} };
+                        if ( scalar @fields == 1 ) {
+                            my $field_value = join ' ',
+                                @{ $data->{$tm_ds}{$section}{$field}{$key} };
+                            $rec->{tablebindings}{$tm_ds}{$section}{$field}
+                                {$key} = "[ $field_value ]";
+                        }
+                        else {
+                            push @{ $rec->{tablebindings}{$tm_ds}{$section}
+                                    {$field}{$key} }, $_
+                                foreach @fields;
+                        }
+                    }
+                    else {
+                        $rec->{tablebindings}{$tm_ds}{$section}{$field}{$key}
+                            = $data->{$tm_ds}{$section}{$field}{$key};
+                    }
+                }
+            }
         }
     }
 
@@ -528,6 +633,69 @@ sub make_deptable {
             else {
                 $rec->{deptable}{$tm_ds}{columns}{$field}{datatype}
                     = $data->{$tm_ds}{columns}{$field}{datatype};
+            }
+        }
+    }
+
+    return $conf->save_string($rec);
+}
+
+=head2 make_scrtoolbar
+
+scrtoolbar.
+
+=cut
+
+sub make_scrtoolbar {
+    my $data = shift;
+
+    return unless keys %{$data};
+
+    my $conf = Config::General->new(
+        -AllowMultiOptions => 1,
+        -SplitPolicy       => 'equalsign',
+        -Tie               => "Tie::IxHash",
+    );
+
+    my $rec = {};
+    tie %{$rec}, 'Tie::IxHash::Easy';
+
+    my @rec;
+    foreach my $tm_ds ( keys %{$data} ) {
+        foreach my $tm_rec ( @{ $data->{$tm_ds} } ) {
+            push @rec, $tm_rec;
+        }
+        $rec->{scrtoolbar}{$tm_ds} = [@rec];
+    }
+
+    return $conf->save_string($rec);
+}
+
+=head2 make_toolbar
+
+toolbar.
+
+=cut
+
+sub make_toolbar {
+    my $data = shift;
+
+    return unless keys %{$data};
+
+    my $conf = Config::General->new(
+        -AllowMultiOptions => 1,
+        -SplitPolicy       => 'equalsign',
+        -Tie               => "Tie::IxHash",
+    );
+
+    my $rec = {};
+    tie %{$rec}, 'Tie::IxHash::Easy';
+
+    foreach my $tb ( keys %{$data} ) {
+        foreach my $page ( keys %{ $data->{$tb}{state} } ) {
+            foreach my $key ( keys %{ $data->{$tb}{state}{$page} } ) {
+                $rec->{toolbar}{$tb}{state}{$page}{$key}
+                    = $data->{$tb}{state}{$page}{$key};
             }
         }
     }
