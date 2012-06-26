@@ -162,7 +162,7 @@ sub make_param_config {
             $scrcfg_name = lc $screen_name;
         }
         else {
-            die "Can not determine config name!";
+            return;
         }
     }
 
@@ -319,31 +319,6 @@ sub new_app_tree {
     return;
 }
 
-=head2 update_app
-
-Create new screen and the config file ...
-
-=cut
-
-sub update_app {
-    my $self = shift;
-
-    if ( defined $self->{param}{screen} ) {
-        my $module = $self->{param}{screen};
-        print " New screen:\n";
-        die "Abort." unless $self->check_required_params( 'screen', 'table' );
-        $self->command_generate();
-    }
-
-    if ( $self->{param}{update} ) {
-        die "Abort." unless $self->check_required_params('config');
-        my $tdec = Tpda3::Devel::Edit::Config->new( $self->{param} );
-        $tdec->config_update();
-    }
-
-    return;
-}
-
 =head2 check_required_params
 
 Check a list of parameters.
@@ -374,6 +349,7 @@ sub check_required_params {
 =head2 help_config
 
 Show list of the available app configs.
+TODO: list config files from project dir.
 
 =cut
 

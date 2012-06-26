@@ -3,6 +3,8 @@ package Tpda3::Devel::Render::Config;
 use 5.008009;
 use strict;
 use warnings;
+
+use Data::Dumper;
 use utf8;
 
 use Config::General;
@@ -104,9 +106,20 @@ sub generate_config {
     my $ic = Tpda3::Devel::Info::Config->new($self->{param});
     my $it = Tpda3::Devel::Info::Table->new();
 
-    my $table_info = $it->table_info( $self->{param}{table} );
-    my $maintable  = $self->prepare_config_data_main($table_info);
-    my $deptable   = $self->prepare_config_data_dep($self->{param}{table});
+    my @tables = split /,/, $self->{param}{table}, 2;
+    my $table_main = $tables[0];
+
+    die "Need a table name!" unless $table_main;
+
+    print " Main table is '$table_main'\n";
+
+    my $table_info = $it->table_info( $table_main );
+    my $maintable_data  = $self->prepare_config_data_main($table_info);
+    print Dumper( $maintable_data );
+    my $dep_table_data;
+    my $deptable_name = $tables[1];
+    $dep_table_data = $self->prepare_config_data_dep($deptable_name)
+        if $deptable_name;
 
     my $pkfields = $table_info->{pk_keys};
     my $fields   = $table_info->{fields};
@@ -114,8 +127,8 @@ sub generate_config {
     my $columns = $self->remove_dupes($pkfields, $fields);
 
     my %data = (
-        maintable   => $maintable,
-        deptable    => $deptable,
+        maintable   => $maintable_data,
+        deptable    => $dep_table_data,
         modulename  => $screen,
         moduledescr => $screen,
         pkfields    => $table_info->{pk_keys},

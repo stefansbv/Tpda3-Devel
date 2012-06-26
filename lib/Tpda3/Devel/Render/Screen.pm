@@ -88,7 +88,7 @@ sub generate_screen {
         columns     => $cfg{maintable}{columns},
     );
 
-    my $screen_fn   = $self->{param}{screen_fn}; #"$screen.pm";
+    my $screen_fn   = $self->{param}{screen_fn};
     my $output_path = $self->{param}{screen_ap};
 
     if ( -f catfile($output_path, $screen_fn) ) {

@@ -130,7 +130,13 @@ called from an application dir.
 sub get_app_module_rp {
     my ($self, $module) = @_;
 
-    return catdir( "Tpda3-$module", 'lib/Tpda3/Tk/App' );
+    my $rp = catdir( "Tpda3-$module", 'lib/Tpda3/Tk/App' );
+    if (-d $rp) {
+        return $rp;
+    }
+    else {
+        die "Unknown path: $rp";
+    }
 }
 
 =head2 get_cfg_name
@@ -169,7 +175,13 @@ sub get_screen_module_ap {
     my $app_path = $self->check_app_path();
     my $app_name = $self->get_app_name();
 
-    return catdir($app_path, $app_name);
+    my $ap = catdir($app_path, $app_name);
+    if (-d $ap) {
+        return $ap;
+    }
+    else {
+        die "Unknown path: $ap";
+    }
 }
 
 =head2 get_screen_module_apfn
@@ -181,7 +193,13 @@ Get the application screen module absolute path and file name.
 sub get_screen_module_apfn {
     my ($self, $file) = @_;
 
-    return catfile( $self->get_screen_module_ap, $file );
+    my $apfn = return catfile( $self->get_screen_module_ap, $file );
+    if (-f $apfn) {
+        return $apfn;
+    }
+    else {
+        die "Unknown file: $apfn";
+    }
 }
 
 =head2 get_screen_config_ap
@@ -196,7 +214,13 @@ sub get_screen_config_ap {
     my $cfg_path = $self->check_cfg_path();
     my $cfg_name = $self->get_cfg_name();
 
-    return catdir($cfg_path, $cfg_name, 'scr');
+    my $ap = catdir($cfg_path, $cfg_name, 'scr');
+    if (-d $ap) {
+        return $ap;
+    }
+    else {
+        die "Unknown path: $ap";
+    }
 }
 
 =head2 get_screen_config_apfn
@@ -208,7 +232,13 @@ Get the application screen config absolute path and file name.
 sub get_screen_config_apfn {
     my ($self, $file) = @_;
 
-    return catfile( $self->get_screen_config_ap, $file );
+    my $apfn = catfile( $self->get_screen_config_ap, $file );
+    if (-f $apfn) {
+        return $apfn;
+    }
+    else {
+        die "Unknown file: $apfn";
+    }
 }
 
 =head1 AUTHOR
