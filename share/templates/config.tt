@@ -1,7 +1,7 @@
 # Screen settings
 # Style: default or report
 <screen>
-  version               = 3
+  version               = 4
   name                  = [% screenname %]
   description           = [% screendescr %]
   style                 = default
@@ -24,20 +24,20 @@
 <list_header>
 [%- IF pkfields.size == 1 -%]
  [% FOREACH pk IN pkfields %]
-  lookup = [ [%- pk -%] ]
+  lookup                = [ [%- pk -%] ]
  [%- END -%]
 [%- ELSE -%]
  [% FOREACH pk IN pkfields %]
-  lookup = [%- pk -%]
+  lookup                = [%- pk -%]
  [%- END -%]
 [%- END %]
 [%- IF columns.size == 1 -%]
  [% FOREACH col IN columns %]
-  column = [ [%- col -%] ]
+  column                = [ [%- col -%] ]
  [%- END -%]
 [%- ELSE -%]
  [% FOREACH col IN columns %]
-  column = [%- col -%]
+  column                = [%- col -%]
  [%- END -%]
 [%- END %]
 </list_header>
@@ -55,7 +55,7 @@
 # Table attributes
 # Main table
 # PK and FK columns attributes: "state = disabled"
-[% IF deptable -%]
+[% IF maintable -%]
 [% maintable %]
 [%- ELSE -%]
 <maintable/>
