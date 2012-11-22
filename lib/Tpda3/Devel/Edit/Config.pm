@@ -366,16 +366,16 @@ sub make_bindings {
 
         # field - lokup
         if ( ref $data->{$field}{field} eq 'HASH' ) {
-            foreach my $lookup ( keys %{ $data->{$field}{field} } ) {
-                if ( ref $data->{$field}{field}{lookup} ) {
+            foreach my $key ( keys %{ $data->{$field}{field} } ) {
+                if ( ref $data->{$field}{field}{$key} ) {
                     # v3
-                    $rec->{bindings}{$field}{field}{$lookup}
-                        = $data->{$field}{field}{$lookup}{name};
+                    $rec->{bindings}{$field}{field}{$key}
+                        = $data->{$field}{field}{$key}{name};
                 }
                 else {
                     # v4
-                    $rec->{bindings}{$field}{field}{$lookup}
-                        = $data->{$field}{field}{$lookup};
+                    $rec->{bindings}{$field}{field}{$key}
+                        = $data->{$field}{field}{$key};
                 }
             }
         }

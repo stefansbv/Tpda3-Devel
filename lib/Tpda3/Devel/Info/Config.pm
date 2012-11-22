@@ -56,6 +56,9 @@ sub _init {
         $opt->{cfname} = $app_info->get_cfg_name();
     }
 
+    die "Abort, can not determine mnemonic"
+        unless exists $opt->{cfname} and $opt->{cfname};
+
     Tpda3::Config->instance($opt);
 
     return;
@@ -88,16 +91,16 @@ sub config_info {
     };
 }
 
-=head2 list_configs
+=head2 list_mnemonics
 
 Call list_configs method from Tpda3::Config.
 
 =cut
 
-sub list_configs {
+sub list_mnemonics {
     my ($self) = @_;
 
-    Tpda3::Config->instance()->list_configs;
+    Tpda3::Config->instance()->list_mnemonics;
 
     return;
 }

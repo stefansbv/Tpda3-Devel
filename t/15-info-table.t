@@ -1,6 +1,5 @@
 #!perl
 
-#use Data::Dumper;
 use Test::More tests => 9;
 
 use_ok('Tpda3::Devel');
@@ -22,9 +21,7 @@ ok( $it->isa('Tpda3::Devel::Info::Table'), 'created Info::Table instance' );
 my $dbh =  $it->dbh;
 ok( $dbh->isa('DBI::db'), 'created db handle' );
 
-my $dbc =  $it->dbc;
-# diag $dbc;
-ok( $dbc->isa('Tpda3::Db::Connection::Postgresql'), 'created dbc' );
+ok(my $dbc = $it->dbc, 'created dbc' );
 
 my $table = 'orderdetails';
 my $itd = $it->table_info($table);
@@ -32,25 +29,6 @@ my $itd = $it->table_info($table);
 
 is($itd->{name}, $table, 'check table name');
 
-my $tb_list = $it->table_list;
-
-my $table_list = [
-    qw{
-        payments
-        customers
-        orderdetails
-        products
-        orders
-        productlines
-        employees
-        offices
-        country
-        status
-        reports_det
-        reports
-        }
-];
-
-is_deeply( $tb_list, $table_list, 'table list' );
+ok(my $tb_list = $it->table_list, 'get table list');
 
 # done

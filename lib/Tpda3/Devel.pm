@@ -3,8 +3,6 @@ package Tpda3::Devel;
 use 5.008009;
 use strict;
 use warnings;
-
-use Data::Dumper;
 use Ouch;
 use utf8;
 
@@ -15,9 +13,10 @@ use File::Spec::Functions;
 use File::ShareDir qw(dist_dir);
 use File::Copy::Recursive;
 
+require Tpda3::Config::Utils;
+
 require Tpda3::Devel::Info::App;
 require Tpda3::Devel::Info::Config;
-require Tpda3::Config::Utils;
 require Tpda3::Devel::Info::Table;
 require Tpda3::Devel::Render::NewApp;
 require Tpda3::Devel::Render::Config;

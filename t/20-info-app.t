@@ -2,7 +2,7 @@
 
 use Test::More; # tests => 8;
 
-plan skip_all => "CWD has to be a Tpda3 app source.";
+plan skip_all => "CWD has to be a Tpda3 app source for this test.";
 
 use_ok('Tpda3::Devel');
 use_ok('Tpda3::Devel::Info::App');
