@@ -1,4 +1,4 @@
-package Tpda3::Devel::Render::NewApp;
+package Tpda3::Devel::Render::YAML;
 
 use 5.008009;
 use strict;
@@ -10,7 +10,7 @@ require Tpda3::Devel::Render;
 
 =head1 NAME
 
-Tpda3::Devel::Render::NewApp - Create a screen module file.
+Tpda3::Devel::Render::YAML - Create a YAML configuration file.
 
 =head1 VERSION
 
@@ -24,9 +24,9 @@ our $VERSION = '0.01';
 
 Generate a screen module.
 
-    use Tpda3::Devel::Render::NewApp;
+    use Tpda3::Devel::Render::YAML;
 
-    my $foo = Tpda3::Devel::Render::NewApp->new();
+    my $foo = Tpda3::Devel::Render::YAML->new();
 
 =head1 METHODS
 
@@ -43,40 +43,38 @@ sub new {
 
     bless $self, $class;
 
-    $self->{param} = $opt;
+    $self->{opt} = $opt;
 
     return $self;
 }
 
-=head2 generate_screen
+=head2 generate_makefile
 
 Generate screen module.
 
 =cut
 
-sub generate_newapp {
-    my $self = shift;
+sub generate_config {
+    my ($self, $yml_tmpl, $yml_name) = @_;
 
-    my $module = $self->{param}{appname};
+    my $module = $self->{opt}{module};
+    my $dbname = $self->{opt}{dbname};
 
     die "Need a module name!" unless $module;
 
-    # TODO: Make user (developer) config with this data
-    my %data = (
-        name        => "Tpda3::Tk::App::$module",
-        description => 'description',
-        copy_author => 'Ștefan Suciu',
-        copy_email  => "stefan 'la' s2i2 .ro",
-        copy_year   => '2012',
-    );
+    my %data = ( r => $self->{opt} );
 
-    my $app_info = Tpda3::Devel::Info::App->new();
-    my $output_path = $app_info->get_app_module_rp($module);
+    my $app_info = Tpda3::Devel::Info::App->new($module);
+    my $out_path = $app_info->get_config_ap_for('etc');
 
-    Tpda3::Devel::Render->render( 'newapp', "$module.pm", \%data, $output_path );
+    Tpda3::Devel::Render->render( $yml_tmpl, $yml_name, \%data, $out_path );
 
-    return $output_path;
+    return $out_path;
 }
+
+=head1 DESCRIPTION
+
+Using a template to generate YAML configration files.
 
 =head1 AUTHOR
 
@@ -90,7 +88,7 @@ Please report any bugs or feature requests to the autor.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc Tpda3::Devel::Render::NewApp
+    perldoc Tpda3::Devel::Render::YAML
 
 =head1 LICENSE AND COPYRIGHT
 
@@ -112,4 +110,4 @@ if not, write to the Free Software Foundation, Inc.,
 
 =cut
 
-1; # End of Tpda3::Devel::Render::NewApp
+1; # End of Tpda3::Devel::Render::YAML

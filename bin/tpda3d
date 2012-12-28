@@ -1,4 +1,4 @@
-#!perl
+#!/bin/env perl
 #
 # Tpda3 Application Development.
 #
@@ -9,9 +9,13 @@ use utf8;
 
 use Tpda3::Devel;
 
-if ( !@ARGV ) {
-    Tpda3::Devel::usage(1);
-    exit 1;
+unless ( scalar @ARGV ) {
+    require Pod::Usage;
+    Pod::Usage::pod2usage(
+        {   -verbose => 1,
+            -exitval => 0,
+        }
+    );
 }
 
 main();
@@ -34,8 +38,8 @@ sub check_options {
     my $opt = shift;
 
     if ( defined $opt->{list} ) {
-        require Tpda3::Devel::Info::Config;
-        Tpda3::Devel::Info::Config->new->list_configs;
+        my $cfg = Tpda3::Config->instance( { list => $opt->{list} } );
+        $cfg->list_mnemonics( $opt->{list} );
         exit;
     }
 }
@@ -46,11 +50,11 @@ Tpda3 Application Development.
 
 =head1 SYNOPSIS
 
-Generate a new Tpda3 application:
+Create a new Tpda3 application:
 
-   tpda3d <app-name> [-c <app-cfg>]
+   tpda3d -A <app-name> [-c <app-cfg>]
 
-Generate a new Tpda3 screen module and screen configuration:
+Generate a new Tpda3 screen module and a screen configuration:
 
    tpda3d [<app-cfg>] -S <scr-name> -t <table[,table]> [-c <scr-cfg>]
 
@@ -88,6 +92,8 @@ The parameters are:
 
 =over
 
+=item  <app-name>     required, the name of the new application module
+
 =item  <scr-name>     required, the name of the new screen module
 
 =item  <table>        required, the name of the main table
@@ -103,7 +109,7 @@ the screen name.
 
 Requirements:
 
-    Tpda3 v0.46.
+    Tpda3 v0.61.
 
 =head1 BUGS AND LIMITATIONS
 
@@ -115,7 +121,7 @@ Patches are welcome.
 
 =head1 AUTHOR
 
-Stefan Suciu, C<< <stefan@s2i2.ro> >>
+Stefan Suciu, C<< <stefan la s2i2.ro> >>
 
 =head1 LICENCE AND COPYRIGHT
 

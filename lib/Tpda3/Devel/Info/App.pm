@@ -3,6 +3,7 @@ package Tpda3::Devel::Info::App;
 use 5.008009;
 use strict;
 use warnings;
+use Data::Printer;
 
 use File::Basename;
 use File::Spec::Functions;
@@ -39,9 +40,15 @@ Constructor.
 =cut
 
 sub new {
-    my $class = shift;
+    my ( $class, $opt ) = @_;
 
-    bless {}, $class;
+    my $self = {};
+
+    bless $self, $class;
+
+    $self->{module} = $opt;
+
+    return $self;
 }
 
 =head2 check_app_path
@@ -65,21 +72,52 @@ sub check_app_path {
 
 =head2 check_cfg_paths
 
-Check and return the application config path.
+Return the application config path. If initialized without module
+name, return the share/apps.
 
 =cut
 
 sub check_cfg_path {
     my $self = shift;
 
-    my $app_cfg_path = catdir( Cwd::cwd(), 'share/apps' );
-
-    if ( -d $app_cfg_path ) {
-        return $app_cfg_path;
+    my $module = $self->{module};
+    if ($module) {
+        my $rp = catdir( $self->get_app_rp($module), 'share/apps' );
+        if ( -d $rp ) {
+            return $rp;
+        }
+        else {
+            die "Wrong path: $rp";
+        }
     }
     else {
-        # warn " No cfg path!: '$app_cfg_path'";
-        return;
+        my $app_cfg_path = catdir( Cwd::cwd(), 'share/apps' );
+        if ( -d $app_cfg_path ) {
+            return $app_cfg_path;
+        }
+        else {
+            die "Can't determine share/apps config path.";
+        }
+    }
+
+    return;
+}
+
+sub get_tests_path {
+    my $self = shift;
+
+    my $module = $self->{module};
+    if ($module) {
+        my $rp = catdir( $self->get_app_rp($module), 't' );
+        if ( -d $rp ) {
+            return $rp;
+        }
+        else {
+            die "Wrong path: $rp";
+        }
+    }
+    else {
+        die "Failed to get tests path!";
     }
 
     return;
@@ -109,15 +147,15 @@ sub get_app_name {
         return;
     }
 
-    my $candidate = $dirlist->[0];           # should be only one
+    my $candidate = $dirlist->[0];    # should be only one
 
-    return unless $candidate;                # no app name!
+    return unless $candidate;         # no app name!
 
-    my $app_module = catfile($app_path, "$candidate.pm");
+    my $app_module = catfile( $app_path, "$candidate.pm" );
 
     return $candidate if -f $app_module;
 
-    return;                                  # no app name!
+    return;                           # no app name!
 }
 
 =head2 get_app_module_rp
@@ -128,10 +166,33 @@ called from an application dir.
 =cut
 
 sub get_app_module_rp {
-    my ($self, $module) = @_;
+    my $self = shift;
 
-    my $rp = catdir( "Tpda3-$module", 'lib/Tpda3/Tk/App' );
-    if (-d $rp) {
+    my $module = $self->{module} or die "No module name!";
+
+    my $rp = catdir( $self->get_app_rp($module), 'lib/Tpda3/Tk/App' );
+    if ( -d $rp ) {
+        return $rp;
+    }
+    else {
+        die "Unknown path: $rp";
+    }
+}
+
+=head2 get_app_rp
+
+Tpda3 application module relative path.  This is not supposed to be
+called from an application dir.
+
+=cut
+
+sub get_app_rp {
+    my $self = shift;
+
+    my $module = $self->{module} || die "No module name!";
+
+    my $rp = catdir("Tpda3-$module");
+    if ( -d $rp ) {
         return $rp;
     }
     else {
@@ -159,7 +220,7 @@ sub get_cfg_name {
         return;
     }
     else {
-        return $dirlist->[0];                # should be only one
+        return $dirlist->[0];    # should be only one
     }
 }
 
@@ -175,8 +236,8 @@ sub get_screen_module_ap {
     my $app_path = $self->check_app_path();
     my $app_name = $self->get_app_name();
 
-    my $ap = catdir($app_path, $app_name);
-    if (-d $ap) {
+    my $ap = catdir( $app_path, $app_name );
+    if ( -d $ap ) {
         return $ap;
     }
     else {
@@ -191,10 +252,10 @@ Get the application screen module absolute path and file name.
 =cut
 
 sub get_screen_module_apfn {
-    my ($self, $file) = @_;
+    my ( $self, $file ) = @_;
 
     my $apfn = return catfile( $self->get_screen_module_ap, $file );
-    if (-f $apfn) {
+    if ( -f $apfn ) {
         return $apfn;
     }
     else {
@@ -202,20 +263,31 @@ sub get_screen_module_apfn {
     }
 }
 
-=head2 get_screen_config_ap
+=head2 get_config_ap_for
 
-Get the application screen config absolute path.
+Get an application configuration absolute path.  The parameter is a
+subdir name, one of the following is valid (but no validation occurs):
+
+=over
+
+=item etc
+
+=item scr
+
+=back
 
 =cut
 
-sub get_screen_config_ap {
-    my $self = shift;
+sub get_config_ap_for {
+    my ( $self, $dir ) = @_;
 
     my $cfg_path = $self->check_cfg_path();
     my $cfg_name = $self->get_cfg_name();
 
-    my $ap = catdir($cfg_path, $cfg_name, 'scr');
-    if (-d $ap) {
+    p $cfg_path;
+    p $cfg_name;
+    my $ap = catdir( $cfg_path, $cfg_name, $dir );
+    if ( -d $ap ) {
         return $ap;
     }
     else {
@@ -223,27 +295,21 @@ sub get_screen_config_ap {
     }
 }
 
-=head2 get_screen_config_apfn
+=head2 get_config_apfn_for
 
 Get the application screen config absolute path and file name.
 
 =cut
 
-sub get_screen_config_apfn {
-    my ($self, $file) = @_;
+sub get_config_apfn_for {
+    my ( $self, $type, $file ) = @_;
 
-    my $apfn = catfile( $self->get_screen_config_ap, $file );
-    if (-f $apfn) {
-        return $apfn;
-    }
-    else {
-        die "Unknown file: $apfn";
-    }
+    return catfile( $self->get_config_ap_for($type), $file );
 }
 
 =head1 AUTHOR
 
-Stefan Suciu, C<< <stefan@s2i2.ro> >>
+Stefan Suciu, C<< <stefan la s2i2.ro> >>
 
 =head1 BUGS
 
@@ -279,4 +345,4 @@ if not, write to the Free Software Foundation, Inc.,
 
 =cut
 
-1; # End of Tpda3::Devel::Info::App
+1;    # End of Tpda3::Devel::Info::App

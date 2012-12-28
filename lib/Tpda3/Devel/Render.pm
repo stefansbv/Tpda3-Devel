@@ -38,6 +38,9 @@ Perhaps a little code snippet.
 
 Generate a file from templates.
 
+If the output file parameter is just the file extension, then use type
+as file name.
+
 =cut
 
 sub render {
@@ -45,10 +48,13 @@ sub render {
 
     my $template = $self->get_template_for($type);
 
+    $output_file = "${type}$output_file" if $output_file =~ m{^\.};
+
     # Where are module-level shared data files kept
     my $templ_path = catdir( dist_dir('Tpda3-Devel'), 'templates');
 
-    print "\n Output goes to\n '$output_path'\n";
+    print "Rendering '$template'...\n";
+    print " Output goes to\n '$output_path'\n";
     print " File is '$output_file'\n";
 
     my $tt = Template->new(
@@ -75,12 +81,19 @@ sub get_template_for {
     die "The type argument is required" unless defined $type;
 
     my $template =
-         $type eq q{}              ? die("Empty type argument")
-       : $type eq 'config'         ? 'config.tt'
-       : $type eq 'config-update'  ? 'config-refactor.tt'
-       : $type eq 'screen'         ? 'screen.tt'
-       : $type eq 'newapp'         ? 'newapp.tt'
-       :                             die("Unknown type $type")
+         $type eq q{}               ? die("Empty type argument")
+       : $type eq 'config'          ? 'config.tt'
+       : $type eq 'config-update'   ? 'config-refactor.tt'
+       : $type eq 'screen'          ? 'screen.tt'
+       : $type eq 'module'          ? 'module.tt'
+       : $type eq 'makefile'        ? 'makefile.tt'
+       : $type eq 'cfg-application' ? 'config/application.tt'
+       : $type eq 'cfg-menu'        ? 'config/menu.tt'
+       : $type eq 'cfg-connection'  ? 'config/connection.tt'
+       : $type eq 'test-load'       ? 'test/load.tt'
+       : $type eq 'test-config'     ? 'test/config.tt'
+       : $type eq 'test-connection' ? 'test/connection.tt'
+       :                              die("Unknown type $type")
        ;
 
     return $template;
@@ -88,7 +101,7 @@ sub get_template_for {
 
 =head1 AUTHOR
 
-Stefan Suciu, C<< <stefan@s2i2.ro> >>
+Stefan Suciu, C<< <stefan la s2i2.ro> >>
 
 =head1 BUGS
 

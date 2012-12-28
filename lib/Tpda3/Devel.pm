@@ -12,15 +12,19 @@ use Term::ReadKey;
 use File::Spec::Functions;
 use File::ShareDir qw(dist_dir);
 use File::Copy::Recursive;
+use DBI 1.43;                        # minimum version for 'parse_dsn'
 
 require Tpda3::Config::Utils;
 
 require Tpda3::Devel::Info::App;
 require Tpda3::Devel::Info::Config;
 require Tpda3::Devel::Info::Table;
-require Tpda3::Devel::Render::NewApp;
+require Tpda3::Devel::Render::Module;
 require Tpda3::Devel::Render::Config;
 require Tpda3::Devel::Render::Screen;
+require Tpda3::Devel::Render::Makefile;
+require Tpda3::Devel::Render::YAML;
+require Tpda3::Devel::Render::Test;
 require Tpda3::Devel::Edit::Config;
 
 =head1 NAME
@@ -90,9 +94,7 @@ sub _init {
         pass   => $pass,
     };
 
-    $self->{app_info} = Tpda3::Devel::Info::App->new();
-
-    $self->{param} = $opt;
+    $self->{opt} = $opt;
 
     # $self->make_param_defaults();
 
@@ -104,13 +106,13 @@ sub _init {
 Parse and return the command line options.
 
 Parameters:
- <app-name> | <app-conf>
- -c config                : screen config file name without
+ -A, --module             : create new application module
+ -c, --config             : screen config file name without
                             the suffix (.conf)
  -t table-main, table-dep : the database main table name and
                             optional dependent table
- -S screen                : screen module name without the suffix (.pm)
- -U                       : update screen config file
+ -S, --screen             : screen module name without the suffix (.pm)
+ -U, --update             : update screen config file
  -u, --user               : user name
  -p, --password           : password
 
@@ -120,15 +122,17 @@ sub get_options {
 
     my %opt          = ();
     my $getopt_specs = {
-        'S|screen:s'   => \$opt{screen},
-        'U|update'     => \$opt{update},
-        'c|config=s'   => \$opt{config},
-        't|tables=s'   => \$opt{table},
-        'u|user=s'     => \$opt{user},
-        'p|password=s' => \$opt{pass},
-        'l|list:s'     => \$opt{list},
-        'help|?'       => sub { usage(1) },
-        'm|man'        => sub { usage(2) },
+        'A|module=s' => \$opt{module},
+        'd|dsn=s'         => \$opt{dsn},
+        'S|screen:s'      => \$opt{screen},
+        'U|update'        => \$opt{update},
+        'c|config=s'      => \$opt{config},
+        't|tables=s'      => \$opt{table},
+        'u|user=s'        => \$opt{user},
+        'p|password=s'    => \$opt{pass},
+        'l|list:s'        => \$opt{list},
+        'help|?'          => sub { usage(1) },
+        'm|man'           => sub { usage(2) },
     };
 
     my $parser = Getopt::Long::Parser->new();
@@ -137,7 +141,7 @@ sub get_options {
         die( 'See tpda3d --help, tpda3d --man for usage.' );
 
     $opt{param0} = $ARGV[0];   # the first parameter interpreted as
-                               # cfname or application name
+                               # mnemonic or module name
 
     return \%opt;
 }
@@ -151,12 +155,12 @@ Screen config parameter.
 sub make_param_config {
     my $self = shift;
 
-    my $scrcfg_name = $self->{param}{config};
+    my $scrcfg_name = $self->{opt}{config};
 
     unless ($scrcfg_name) {
 
         # Fallback to lc (screen-name)
-        my $screen_name = $self->{param}{screen};
+        my $screen_name = $self->{opt}{screen};
         if ($screen_name) {
             $scrcfg_name = lc $screen_name;
         }
@@ -165,13 +169,14 @@ sub make_param_config {
         }
     }
 
-    my $scrcfg_fn   = "$scrcfg_name.conf";
-    my $scrcfg_ap   = $self->{app_info}->get_screen_config_ap();
-    my $scrcfg_apfn = $self->{app_info}->get_screen_config_apfn($scrcfg_fn);
+    my $scrcfg_fn = qq{$scrcfg_name.conf};
+    my $scrcfg_ap = $self->{app_info}->get_config_ap_for('scr');
+    my $scrcfg_apfn
+        = $self->{app_info}->get_config_apfn_for( 'scr', $scrcfg_fn );
 
-    $self->{param}{config_fn}   = $scrcfg_fn;
-    $self->{param}{config_ap}   = $scrcfg_ap;
-    $self->{param}{config_apfn} = $scrcfg_apfn;
+    $self->{opt}{config_fn}   = $scrcfg_fn;
+    $self->{opt}{config_ap}   = $scrcfg_ap;
+    $self->{opt}{config_apfn} = $scrcfg_apfn;
 
     return;
 }
@@ -185,7 +190,7 @@ Screen name parameter.
 sub make_param_screen {
     my $self = shift;
 
-    my $screen_name = $self->{param}{screen};
+    my $screen_name = $self->{opt}{screen};
 
     return unless $screen_name;
 
@@ -193,9 +198,9 @@ sub make_param_screen {
     my $screen_ap   = $self->{app_info}->get_screen_module_ap();
     my $screen_apfn = $self->{app_info}->get_screen_module_apfn($screen_fn);
 
-    $self->{param}{screen_fn}   = $screen_fn;
-    $self->{param}{screen_ap}   = $screen_ap;
-    $self->{param}{screen_apfn} = $screen_apfn;
+    $self->{opt}{screen_fn}   = $screen_fn;
+    $self->{opt}{screen_ap}   = $screen_ap;
+    $self->{opt}{screen_apfn} = $screen_apfn;
 
     return;
 }
@@ -210,80 +215,98 @@ I<create> mode and execute the appropriate method.
 sub process_command {
     my $self = shift;
 
-    my $mode;
-    if (    $self->{app_info}->check_app_path()
-        and $self->{app_info}->check_cfg_path() )
-    {
+    if ( $self->{opt}{module} ) {
 
-        # CWD is a Tpda3 application dir.
-        # Create new screen module and config file or
-        #  update screen config files to the latest version.
+        # Create a new Tpda3 module tree
 
-        my $cfg_name = $self->{param}{param0};    # pam pam ;)
-        $cfg_name    = $self->{app_info}->get_cfg_name() unless $cfg_name;
-        $self->{param}{cfname} = $cfg_name;
-        my $app_name = $self->{app_info}->get_app_name();
-        print "Update application: $app_name ($cfg_name)\n";
+        print "Create new module\n";
+        my $module   = $self->{opt}{module};
+        my $mnemonic = lc $module;
 
-        if ( $self->{param}{update} ) {
+        ouch 404, "New app - required parameter: <name> \n" unless $mnemonic;
 
-            # Update a screen configuration file
-            $self->make_param_config();       # config
-            die "Abort." unless $self->check_required_params('config');
-            my $tdec = Tpda3::Devel::Edit::Config->new( $self->{param} );
-            $tdec->config_update();
-        }
-        else {
+        $self->{opt}{mnemonic} = $mnemonic;
+        $self->{opt}{config}
+            = $self->{opt}{config}
+            ? $self->{opt}{config}
+            : $mnemonic;
 
-            # Create a new screen module
-            $self->make_param_screen();       # screen
-            $self->make_param_config();       # config
-            die "Abort."
-                unless $self->check_required_params( 'screen', 'table' );
-            $self->command_generate();
-        }
+        # Other params
+        die "Abort." unless $self->check_required_params('dsn');
 
-        # $self->update_app();
-        return;
-    }
-    else {
-
-        # Create a new Tpda3 application tree
-
-        print "Create new application\n";
-        my $name = $self->{param}{param0};    # pam pam ;)
-        die "New app - required parameter: <name> \n" unless $name;
-        $self->{param}{cfname} = $name;
-        $self->{param}{config}
-            = $self->{param}{config}
-            ? $self->{param}{config}
-            : lc($name);    # app-cfg defaults to lc(app-name)
+        # Add DSN to options
+        $self->parse_dsn_full( $self->{opt}{dsn} );
 
         $self->new_app_tree();
 
         return;
     }
+    else {
 
-    die "What to do?";
+        # Update module
+        $self->{app_info} = Tpda3::Devel::Info::App->new();
+
+        if (    $self->{app_info}->check_app_path()
+            and $self->{app_info}->check_cfg_path() )
+        {
+
+            # CWD is a Tpda3 module dir.
+            # Create new screen module and config file or
+            #  update screen config files to the latest version.
+
+            my $cfg_name = $self->{opt}{param0};
+            $cfg_name = $self->{app_info}->get_cfg_name() unless $cfg_name;
+            $self->{opt}{mnemonic} = $cfg_name;
+            my $app_name = $self->{app_info}->get_app_name();
+            print "Updating $app_name ($cfg_name) module\n";
+
+            if ( $self->{opt}{update} ) {
+
+                # Update a screen configuration file
+                $self->make_param_config();    # config
+                die "Abort." unless $self->check_required_params('config');
+                my $tdec = Tpda3::Devel::Edit::Config->new( $self->{opt} );
+                $tdec->config_update();
+            }
+            elsif ( $self->{opt}{screen} ) {
+
+                # Create a new screen module
+                $self->make_param_config();    # config
+                $self->make_param_screen();    # screen
+                die "Abort."
+                    unless $self->check_required_params( 'screen', 'table' );
+                $self->command_generate();
+            }
+            else {
+                ouch 404, q{Unknown option.};
+            }
+
+            #$self->update_app();
+
+            return;
+        }
+    }
 
     return;
 }
 
 =head2 new_app_tree
 
-Create new application tree and populate with files from templates.
+Create new module tree and populate with files from templates.
 
 =cut
 
 sub new_app_tree {
     my $self = shift;
 
-    my $module  = $self->{param}{appname};
-    my $appconf = $self->{param}{appconf};
+    my $module  = $self->{opt}{module};
+    my $appconf = $self->{opt}{mnemonic};
 
-    my $moduledir = "Tpda3-$module";
+    ouch 404, "No module name provided?" unless $module;
 
-    ouch 'Abort', "Application '$moduledir' already exists!"
+    my $moduledir = qq{Tpda3-$module};
+
+    ouch 'Abort', "Module '$moduledir' already exists!"
         if -d $moduledir;    # do not overwrite!
 
     print " Create module dir '$moduledir'.\n";
@@ -307,13 +330,29 @@ sub new_app_tree {
     File::Copy::Recursive::dircopy( $sharedir_config, $configdir )
         or ouch 'CfgInsErr', "Failed to copy module tree to '$configdir'";
 
-    print " Make application module. '$module'\n";
-    my $newapp = Tpda3::Devel::Render::NewApp->new( $self->{param} );
-    my $libapp_path = $newapp->generate_newapp();
+    print " Make module module. '$module'\n";
+    my $tdrm = Tpda3::Devel::Render::Module->new( $self->{opt} );
+    my $libapp_path = $tdrm->generate_module();
 
     my $scrmoduledir = catdir($libapp_path, $module);
     print " Create screens module dir '$scrmoduledir'.\n";
     Tpda3::Config::Utils->create_path($scrmoduledir);
+
+    print " Make Makefile.PL script.\n";
+    my $tdrmk = Tpda3::Devel::Render::Makefile->new( $self->{opt} );
+    $tdrmk->generate_makefile();
+
+    print " Make etc/*.yml configs.\n";
+    my $tdry = Tpda3::Devel::Render::YAML->new( $self->{opt} );
+    $tdry->generate_config('cfg-application', 'application.yml');
+    $tdry->generate_config('cfg-menu', 'menu.yml');
+    $tdry->generate_config('cfg-connection', 'connection.yml');
+
+    print " Make t/*.t test scripts.\n";
+    my $tdrt = Tpda3::Devel::Render::Test->new( $self->{opt} );
+    $tdrt->generate_test('test-load', '00-load.t');
+    $tdrt->generate_test('test-config', '10-config.t');
+    $tdrt->generate_test('test-connection', '20-connection.t');
 
     return;
 }
@@ -330,7 +369,7 @@ sub check_required_params {
     my $check = 0;
     my $count = 0;
     foreach my $para (@req) {
-        if ( exists $self->{param}{$para} and $self->{param}{$para} ) {
+        if ( exists $self->{opt}{$para} and $self->{opt}{$para} ) {
             $check++;
         }
         else {
@@ -356,7 +395,7 @@ sub help_config {
     my $self = shift;
 
     # Check config name
-    my $config = $self->{param}{config};
+    my $config = $self->{opt}{config};
     unless ($config) {
         Tpda3::Devel::Info::Config->new->list_scrcfg_files();
     }
@@ -374,11 +413,11 @@ sub help_table {
     my $self = shift;
 
     # Check table name (again)
-    my $tables = $self->{param}{table};
+    my $tables = $self->{opt}{table};
     return if $tables;
 
     # Gather info from the database
-    Tpda3::Devel::Info::Config->new( $self->{param} );
+    Tpda3::Devel::Info::Config->new( $self->{opt} );
     my $dti = Tpda3::Devel::Info::Table->new();
     my $list = $dti->table_list();
     print " > Tables:\n";
@@ -405,13 +444,13 @@ sub command_generate {
         print "Use existing screen config file: $config_file\n";
     }
     else {
-        my $conf = Tpda3::Devel::Render::Config->new( $self->{param} );
+        my $conf = Tpda3::Devel::Render::Config->new( $self->{opt} );
         $config_file = $conf->generate_config();
     }
 
     #-- Make screen module
 
-    my $scr    = Tpda3::Devel::Render::Screen->new( $self->{param} );
+    my $scr    = Tpda3::Devel::Render::Screen->new( $self->{opt} );
     my $screen = $scr->generate_screen($config_file);
 
     return;
@@ -426,14 +465,14 @@ Try to locate an existing config file and return the name if found.
 sub locate_config {
     my $self = shift;
 
-    my $scrcfg_fn = $self->{param}{config_fn};
+    my $scrcfg_fn = $self->{opt}{config_fn};
 
-    return $scrcfg_fn if -f $self->{param}{config_apfn};
+    return $scrcfg_fn if -f $self->{opt}{config_apfn};
 }
 
 =head2 version
 
-Print application version.
+Print module version.
 
 =cut
 
@@ -483,9 +522,33 @@ sub usage_info {
     exit;
 }
 
+=head2 parse_dsn_full
+
+Add DSN to opts.
+
+=cut
+
+sub parse_dsn_full {
+    my ($self, $dsn) = @_;
+
+    my ( $scheme, $driver, undef, undef, $driver_dsn ) =
+        DBI->parse_dsn($dsn)
+            or die "Can't parse DBI DSN '$dsn'";
+
+    my @dsn = split /;/, $driver_dsn;
+    if (scalar @dsn) {
+        foreach my $rec (@dsn) {
+            my ($key, $value) = split /=/, $rec, 2;
+            $self->{opt}{$key} = $value;
+        }
+    }
+
+    return;
+}
+
 =head1 AUTHOR
 
-Ştefan Suciu, C<< <stefan@s2i2.ro> >>
+Ştefan Suciu, C<< <stefan la s2i2.ro> >>
 
 =head1 BUGS
 

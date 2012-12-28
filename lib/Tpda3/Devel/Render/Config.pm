@@ -3,9 +3,10 @@ package Tpda3::Devel::Render::Config;
 use 5.008009;
 use strict;
 use warnings;
+use utf8;
+use Ouch;
 
 use Data::Dumper;
-use utf8;
 
 use Config::General;
 use Tie::IxHash::Easy;
@@ -51,7 +52,7 @@ sub new {
 
     bless $self, $class;
 
-    $self->{param} = $opt;
+    $self->{opt} = $opt;
 
     $self->_init;
 
@@ -99,14 +100,14 @@ Prepare data for the screen configuration file and create new file.
 sub generate_config {
     my $self = shift;
 
-    my $screen = $self->{param}{screen};
+    my $screen = $self->{opt}{screen};
 
     die "Need a screen name!" unless $screen;
 
-    my $ic = Tpda3::Devel::Info::Config->new($self->{param});
+    my $ic = Tpda3::Devel::Info::Config->new($self->{opt});
     my $it = Tpda3::Devel::Info::Table->new();
 
-    my @tables = split /,/, $self->{param}{table}, 2;
+    my @tables = split /,/, $self->{opt}{table}, 2;
     my $table_main = $tables[0];
 
     die "Need a table name!" unless $table_main;
@@ -164,25 +165,33 @@ sub prepare_config_data_main {
     $rec->{maintable}{view} = $table; # "v_$table" -> VIEW name
 
     # PK and FK
+    ouch 404, qq{ No PK key(s) for the '$table' table?}
+        unless $table_info->{pk_keys};
+
     $rec->{maintable}{pkcol}{name} = join ',', @{ $table_info->{pk_keys} };
-    $rec->{maintable}{fkcol}{name} = join ',', @{ $table_info->{fk_keys} };
+    $rec->{maintable}{fkcol}{name} = join ',', @{ $table_info->{fk_keys} }
+        if $table_info->{fk_keys};           # optional?
 
     print " Processing fields ...\n";
     foreach my $field ( @{ $table_info->{fields} } ) {
         my $info = $table_info->{info}{$field};
         my $type = $info->{type};
         print "  field: $info->{pos} -> $field ($type)\n";
-        $rec->{maintable}{columns}{$field}{label}    = lcfirst $field;
-        $rec->{maintable}{columns}{$field}{state}    = 'normal';
-        $rec->{maintable}{columns}{$field}{ctrltype} = $self->ctrltype($type);
-        $rec->{maintable}{columns}{$field}{width}
+        $rec->{maintable}{columns}{$field}{label} = lcfirst $field;
+        $rec->{maintable}{columns}{$field}{state} = 'normal';
+        $rec->{maintable}{columns}{$field}{ctrltype}
+            = $self->ctrltype($type);
+        $rec->{maintable}{columns}{$field}{displ_width}
+            = $self->len( $info->{length} );
+        $rec->{maintable}{columns}{$field}{valid_width}
             = $self->len( $info->{length} );
         $rec->{maintable}{columns}{$field}{numscale}
             = $self->numscale( $info->{scale} );
         $rec->{maintable}{columns}{$field}{readwrite} = 'rw';
         $rec->{maintable}{columns}{$field}{findtype}  = 'full';
         $rec->{maintable}{columns}{$field}{bgcolor}   = 'white';
-        $rec->{maintable}{columns}{$field}{datatype}   = $self->datatype($type);
+        $rec->{maintable}{columns}{$field}{datatype}
+            = $self->datatype($type);
     }
     print " done\n";
 
@@ -282,8 +291,11 @@ The screen configuration file name and the configuration data.
 sub render_config {
     my ($self, $data) = @_;
 
-    my $scrcfg_fn   = $self->{param}{config_fn};
-    my $output_path = $self->{param}{config_ap};
+    my $scrcfg_fn   = $self->{opt}{config_fn};
+    my $output_path = $self->{opt}{config_ap};
+
+    use Data::Printer;
+    p $data;
 
     Tpda3::Devel::Render->render( 'config', $scrcfg_fn, $data, $output_path );
 

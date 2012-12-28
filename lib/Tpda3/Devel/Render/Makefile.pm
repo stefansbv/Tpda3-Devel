@@ -1,4 +1,4 @@
-package Tpda3::Devel::Render::Test;
+package Tpda3::Devel::Render::Makefile;
 
 use 5.008009;
 use strict;
@@ -10,7 +10,7 @@ require Tpda3::Devel::Render;
 
 =head1 NAME
 
-Tpda3::Devel::Render::Test - Create a test file.
+Tpda3::Devel::Render::Makefile - Create a screen module file.
 
 =head1 VERSION
 
@@ -22,11 +22,11 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-Generate a test file.
+Generate a screen module.
 
-    use Tpda3::Devel::Render::Test;
+    use Tpda3::Devel::Render::Makefile;
 
-    my $foo = Tpda3::Devel::Render::Test->new();
+    my $foo = Tpda3::Devel::Render::Makefile->new();
 
 =head1 METHODS
 
@@ -48,32 +48,34 @@ sub new {
     return $self;
 }
 
-=head2 generate_screen
+=head2 generate_makefile
 
 Generate screen module.
 
 =cut
 
-sub generate_test {
-    my ($self, $test_tmpl, $test_name) = @_;
+sub generate_makefile {
+    my $self = shift;
 
     my $module = $self->{opt}{module};
 
-    die "Need a app name!" unless $module;
-    die "Need a test template!" unless $test_tmpl;
-    die "Need a test name!" unless $test_name;
+    die "Need a module name!" unless $module;
 
-    $self->{opt}{appname} = "Tpda3::Tk::App::$module";
-
-    my %data = ( r => $self->{opt} );
+    # TODO: Make user (developer) config with this data
+    my %data = (
+        module      => $module,
+        copy_author => q{Ștefan Suciu},
+        copy_email  => q{stefan 'la' s2i2 .ro},
+        copy_year   => (localtime)[5] + 1900,
+    );
 
     my $app_info = Tpda3::Devel::Info::App->new($module);
-    my $output_path = $app_info->get_tests_path();
+    my $out_path = $app_info->get_app_rp();
 
-    Tpda3::Devel::Render->render( $test_tmpl, $test_name, \%data,
-        $output_path );
+    Tpda3::Devel::Render->render( 'makefile', 'Makefile.PL', \%data,
+        $out_path );
 
-    return;
+    return $out_path;
 }
 
 =head1 AUTHOR
@@ -88,7 +90,7 @@ Please report any bugs or feature requests to the autor.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc Tpda3::Devel::Render::Test
+    perldoc Tpda3::Devel::Render::Makefile
 
 =head1 LICENSE AND COPYRIGHT
 
@@ -110,4 +112,4 @@ if not, write to the Free Software Foundation, Inc.,
 
 =cut
 
-1; # End of Tpda3::Devel::Render::Test
+1; # End of Tpda3::Devel::Render::Makefile

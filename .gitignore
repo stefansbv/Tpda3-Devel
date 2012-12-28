@@ -17,6 +17,4 @@ errors.txt
 TAGS
 *.conf
 cover_db/
-t/output/ScrTest.pm
-t/output/scrtest.conf
-t/output/NewApp.pm
+t/output

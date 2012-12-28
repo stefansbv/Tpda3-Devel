@@ -48,7 +48,7 @@ sub new {
 
     bless $self, $class;
 
-    $self->{param} = $opt;
+    $self->{opt} = $opt;
 
     return $self;
 }
@@ -62,14 +62,20 @@ Generate screen module.
 sub generate_screen {
     my ($self, $file) = @_;
 
-    my $screen = $self->{param}{screen};
+    my $screen = $self->{opt}{screen};
 
     die "A screen name is required!" unless $screen;
 
     my $app_info = Tpda3::Devel::Info::App->new();
-    my $cfg_info = Tpda3::Devel::Info::Config->new($self->{param});
+    my $cfg_info = Tpda3::Devel::Info::Config->new($self->{opt});
 
-    my $config_file = $self->{param}{config_fpn};
+    my $config_file = $self->{opt}{config_apfn};
+
+    die unless defined $config_file;
+
+    unless (-f $config_file) {
+        die "Can't locate config file:\n$config_file";
+    }
 
     tie my %cfg, "Tie::IxHash";     # keep the sections order
 
@@ -86,10 +92,11 @@ sub generate_screen {
         module      => $app_info->get_app_name(),
         screen      => $screen,
         columns     => $cfg{maintable}{columns},
+        pkcol       => $cfg{maintable}{pkcol}{name},
     );
 
-    my $screen_fn   = $self->{param}{screen_fn};
-    my $output_path = $self->{param}{screen_ap};
+    my $screen_fn   = $self->{opt}{screen_fn};
+    my $output_path = $self->{opt}{screen_ap};
 
     if ( -f catfile($output_path, $screen_fn) ) {
         print " Won't overwrite '$screen_fn'\n";

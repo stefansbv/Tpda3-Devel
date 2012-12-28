@@ -48,7 +48,7 @@ sub new {
 
     bless $self, $class;
 
-    $self->{param} = $opt;
+    $self->{opt} = $opt;
 
     return $self;
 }
@@ -65,9 +65,9 @@ sub config_update {
 
     my $app_info = Tpda3::Devel::Info::App->new();
 
-    my $scrcfg_fn   = $self->{param}{config_fn};
-    my $scrcfg_ap   = $self->{param}{config_ap};
-    my $scrcfg_apfn = $self->{param}{config_apfn};
+    my $scrcfg_fn   = $self->{opt}{config_fn};
+    my $scrcfg_ap   = $self->{opt}{config_ap};
+    my $scrcfg_apfn = $self->{opt}{config_apfn};
 
     my $data = $self->prepare_config_data($scrcfg_apfn);
 
