@@ -9,7 +9,7 @@ Generate Tpda3 application modules.
 Requirements
 ------------
 
-    Tpda3 v0.61.
+Tpda3 v0.61.
 
 Installation
 ------------
@@ -26,9 +26,10 @@ Support And Documentation
 -------------------------
 
 After installing, you can find documentation for this module with the
-perldoc command.
+command:
 
     tpda3d --help
+    tpda3d --man
 
 
 License And Copyright
