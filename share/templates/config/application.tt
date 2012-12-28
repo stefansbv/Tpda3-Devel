@@ -1,10 +1,8 @@
-# tpda3
-# Interface configuration
-# Don't touch!, not for users ;)
+# Tpda3 application configuration
 ---
 application:
   widgetset: Tk
-  module:    AppName
+  module:    [% r.module %]
   limits:
     search: 100
     lookup: 50

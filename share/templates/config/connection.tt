@@ -4,5 +4,5 @@
 connection:
   driver: postgresql
   host:   localhost
-  dbname: database
-  port:   5432
+  dbname: [% r.dbname %]
+  port:   [% r.port %]

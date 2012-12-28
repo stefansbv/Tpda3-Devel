@@ -8,7 +8,7 @@
         -padleft => 5,
     );
     my $m[% key %] = $frm_top->JComboBox(
-        -entrywidth         => [% columns.$key.width -%],
+        -entrywidth         => [% columns.$key.displ_width -%],
         -textvariable       => \$v[% key %],
         -disabledforeground => 'black'
     );

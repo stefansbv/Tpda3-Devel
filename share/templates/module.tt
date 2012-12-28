@@ -1,14 +1,13 @@
-package Tpda3::Tk::App::[% name %];
+package Tpda3::Tk::App::[% module %];
 
 use strict;
 use warnings;
-use utf8;
 
 use 5.008009;
 
 =head1 NAME
 
-Tpda3::Tk::App::[% name %] - [% description %].
+[% module %] - !Description here!.
 
 =head1 VERSION
 
@@ -29,7 +28,7 @@ Used only for the version information.
 =cut
 
 sub application_name {
-    return '[% name %] - [% description %]';
+    return q{[% module %] - !Description here!};
 }
 
 =head1 AUTHOR
@@ -42,7 +41,7 @@ sub application_name {
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc Tpda3::Tk::App::[% name %]
+    perldoc Tpda3::Tk::App::[% module %]
 
 =head1 ACKNOWLEDGEMENTS
 
@@ -66,4 +65,4 @@ if not, write to the Free Software Foundation, Inc.,
 
 =cut
 
-1; # End of Tpda3::Tk::App::[% name %]
+1; # End of Tpda3::Tk::App::[% module %]

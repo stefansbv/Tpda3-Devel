@@ -1,0 +1,30 @@
+#
+# Makefile.PL for Tpda3-[% module %]
+#
+# Copyright [% copy_year %] [% copy_author %]
+# GNU General Public License v3
+#
+
+use 5.010;
+use strict;
+use warnings;
+
+use inc::Module::Install;
+
+name     q{Tpda3-[% module %]};
+license  q{gpl};
+abstract q{Describe this Tpda3 application!};
+author   q{[% copy_author %], C<< <[% copy_email %]> >>};
+
+version_from q{lib/Tpda3/Tk/App/[% module %].pm};
+
+requires 'perl'  => '5.010001';
+requires 'Tpda3' => '0.61';
+
+#- Database
+#requires 'DBD::Pg'       => '1.32';
+#requires 'DBD::Firebird' => '0.80';
+
+install_share 'share';
+
+WriteAll;

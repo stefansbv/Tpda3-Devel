@@ -1,21 +1,23 @@
     #- [% columns.$key.label -%] ([% key %])
 
-    # my $my_font = $eFIELD->cget('-font');    # font
-
     my $l[% key %] = $frm_top->Label(
         -text => '[% columns.$key.label -%]',
     );
     $l[% key %]->form(
         -top     => [ [% top %] ],
         -left    => [ %0, 0 ],
-        -padleft => 5
+        -padleft => 5,
     );
 
     my $t[% key %] = $frm_top->Scrolled(
         'Text',
-        -width      => [% columns.$key.width -%],
+        -width      => [% columns.$key.displ_width -%],
         -height     => 3,
         -wrap       => 'word',
         -scrollbars => 'e',
-        -font       => $my_font
+        -font       => $my_font,
+    );
+    $t[% key %]->form(
+        -top  => [ '&', $l[% key %], 0 ],
+        -left => [ %0,  $f1d ],
     );

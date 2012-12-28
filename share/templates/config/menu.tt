@@ -1,0 +1,8 @@
+# tpda3
+# Application menu interface configuration
+---
+appmenubar:
+  menu_user:
+    id:    1001
+    label: [% r.module %]
+    underline: 0

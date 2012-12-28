@@ -2,8 +2,8 @@
 # Style: default or report
 <screen>
   version               = 4
-  name                  = [% screenname %]
-  description           = [% screendescr %]
+  name                  = [% modulename %]
+  description           = [% moduledescr %]
   style                 = default
   geometry              = 520x520+20+20
   <details/>

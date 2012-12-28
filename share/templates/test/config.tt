@@ -11,10 +11,13 @@ use lib qw( lib ../lib );
 use Tpda3::Config;
 
 my $args = {
-    cfname => [% appname %],
+    cfname => '[% r.mnemonic %]',
     user   => undef,
     pass   => undef,
 };
+
+$args->{user} = $ENV{DBI_USER} unless defined $args->{user};
+$args->{pass} = $ENV{DBI_PASS} unless defined $args->{pass};
 
 #-- Check the one instance functionality
 
@@ -31,10 +34,10 @@ is( $c1, $c2, 'both instances are the same object' );
 
 # Check some config key => value pairs
 
-ok( $c1->connection->{dbname} =~ m{[% dbname %]},
+ok( $c1->connection->{dbname} =~ m{[% r.dbname %]},
     'connection has expected config value for "dbname"' )
   or diag( '"dbname" defined as "'
       . $c1->connection->{dbname}
-      . '" and not "[% dbname %]" in config' );
+      . '" and not "[% r.dbname %]" in config' );
 
 # end tests

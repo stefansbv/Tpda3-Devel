@@ -11,10 +11,13 @@ use lib qw( lib ../lib );
 use Tpda3::Config;
 
 my $args = {
-    cfname => [% appname %],
+    cfname => '[% r.mnemonic %]',
     user   => undef,
     pass   => undef,
 };
+
+$args->{user} = $ENV{DBI_USER} unless defined $args->{user};
+$args->{pass} = $ENV{DBI_PASS} unless defined $args->{pass};
 
 my $c1 = Tpda3::Config->instance($args);
 ok( $c1->isa('Tpda3::Config'), 'created Tpda3::Config instance 1' );

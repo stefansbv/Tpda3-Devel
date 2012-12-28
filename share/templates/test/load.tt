@@ -10,6 +10,6 @@ diag( "Testing with Perl $], $^X" );
 
 use_ok('Tpda3');
 
-#-- Tpda3-AppName application
+#-- Tpda3-[% r.module %] application
 
-use_ok('[% appname %]');
+use_ok('Tpda3::Tk::App::[% r.module %]');
