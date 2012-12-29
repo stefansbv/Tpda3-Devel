@@ -26,6 +26,7 @@ require Tpda3::Devel::Render::Makefile;
 require Tpda3::Devel::Render::YAML;
 require Tpda3::Devel::Render::Test;
 require Tpda3::Devel::Edit::Config;
+require Tpda3::Devel::Edit::Menu;
 
 =head1 NAME
 
@@ -276,12 +277,17 @@ sub process_command {
                 die "Abort."
                     unless $self->check_required_params( 'screen', 'table' );
                 $self->command_generate();
+
+                # Add to screen menu
+                my $app_info = Tpda3::Devel::Info::App->new();
+                my $etc_path = $app_info->get_config_ap_for('etc');
+                my $yml_menu = catfile( $etc_path, 'menu.yml' );
+                Tpda3::Devel::Edit::Menu->new()
+                    ->menu_update( $yml_menu, $self->{opt}{screen} );
             }
             else {
                 ouch 404, q{Unknown option.};
             }
-
-            #$self->update_app();
 
             return;
         }
@@ -344,9 +350,9 @@ sub new_app_tree {
 
     print " Make etc/*.yml configs.\n";
     my $tdry = Tpda3::Devel::Render::YAML->new( $self->{opt} );
-    $tdry->generate_config('cfg-application', 'application.yml');
-    $tdry->generate_config('cfg-menu', 'menu.yml');
-    $tdry->generate_config('cfg-connection', 'connection.yml');
+    $tdry->generate_config( 'cfg-application', 'application.yml' );
+    $tdry->generate_config( 'cfg-menu',        'menu.yml' );
+    $tdry->generate_config( 'cfg-connection',  'connection.yml' );
 
     print " Make t/*.t test scripts.\n";
     my $tdrt = Tpda3::Devel::Render::Test->new( $self->{opt} );

@@ -6,3 +6,4 @@ appmenubar:
     id:    1001
     label: [% r.module %]
     underline: 0
+    popup: ~

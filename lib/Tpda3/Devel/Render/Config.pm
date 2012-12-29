@@ -6,8 +6,6 @@ use warnings;
 use utf8;
 use Ouch;
 
-use Data::Dumper;
-
 use Config::General;
 use Tie::IxHash::Easy;
 use List::Compare;
@@ -116,7 +114,7 @@ sub generate_config {
 
     my $table_info = $it->table_info( $table_main );
     my $maintable_data  = $self->prepare_config_data_main($table_info);
-    print Dumper( $maintable_data );
+
     my $dep_table_data;
     my $deptable_name = $tables[1];
     $dep_table_data = $self->prepare_config_data_dep($deptable_name)
@@ -293,9 +291,6 @@ sub render_config {
 
     my $scrcfg_fn   = $self->{opt}{config_fn};
     my $output_path = $self->{opt}{config_ap};
-
-    use Data::Printer;
-    p $data;
 
     Tpda3::Devel::Render->render( 'config', $scrcfg_fn, $data, $output_path );
 
