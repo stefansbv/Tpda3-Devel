@@ -4,7 +4,6 @@ use 5.008009;
 use strict;
 use warnings;
 use utf8;
-#use Ouch;
 
 use Config::General;
 use Tie::IxHash::Easy;
@@ -99,7 +98,7 @@ Prepare data for the screen configuration file and create new file.
 sub generate_config {
     my $self = shift;
 
-    print "Creating screen config ...\r";
+    print "Creating screen config ... \r";
 
     my $screen = $self->{opt}{screen};
 
@@ -298,13 +297,13 @@ sub render_config {
     my $output_path = $self->{opt}{config_ap};
 
     if ( -f catfile($output_path, $scrcfg_fn) ) {
-        print "Creating screen config ... skipped\n";
+        print "Creating screen config .... skipped\n";
         return;
     }
 
     Tpda3::Devel::Render->render( 'config', $scrcfg_fn, $data, $output_path );
 
-    print "Creating screen config ... done\n";
+    print "Creating screen config ....... done\n";
 
     return;
 }

@@ -10,6 +10,7 @@ use Pod::Usage;
 use Term::ReadKey;
 use File::Spec::Functions;
 use File::ShareDir qw(dist_dir);
+use File::Copy;
 use File::Copy::Recursive;
 use File::UserConfig;
 use DBI 1.43;                        # minimum version for 'parse_dsn'
@@ -90,7 +91,6 @@ sub _init {
     my $pass = $opt->{pass};
 
     my $args = {
-        param0 => $opt->{param0},
         user   => $user,
         pass   => $pass,
     };
@@ -138,9 +138,6 @@ sub get_options {
     $parser->getoptions( %{$getopt_specs} ) or
         die( 'See tpda3d --help, tpda3d --man for usage.' );
 
-    $opt{param0} = $ARGV[0];   # the first parameter interpreted as
-                               # mnemonic or module name
-
     return \%opt;
 }
 
@@ -153,18 +150,14 @@ Screen config parameter.
 sub init_params_config {
     my $self = shift;
 
-    my $scrcfg_name = $self->{opt}{mnemonic};
-
-    unless ($scrcfg_name) {
-
-        # Fallback to lc (screen-name)
-        my $screen_name = $self->{opt}{screen};
-        if ($screen_name) {
-            $scrcfg_name = lc $screen_name;
-        }
-        else {
-            return;
-        }
+    # Fallback to lc (screen-name)
+    my $scrcfg_name;
+    my $screen_name = $self->{opt}{screen};
+    if ($screen_name) {
+        $scrcfg_name = lc $screen_name;
+    }
+    else {
+        die "No screen config name!\n";
     }
 
     my $scrcfg_fn = qq{$scrcfg_name.conf};
@@ -243,8 +236,10 @@ sub process_command {
             # Create new screen module and config file or
             #  update screen config files to the latest version.
 
-            my $cfg_name = $self->{opt}{param0};
-            $cfg_name = $self->{app_info}->get_cfg_name() unless $cfg_name;
+            my $cfg_name = $self->{app_info}->get_cfg_name();
+            unless ($cfg_name) {
+                die "Can't determine mnemonic name.";
+            }
             $self->{opt}{mnemonic} = $cfg_name;
             my $app_name = $self->{app_info}->get_app_name();
             print "Updating $app_name module ($cfg_name)\n";
@@ -436,10 +431,47 @@ sub generate_screen {
     Tpda3::Devel::Render::Config->new( $self->{opt} )->generate_config();
     Tpda3::Devel::Render::Screen->new( $self->{opt} )->generate_screen();
 
-    #-- Install config in user's home
-    # TODO
+    #-- Install screen config in user's home
+    $self->install_config();
 
     return;
+}
+
+sub install_config {
+    my $self = shift;
+
+    print "Installing screen config ...\r";
+
+    my $config_fn   = $self->{opt}{config_fn};
+    my $config_apfn = $self->{opt}{config_apfn};
+    my $screen_ap   = $self->get_user_path_for('scr');
+
+    if ( -f catfile($screen_ap, $config_fn) ) {
+        print "Installing screen config .. skipped\n";
+        return;
+    }
+
+    copy($config_apfn, $screen_ap) or die "Install failed: $!";
+
+    print "Installing screen config ..... done\n";
+
+    return;
+}
+
+sub get_user_path_for {
+    my ($self, $path) = @_;
+
+    my $configpath = File::UserConfig->new(
+        dist     => 'Tpda3',
+        sharedir => 'share',
+    )->configdir;
+
+    my $ap = catdir( $configpath, 'apps', $self->{opt}{mnemonic}, $path );
+    unless (-d $ap) {
+        die "Nonexistent user path $ap\n";
+    }
+
+    return $ap;
 }
 
 =head2 version
