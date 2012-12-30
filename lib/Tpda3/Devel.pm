@@ -126,7 +126,6 @@ sub get_options {
         'd|dsn=s'         => \$opt{dsn},
         'S|screen:s'      => \$opt{screen},
         'U|update'        => \$opt{update},
-        'c|config=s'      => \$opt{config},
         't|tables=s'      => \$opt{table},
         'u|user=s'        => \$opt{user},
         'p|password=s'    => \$opt{pass},
@@ -155,7 +154,7 @@ Screen config parameter.
 sub init_params_config {
     my $self = shift;
 
-    my $scrcfg_name = $self->{opt}{config};
+    my $scrcfg_name = $self->{opt}{mnemonic};
 
     unless ($scrcfg_name) {
 
@@ -227,10 +226,6 @@ sub process_command {
         ouch 404, "New app - required parameter: <name> \n" unless $mnemonic;
 
         $self->{opt}{mnemonic} = $mnemonic;
-        $self->{opt}{config}
-            = $self->{opt}{config}
-            ? $self->{opt}{config}
-            : $mnemonic;
 
         # Other params
         die "Abort." unless $self->check_required_params('dsn');
@@ -402,9 +397,7 @@ TODO: list config files from project dir.
 sub help_config {
     my $self = shift;
 
-    # Check config name
-    my $config = $self->{opt}{config};
-    unless ($config) {
+    unless ( $self->{opt}{mnemonic} ) {
         Tpda3::Devel::Info::Config->new->list_scrcfg_files();
     }
 
