@@ -4,7 +4,7 @@ use 5.008009;
 use strict;
 use warnings;
 use utf8;
-use Ouch;
+#use Ouch;
 
 use Config::General;
 use Tie::IxHash::Easy;
@@ -168,7 +168,7 @@ sub prepare_config_data_main {
     $rec->{maintable}{view} = $table; # "v_$table" -> VIEW name
 
     # PK and FK
-    ouch 404, qq{ No PK key(s) for the '$table' table?}
+    die qq{ No PK key(s) for the '$table' table? }
         unless $table_info->{pk_keys};
 
     $rec->{maintable}{pkcol}{name} = join ',', @{ $table_info->{pk_keys} };

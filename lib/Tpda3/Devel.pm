@@ -3,7 +3,6 @@ package Tpda3::Devel;
 use 5.008009;
 use strict;
 use warnings;
-use Ouch;
 use utf8;
 
 use Getopt::Long;
@@ -206,8 +205,6 @@ sub init_params_screen {
 
 =head2 process_command
 
-If the CWD is in a Tpda3 module dir, switch to I<update> mode, else to
-I<create> mode and execute the appropriate method.
 
 =cut
 
@@ -216,14 +213,12 @@ sub process_command {
 
     version();
 
+    # Create a new Tpda3 module tree
     if ( $self->{opt}{module} ) {
-
-        # Create a new Tpda3 module tree
-
         my $module   = $self->{opt}{module};
         my $mnemonic = lc $module;
 
-        ouch 404, "New app - required parameter: <name> \n" unless $mnemonic;
+        die "New app - required parameter: <name> \n" unless $mnemonic;
 
         $self->{opt}{mnemonic} = $mnemonic;
 
@@ -233,9 +228,7 @@ sub process_command {
         # Add DSN to options
         $self->parse_dsn_full( $self->{opt}{dsn} );
 
-        $self->new_app_tree();
-
-        return;
+        $self->make_app_tree();
     }
     else {
 
@@ -281,7 +274,7 @@ sub process_command {
                     ->menu_update( $yml_menu, $self->{opt}{screen} );
             }
             else {
-                ouch 404, q{Unknown option.};
+                die q{Unknown option.};
             }
         }
     }
@@ -291,23 +284,23 @@ sub process_command {
     return;
 }
 
-=head2 new_app_tree
+=head2 make_app_tree
 
 Create new module tree and populate with files from templates.
 
 =cut
 
-sub new_app_tree {
+sub make_app_tree {
     my $self = shift;
 
     my $module  = $self->{opt}{module};
     my $appconf = $self->{opt}{mnemonic};
 
-    ouch 404, "No module name provided?" unless $module;
+    die "No module name provided?" unless $module;
 
     my $moduledir = qq{Tpda3-$module};
 
-    ouch 'Abort', "Module '$moduledir' already exists!"
+    die "Module '$moduledir' already exists!"
         if -d $moduledir;    # do not overwrite!
 
     print "Creating module '$moduledir' ...\r";
@@ -322,7 +315,7 @@ sub new_app_tree {
     $File::Copy::Recursive::KeepMode = 0; # mode 644
 
     File::Copy::Recursive::dircopy( $sharedir_module, $moduledir )
-        or ouch 'CfgInsErr', "Failed to copy module tree to '$moduledir'";
+        or die "Failed to copy module tree to '$moduledir'";
 
     # Create config path '$appconf'
     my $configdir = catdir( $moduledir, 'share', 'apps', $appconf );
@@ -330,7 +323,7 @@ sub new_app_tree {
 
     # Populate config dir
     File::Copy::Recursive::dircopy( $sharedir_config, $configdir )
-        or ouch 'CfgInsErr', "Failed to copy module tree to '$configdir'";
+        or die "Failed to copy module tree to '$configdir'";
 
     my $tdrm = Tpda3::Devel::Render::Module->new( $self->{opt} );
     my $libapp_path = $tdrm->generate_module();
