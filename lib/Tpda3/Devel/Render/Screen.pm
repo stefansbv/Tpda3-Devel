@@ -60,7 +60,9 @@ Generate screen module.
 =cut
 
 sub generate_screen {
-    my ($self, $file) = @_;
+    my $self = shift;
+
+    print "Creating screen module ...\r";
 
     my $screen = $self->{opt}{screen};
 
@@ -99,11 +101,13 @@ sub generate_screen {
     my $output_path = $self->{opt}{screen_ap};
 
     if ( -f catfile($output_path, $screen_fn) ) {
-        print " Won't overwrite '$screen_fn'\n";
+        print "Creating screen module ... skipped\n";
         return;
     }
 
     Tpda3::Devel::Render->render( 'screen', $screen_fn, \%data, $output_path );
+
+    print "Creating screen module ... done\n";
 
     return;
 }

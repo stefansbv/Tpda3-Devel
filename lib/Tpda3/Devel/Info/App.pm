@@ -3,7 +3,6 @@ package Tpda3::Devel::Info::App;
 use 5.008009;
 use strict;
 use warnings;
-use Data::Printer;
 
 use File::Basename;
 use File::Spec::Functions;
@@ -284,8 +283,6 @@ sub get_config_ap_for {
     my $cfg_path = $self->check_cfg_path();
     my $cfg_name = $self->get_cfg_name();
 
-    p $cfg_path;
-    p $cfg_name;
     my $ap = catdir( $cfg_path, $cfg_name, $dir );
     if ( -d $ap ) {
         return $ap;

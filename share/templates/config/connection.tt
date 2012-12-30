@@ -2,7 +2,7 @@
 # Database connection configuration
 ---
 connection:
-  driver: postgresql
-  host:   localhost
+  driver: [% r.driver %]
+  host:   [% r.host %]
   dbname: [% r.dbname %]
   port:   [% r.port %]

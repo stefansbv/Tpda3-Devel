@@ -53,9 +53,9 @@ sub render {
     # Where are module-level shared data files kept
     my $templ_path = catdir( dist_dir('Tpda3-Devel'), 'templates');
 
-    print "Rendering '$template'...\n";
-    print " Output goes to\n '$output_path'\n";
-    print " File is '$output_file'\n";
+    # print "Rendering '$template'...\n";
+    # print " Output goes to\n '$output_path'\n";
+    # print " File is '$output_file'\n";
 
     my $tt = Template->new(
         INCLUDE_PATH => $templ_path,

@@ -28,12 +28,6 @@ sub main {
     Tpda3::Devel->new($opt)->process_command();
 }
 
-=head2 check_options
-
-Check if list option and execute.
-
-=cut
-
 sub check_options {
     my $opt = shift;
 
@@ -52,15 +46,15 @@ Tpda3 Application Development.
 
 Create a new Tpda3 application:
 
-   tpda3d -A <app-name> [-c <app-cfg>]
+   tpda3d -A <app-name> -d <dbi-dsn>
 
 Generate a new Tpda3 screen module and a screen configuration:
 
-   tpda3d [<app-cfg>] -S <scr-name> -t <table[,table]> [-c <scr-cfg>]
+   tpda3d -S <scr-name> -t <table[,table]>
 
 Update a Tpda3 screen configuration:
 
-   tpda3d [<app-cfg>] -U -c <scr-cfg>
+   tpda3d -U -c <scr-cfg>
 
 Info:
 
@@ -71,13 +65,31 @@ Info:
 
 Utility program to create or extend Tpda3 application modules.
 
-The current mode is automagicaly determined by checking if two paths
-exists relative to the CWD: L<< lib/Tpda3/Tk/App >> and L<< share/apps >>.  If
-the paths exists then enters in update mode, else in create mode.
+=head2  Create a Tpda3 application module
 
-=head2 Create mode
+The command line parameters
 
-Create a new Tpda3 application module directory tree from template.
+   tpda3d -A <app-name> -d <dbi-dsn>
+
+=over
+
+=item <app-name>  is the name of the application
+
+The distribution name will be L<< Tpda3-<app-name> >>.
+
+=item <dbi-dsn>  a valid DBI DSN string
+
+For Pg it looks like this:
+
+    dbi:Pg:dbname=database;host=localhost;port=5432
+
+For Firebird:
+
+    dbi:Firebird:dbname=database;host=localhost;port=3050
+
+Change B<database> to the real database name to be used.
+
+=back
 
 =head2 Update mode
 

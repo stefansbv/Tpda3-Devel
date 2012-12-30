@@ -9,6 +9,7 @@ use Ouch;
 use Config::General;
 use Tie::IxHash::Easy;
 use List::Compare;
+use File::Spec::Functions;
 
 require Tpda3::Devel::Info::Table;
 require Tpda3::Devel::Render;
@@ -98,6 +99,8 @@ Prepare data for the screen configuration file and create new file.
 sub generate_config {
     my $self = shift;
 
+    print "Creating screen config ...\r";
+
     my $screen = $self->{opt}{screen};
 
     die "Need a screen name!" unless $screen;
@@ -110,7 +113,7 @@ sub generate_config {
 
     die "Need a table name!" unless $table_main;
 
-    print " Main table is '$table_main'\n";
+    # print " Main table is '$table_main'\n";
 
     my $table_info = $it->table_info( $table_main );
     my $maintable_data  = $self->prepare_config_data_main($table_info);
@@ -136,7 +139,9 @@ sub generate_config {
     );
 
     # Assemble using a template
-    return $self->render_config(\%data);
+    $self->render_config(\%data);
+
+    return;
 }
 
 =head2 prepare_config_data_main
@@ -170,11 +175,11 @@ sub prepare_config_data_main {
     $rec->{maintable}{fkcol}{name} = join ',', @{ $table_info->{fk_keys} }
         if $table_info->{fk_keys};           # optional?
 
-    print " Processing fields ...\n";
+    # print " Processing fields ...\n";
     foreach my $field ( @{ $table_info->{fields} } ) {
         my $info = $table_info->{info}{$field};
         my $type = $info->{type};
-        print "  field: $info->{pos} -> $field ($type)\n";
+        # print "  field: $info->{pos} -> $field ($type)\n";
         $rec->{maintable}{columns}{$field}{label} = lcfirst $field;
         $rec->{maintable}{columns}{$field}{state} = 'normal';
         $rec->{maintable}{columns}{$field}{ctrltype}
@@ -191,7 +196,7 @@ sub prepare_config_data_main {
         $rec->{maintable}{columns}{$field}{datatype}
             = $self->datatype($type);
     }
-    print " done\n";
+    # print " done\n";
 
     return $conf->save_string($rec);
 }
@@ -251,15 +256,15 @@ sub prepare_config_data_dep {
         $rec->{deptable}{$key_name}{label} = '';
     }
 
-    print " Processing ...\n";
+    # print " Processing ...\n";
     tie %{ $rec->{deptable}{columns} }, "Tie::IxHash";
     foreach my $k ( sort { $a <=> $b } keys %{$info} ) {
-        print "  field: $k -> ";
+        # print "  field: $k -> ";
         my $v = $info->{$k};
 
         my $name = $v->{name};
         my $type = $v->{type};
-        print "$name ($type)\n";
+        # print "$name ($type)\n";
 
         $rec->{deptable}{columns}{$name} = {
             id        => $k,
@@ -271,7 +276,7 @@ sub prepare_config_data_dep {
             datatype  => $self->datatype($type),
         };
     }
-    print " done\n";
+    # print " done\n";
 
     return $conf->save_string($rec);
 }
@@ -292,7 +297,14 @@ sub render_config {
     my $scrcfg_fn   = $self->{opt}{config_fn};
     my $output_path = $self->{opt}{config_ap};
 
+    if ( -f catfile($output_path, $scrcfg_fn) ) {
+        print "Creating screen config ... skipped\n";
+        return;
+    }
+
     Tpda3::Devel::Render->render( 'config', $scrcfg_fn, $data, $output_path );
+
+    print "Creating screen config ... done\n";
 
     return;
 }
