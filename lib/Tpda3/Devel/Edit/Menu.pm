@@ -53,7 +53,10 @@ share/apps/raton/etc/menu.yml
 =cut
 
 sub menu_update {
-    my ($self, $menu_file, $label) = @_;
+    my $self = shift;
+
+    my $label     = $self->{opt}{screen};
+    my $menu_file = $self->{opt}{menu_apfn};
 
     my $yaml = YAML::Tiny->read($menu_file);
 

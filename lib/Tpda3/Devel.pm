@@ -161,13 +161,22 @@ sub init_params_config {
     }
 
     my $scrcfg_fn = qq{$scrcfg_name.conf};
-    my $scrcfg_ap = $self->{app_info}->get_config_ap_for('scr');
+    my $scrcfg_ap = $self->{info}->get_config_ap_for('scr');
     my $scrcfg_apfn
-        = $self->{app_info}->get_config_apfn_for( 'scr', $scrcfg_fn );
+        = $self->{info}->get_config_apfn_for( 'scr', $scrcfg_fn );
 
     $self->{opt}{config_fn}   = $scrcfg_fn;
     $self->{opt}{config_ap}   = $scrcfg_ap;
     $self->{opt}{config_apfn} = $scrcfg_apfn;
+
+    my $menu_fn = qq{menu.yml};
+    my $menu_ap = $self->{info}->get_config_ap_for('etc');
+    my $menu_apfn
+        = $self->{info}->get_config_apfn_for( 'etc', $menu_fn );
+
+    $self->{opt}{menu_fn}   = $menu_fn;
+    $self->{opt}{menu_ap}   = $menu_ap;
+    $self->{opt}{menu_apfn} = $menu_apfn;
 
     return;
 }
@@ -186,8 +195,8 @@ sub init_params_screen {
     return unless $screen_name;
 
     my $screen_fn   = "$screen_name.pm";
-    my $screen_ap   = $self->{app_info}->get_screen_module_ap();
-    my $screen_apfn = $self->{app_info}->get_screen_module_apfn($screen_fn);
+    my $screen_ap   = $self->{info}->get_screen_module_ap();
+    my $screen_apfn = $self->{info}->get_screen_module_apfn($screen_fn);
 
     $self->{opt}{screen_fn}   = $screen_fn;
     $self->{opt}{screen_ap}   = $screen_ap;
@@ -226,22 +235,22 @@ sub process_command {
     else {
 
         # Update module
-        $self->{app_info} = Tpda3::Devel::Info::App->new();
+        $self->{info} = Tpda3::Devel::Info::App->new();
 
-        if (    $self->{app_info}->check_app_path()
-            and $self->{app_info}->check_cfg_path() )
+        if (    $self->{info}->check_app_path()
+            and $self->{info}->check_cfg_path() )
         {
 
             # CWD is a Tpda3 module dir.
             # Create new screen module and config file or
             #  update screen config files to the latest version.
 
-            my $cfg_name = $self->{app_info}->get_cfg_name();
+            my $cfg_name = $self->{info}->get_cfg_name();
             unless ($cfg_name) {
                 die "Can't determine mnemonic name.";
             }
             $self->{opt}{mnemonic} = $cfg_name;
-            my $app_name = $self->{app_info}->get_app_name();
+            my $app_name = $self->{info}->get_app_name();
             print "Updating $app_name module ($cfg_name)\n";
 
             if ( $self->{opt}{update} ) {
@@ -260,13 +269,6 @@ sub process_command {
                 die "Abort."
                     unless $self->check_required_params( 'screen', 'table' );
                 $self->generate_screen();
-
-                # Add to screen menu
-                my $app_info = Tpda3::Devel::Info::App->new();
-                my $etc_path = $app_info->get_config_ap_for('etc');
-                my $yml_menu = catfile( $etc_path, 'menu.yml' );
-                Tpda3::Devel::Edit::Menu->new()
-                    ->menu_update( $yml_menu, $self->{opt}{screen} );
             }
             else {
                 die q{Unknown option.};
@@ -431,29 +433,41 @@ sub generate_screen {
     Tpda3::Devel::Render::Config->new( $self->{opt} )->generate_config();
     Tpda3::Devel::Render::Screen->new( $self->{opt} )->generate_screen();
 
+    # Add to screen menu
+    Tpda3::Devel::Edit::Menu->new( $self->{opt} )->menu_update();
+
     #-- Install screen config in user's home
-    $self->install_config();
+    $self->install_configs();
 
     return;
 }
 
-sub install_config {
+sub install_configs {
     my $self = shift;
 
     print "Installing screen config ...\r";
 
     my $config_fn   = $self->{opt}{config_fn};
     my $config_apfn = $self->{opt}{config_apfn};
-    my $screen_ap   = $self->get_user_path_for('scr');
+    my $config_ap   = $self->get_user_path_for('scr');
 
-    if ( -f catfile($screen_ap, $config_fn) ) {
+    if ( -f catfile($config_ap, $config_fn) ) {
         print "Installing screen config .. skipped\n";
-        return;
+    }
+    else {
+        copy($config_apfn, $config_ap) or die "Install failed: $!";
+        print "Installing screen config ..... done\n";
     }
 
-    copy($config_apfn, $screen_ap) or die "Install failed: $!";
+    print "Installing application menu ..\r";
 
-    print "Installing screen config ..... done\n";
+    my $menu_fn   = $self->{opt}{menu_fn};
+    my $menu_apfn = $self->{opt}{menu_apfn};
+    my $menu_ap   = $self->get_user_path_for('etc');
+
+    copy($menu_apfn, $menu_ap) or die "Install failed: $!";
+
+    print "Installing application menu .. done\n";
 
     return;
 }
@@ -467,9 +481,7 @@ sub get_user_path_for {
     )->configdir;
 
     my $ap = catdir( $configpath, 'apps', $self->{opt}{mnemonic}, $path );
-    unless (-d $ap) {
-        die "Nonexistent user path $ap\n";
-    }
+    die "Nonexistent user path $ap\n" unless -d $ap;
 
     return $ap;
 }
