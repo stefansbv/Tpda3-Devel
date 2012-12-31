@@ -58,6 +58,9 @@ sub menu_update {
     my $label     = $self->{opt}{screen};
     my $menu_file = $self->{opt}{menu_apfn};
 
+    die "A menu file is required!" unless $menu_file;
+    die "A label is required!" unless $label;
+
     my $yaml = YAML::Tiny->read($menu_file);
 
     my $popup = $yaml->[0]{appmenubar}{menu_user}{popup};

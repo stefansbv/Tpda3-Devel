@@ -8,11 +8,13 @@ use YAML::Tiny qw<Load LoadFile>;
 
 use Tpda3::Devel::Edit::Menu;
 
-my $e = Tpda3::Devel::Edit::Menu->new();
+my $opt = {};
+$opt->{screen}    = 'Label1';
+$opt->{menu_apfn} = File::Spec->catfile( 't', 'output', 'menu.yml' );
 
-my $menu_file = File::Spec->catfile( 't', 'output', 'menu.yml' );
+my $e = Tpda3::Devel::Edit::Menu->new($opt);
 
-is($e->menu_update($menu_file, 'Label1'), undef, 'update menu');
+is($e->menu_update(), undef, 'update menu');
 
 my $yaml_str = <<'YAML_TEXT';
 ---
@@ -31,7 +33,7 @@ appmenubar:
 YAML_TEXT
 
 my @document1 = Load($yaml_str);
-my @document2 = LoadFile($menu_file);
+my @document2 = LoadFile( $opt->{menu_apfn} );
 
 is_deeply(\@document1, \@document2, 'compare structure');
 

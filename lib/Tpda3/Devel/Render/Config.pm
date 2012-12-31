@@ -102,7 +102,7 @@ sub generate_config {
 
     my $screen = $self->{opt}{screen};
 
-    die "Need a screen name!" unless $screen;
+    die "A screen name is required." unless $screen;
 
     my $ic = Tpda3::Devel::Info::Config->new($self->{opt});
     my $it = Tpda3::Devel::Info::Table->new();
