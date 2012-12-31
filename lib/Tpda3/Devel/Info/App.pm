@@ -69,7 +69,7 @@ sub check_app_path {
     }
 }
 
-=head2 check_cfg_paths
+=head2 check_cfg_path
 
 Return the application config path. If initialized without module
 name, return the share/apps.
@@ -101,6 +101,12 @@ sub check_cfg_path {
 
     return;
 }
+
+=head2 get_tests_path
+
+Return the path to the tests dir of the distribution.
+
+=cut
 
 sub get_tests_path {
     my $self = shift;

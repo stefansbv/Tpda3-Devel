@@ -55,7 +55,7 @@ sub new {
 
 =head2 generate_screen
 
-Generate screen module.
+Generate a screen module from templates.
 
 =cut
 

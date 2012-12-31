@@ -48,9 +48,9 @@ sub new {
     return $self;
 }
 
-=head2 generate_makefile
+=head2 generate_config
 
-Generate screen module.
+Generate a YAML config from a template.
 
 =cut
 

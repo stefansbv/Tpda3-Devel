@@ -48,9 +48,9 @@ sub new {
     return $self;
 }
 
-=head2 generate_screen
+=head2 generate_module
 
-Generate screen module.
+Generate the main application module from template.
 
 =cut
 

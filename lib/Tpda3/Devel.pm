@@ -442,6 +442,13 @@ sub generate_screen {
     return;
 }
 
+=head2 install_configs
+
+Install the screen config and the updated menu config file in the
+user's home path.
+
+=cut
+
 sub install_configs {
     my $self = shift;
 
@@ -471,6 +478,12 @@ sub install_configs {
 
     return;
 }
+
+=head2 get_user_path_for
+
+Return the user configurations path.
+
+=cut
 
 sub get_user_path_for {
     my ($self, $path) = @_;

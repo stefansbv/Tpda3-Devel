@@ -48,9 +48,9 @@ sub new {
     return $self;
 }
 
-=head2 generate_screen
+=head2 generate_test
 
-Generate screen module.
+Generate test from template.
 
 =cut
 
