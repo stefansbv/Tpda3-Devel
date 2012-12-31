@@ -12,11 +12,11 @@ Tpda3::Devel::Info::Table - Database table related info.
 
 =head1 VERSION
 
-Version 0.01
+Version 0.10
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.10';
 
 =head1 SYNOPSIS
 

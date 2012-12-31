@@ -21,11 +21,11 @@ Tpda3::Devel::Edit::Config - Tpda3 application config update.
 
 =head1 VERSION
 
-Version 0.01
+Version 0.10
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.10';
 
 =head1 SYNOPSIS
 
