@@ -11,6 +11,7 @@ Requirements
 
 Tpda3 v0.61.
 
+
 Installation
 ------------
 
@@ -28,8 +29,55 @@ Support And Documentation
 After installing, you can find documentation for this module with the
 command:
 
-    tpda3d --help
-    tpda3d --man
+    tpda3d --help | --man
+
+
+Example
+-------
+
+Create a new tpda3 module application.
+
+For Firebird:
+
+    tpda3d -A <Name> -d 'dbi:Firebird:dbname=<dbname>;host=localhost;port=3050'
+
+For PostgreSQL:
+
+    tpda3d -A <Name> -d 'dbi:Pg:dbname=<dbname>;host=localhost;port=5432'
+
+This will create a new Perl module named Tpda3-<Name>
+
+    cd Tpda3-<Name>
+
+Now you can do:
+
+    perl Makefile.PL
+    make
+    make test
+
+Nothing very useful so far, just boilerplate, so continue with:
+
+    tpda3d -S <Screen> [-u <user> [-p <pass>]] -t <table>
+
+Where "Screen" is the name of the new application screen filled with
+widgets made from the "table" columns.
+
+    make install
+
+Run the new application:
+
+    tpda3 <name>
+
+Where <name> is lc(Name) ;) and of course the database must exist,
+and have a "table" table.
+
+Have fun!
+
+
+Contributing
+------------
+
+Bug reports and pull requests welcome!
 
 
 License And Copyright
