@@ -59,8 +59,9 @@ Nothing very useful so far, just boilerplate, so continue with:
 
     tpda3d -S <Screen> [-u <user> [-p <pass>]] -t <table>
 
-Where "Screen" is the name of the new application screen filled with
-widgets made from the "table" columns.
+This will add a new screen module, (a form In HTML terminology), with
+widgets made from the "table" columns.  The command creates also the
+corresponding configuration file and adds the screen to the menu.
 
     make install
 
