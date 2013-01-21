@@ -170,19 +170,22 @@ sub prepare_config_data_main {
     die qq{ No PK key(s) for the '$table' table? }
         unless $table_info->{pk_keys};
 
-    $rec->{maintable}{pkcol}{name} = join ',', @{ $table_info->{pk_keys} };
+    my $pkcol = join ',', @{ $table_info->{pk_keys} };
+    $rec->{maintable}{pkcol}{name} = $pkcol;
     $rec->{maintable}{fkcol}{name} = join ',', @{ $table_info->{fk_keys} }
         if $table_info->{fk_keys};           # optional?
 
     # print " Processing fields ...\n";
     foreach my $field ( @{ $table_info->{fields} } ) {
-        my $info = $table_info->{info}{$field};
-        my $type = $info->{type};
+        my $info  = $table_info->{info}{$field};
+        my $type  = $info->{type};
+        my $state = $pkcol eq $field ? 'disabled' : 'normal';
+
         # print "  field: $info->{pos} -> $field ($type)\n";
-        $rec->{maintable}{columns}{$field}{label} = lcfirst $field;
-        $rec->{maintable}{columns}{$field}{state} = 'normal';
+        $rec->{maintable}{columns}{$field}{label} = ucfirst $field;
+        $rec->{maintable}{columns}{$field}{state} = $state;
         $rec->{maintable}{columns}{$field}{ctrltype}
-            = $self->ctrltype($type);
+            = $self->ctrltype($info);
         $rec->{maintable}{columns}{$field}{displ_width}
             = $self->len( $info->{length} );
         $rec->{maintable}{columns}{$field}{valid_width}
@@ -198,6 +201,17 @@ sub prepare_config_data_main {
     # print " done\n";
 
     return $conf->save_string($rec);
+}
+
+=head2 is_key
+
+Fake, not implemented!
+
+=cut
+
+sub is_key {
+    my ($self, $field) = @_;
+    return 0;
 }
 
 =head2 prepare_config_data_dep
@@ -320,19 +334,25 @@ Control type.  The numeric and integer types => Tk::Entry.  The char
 type is good candidate for Tk::JComboBox entries (m).  And of course
 the date type for Tk::DateEntry.
 
+If the length of the column is greater than B<200> make it a text
+entry.
+
 =cut
 
 sub ctrltype {
-    my ($self, $type) = @_;
+    my ($self, $info) = @_;
 
-    $type = lc $type;
+    my $type = lc $info->{type};
+    my $len  = lc $info->{length};
 
-    #      when column type is ...    ctrl type is ...
-    return $type eq q{}               ? 'x'
-         : $type eq 'date'            ? 'd'
-         : $type eq 'character'       ? 'm'
-         : $type eq 'text'            ? 't'
-         :                              'e';
+    #      when column type is ...        ctrl type is ...
+    return  $type eq q{}                              ? 'x'
+         :  $type eq 'date'                           ? 'd'
+         :  $type eq 'character'                      ? 'm'
+         :  $type eq 'text'                           ? 't'
+         : ($type eq 'varchar' and $len > 200 )       ? 't'
+         :                                              'e'
+         ;
 }
 
 =head2 numscale
@@ -358,8 +378,13 @@ sub len {
 
     $len ||= 10;
     my $max_len = 30;                   # max length, hardwired config
+    my $min_len = 5;                    # min length, hardwired config
 
-    return ($len > $max_len) ? $max_len : $len;
+    return
+       $len >= $max_len  ? $max_len
+     : $len <= $min_len  ? $min_len
+     :                     $len
+     ;
 }
 
 =head2 datatype
