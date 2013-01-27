@@ -570,7 +570,9 @@ sub parse_dsn_full {
     if (scalar @dsn) {
         foreach my $rec (@dsn) {
             my ($key, $value) = split /=/, $rec, 2;
-            $self->{opt}{$key} = $value;
+            $key eq 'database'
+                ? ( $self->{opt}{dbname} = $value )
+                : ( $self->{opt}{$key} = $value   );
         }
     }
 
