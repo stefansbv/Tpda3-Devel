@@ -182,7 +182,7 @@ sub prepare_config_data_main {
         my $state = $pkcol eq $field ? 'disabled' : 'normal';
 
         # print "  field: $info->{pos} -> $field ($type)\n";
-        $rec->{maintable}{columns}{$field}{label} = ucfirst $field;
+        $rec->{maintable}{columns}{$field}{label} = $self->label($field);
         $rec->{maintable}{columns}{$field}{state} = $state;
         $rec->{maintable}{columns}{$field}{ctrltype}
             = $self->ctrltype($info);
@@ -415,6 +415,21 @@ sub remove_dupes {
     my @columns = $lc->get_complement;
 
     return \@columns;
+}
+
+=head2 label
+
+Remove underscores form label and make the first character upper case.
+
+=cut
+
+sub label {
+    my ($self, $label) = @_;
+
+    $label = ucfirst $label;
+    $label =~ s{_}{ }g;
+
+    return $label;
 }
 
 =head1 AUTHOR

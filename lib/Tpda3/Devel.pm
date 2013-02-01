@@ -123,9 +123,9 @@ sub get_options {
     my $getopt_specs = {
         'A|module=s' => \$opt{module},
         'd|dsn=s'         => \$opt{dsn},
-        'S|screen:s'      => \$opt{screen},
+        'S|screen=s'      => \$opt{screen},
         'U|update'        => \$opt{update},
-        't|tables=s'      => \$opt{table},
+        't|tables:s'      => \$opt{table},
         'u|user=s'        => \$opt{user},
         'p|password=s'    => \$opt{pass},
         'l|list:s'        => \$opt{list},
