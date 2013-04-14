@@ -179,7 +179,8 @@ sub prepare_config_data_main {
     foreach my $field ( @{ $table_info->{fields} } ) {
         my $info  = $table_info->{info}{$field};
         my $type  = $info->{type};
-        my $state = $pkcol eq $field ? 'disabled' : 'normal';
+        # my $state = $pkcol eq $field ? 'disabled' : 'normal';
+        my $state = 'normal';
 
         # print "  field: $info->{pos} -> $field ($type)\n";
         $rec->{maintable}{columns}{$field}{label} = $self->label($field);
@@ -452,7 +453,7 @@ Options processing inspired from App::Ack (C) 2005-2011 Andy Lester.
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2012 Stefan Suciu.
+Copyright 2012-2013 Stefan Suciu
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

@@ -92,7 +92,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2012 Stefan Suciu.
+Copyright 2012-2013 Stefan Suciu
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

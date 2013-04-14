@@ -1,7 +1,7 @@
 Tpda3 Devel
 ===========
 Ștefan Suciu <stefan 'la' s2i2.ro>
-2012-12-19
+2013-04-14
 
 Generate Tpda3 application modules.
 
@@ -39,11 +39,15 @@ Create a new tpda3 module application.
 
 For Firebird:
 
-    tpda3d -A <Name> -d 'dbi:Firebird:dbname=<dbname>;host=localhost;port=3050'
+    tpda3d -A <Name> -d 'dbi:Firebird:dbname=<dbname>;host=<host>;port=3050'
 
 For PostgreSQL:
 
-    tpda3d -A <Name> -d 'dbi:Pg:dbname=<dbname>;host=localhost;port=5432'
+    tpda3d -A <Name> -d 'dbi:Pg:dbname=<dbname>;host=<host>;port=5432'
+
+For CUBRID:
+
+    tpda3d -A <Name> -d 'dbi:cubrid:database=<dbname>;host=<host>;port=30000'
 
 This will create a new Perl module named Tpda3-<Name>
 
