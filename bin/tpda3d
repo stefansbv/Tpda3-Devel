@@ -59,6 +59,7 @@ Update a Tpda3 screen configuration:
 Info:
 
  -l, --list                List available application configurations.
+ -t, --tables              List all te tables from the database.
  -?, --help | -m, --man
 
 =head1 DESCRIPTION
@@ -137,7 +138,7 @@ Stefan Suciu, C<< <stefan la s2i2.ro> >>
 
 =head1 LICENCE AND COPYRIGHT
 
-Copyright (c) 2011-2012 Stefan Suciu.
+Copyright (c) 2011-2013 Stefan Suciu.
 
 All rights reserved.
 

@@ -16,7 +16,6 @@ all_from 'lib/Tpda3/Devel.pm';
 author   q{Stefan Suciu <stefan@s2i2.ro>};
 license  'gpl';
 
-requires 'Term::ReadKey'         => '0';
 requires 'File::ShareDir'        => '0';
 requires 'File::Spec::Functions' => '0';
 requires 'Template'              => '0';

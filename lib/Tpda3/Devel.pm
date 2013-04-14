@@ -7,7 +7,6 @@ use utf8;
 
 use Getopt::Long;
 use Pod::Usage;
-use Term::ReadKey;
 use File::Spec::Functions;
 use File::ShareDir qw(dist_dir);
 use File::Copy;
@@ -270,6 +269,9 @@ sub process_command {
                     unless $self->check_required_params( 'screen', 'table' );
                 $self->generate_screen();
             }
+            elsif ( defined $self->{opt}{table} ) {
+                $self->list_tables();
+            }
             else {
                 die q{Unknown option.};
             }
@@ -407,11 +409,25 @@ sub help_table {
     my $tables = $self->{opt}{table};
     return if $tables;
 
-    # Gather info from the database
+    $self->list_tables();
+
+    return;
+}
+
+=head2 help_table
+
+List the table names from the database.
+
+=cut
+
+sub list_tables {
+    my $self = shift;
+
     Tpda3::Devel::Info::Config->new( $self->{opt} );
     my $dti = Tpda3::Devel::Info::Table->new();
     my $list = $dti->table_list();
-    print " > Tables:\n";
+    my $table_no = scalar @{$list};
+    print " > Tables [$table_no]:\n";
     foreach my $name ( sort @{$list} ) {
         print "   - $name\n";
     }
