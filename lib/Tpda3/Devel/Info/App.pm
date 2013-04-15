@@ -64,7 +64,7 @@ sub check_app_path {
         return $app_path;
     }
     else {
-        die "Call 'tpda3d -S | -U' from a Tpda3 app-module source path!\n\n";
+        die "Run 'tpda3d -S | -U' from a Tpda3-* module source root dir!\n\n";
     }
 }
 
