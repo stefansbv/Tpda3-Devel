@@ -97,6 +97,10 @@ For Firebird:
 
     dbi:Firebird:dbname=database;host=localhost;port=3050
 
+For CUBRID:
+
+    dbi:cubrid:database=<dbname>;host=<host>;port=33000
+
 Change B<database> to the real database name to be used.
 
 =back

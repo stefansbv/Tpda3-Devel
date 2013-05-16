@@ -47,7 +47,7 @@ For PostgreSQL:
 
 For CUBRID:
 
-    tpda3d -A <Name> -d 'dbi:cubrid:database=<dbname>;host=<host>;port=30000'
+    tpda3d -A <Name> -d 'dbi:cubrid:database=<dbname>;host=<host>;port=33000'
 
 This will create a new Perl module named Tpda3-<Name>
 
