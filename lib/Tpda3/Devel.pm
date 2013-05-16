@@ -527,7 +527,7 @@ sub version {
     my $self = shift;
 
     print "Tpda3 Development Tools v$VERSION\n";
-    print "(C) 2010-2012 Stefan Suciu\n\n";
+    print "(C) 2010-2013 Stefan Suciu\n\n";
 
     return;
 }
