@@ -87,6 +87,7 @@ sub get_template_for {
        : $type eq 'screen'          ? 'screen.tt'
        : $type eq 'module'          ? 'module.tt'
        : $type eq 'makefile'        ? 'makefile.tt'
+       : $type eq 'readme'          ? 'readme.tt'
        : $type eq 'cfg-application' ? 'config/application.tt'
        : $type eq 'cfg-menu'        ? 'config/menu.tt'
        : $type eq 'cfg-connection'  ? 'config/connection.tt'

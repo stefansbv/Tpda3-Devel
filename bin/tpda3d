@@ -9,7 +9,7 @@ use utf8;
 
 use Tpda3::Devel;
 
-tpda3d_version();
+Tpda3::Devel::version();
 
 unless ( scalar @ARGV ) {
     require Pod::Usage;
@@ -38,13 +38,6 @@ sub check_options {
         $cfg->list_mnemonics( $opt->{list} );
         exit;
     }
-}
-
-sub tpda3d_version {
-
-    my $ver = $Tpda3::Devel::VERSION;
-    print
-"Tpda3-Devel v$ver\n(C) 2010-2013 Stefan Suciu\n\n";
 }
 
 =head1 NAME

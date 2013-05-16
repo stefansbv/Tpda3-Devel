@@ -24,6 +24,7 @@ requires 'Tpda3' => '0.61';
 #- Database
 #requires 'DBD::Pg'       => '1.32';
 #requires 'DBD::Firebird' => '0.80';
+#requires 'DBD::cubrid    => '0';
 
 install_share 'share';
 

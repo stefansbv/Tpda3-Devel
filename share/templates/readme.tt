@@ -1,16 +1,10 @@
-Tpda3 Notar
-===========
-Ștefan Suciu <stefan 'la' s2i2.ro>
-2012-12-19
-
-Tpda3 (Tiny Perl Database Application 3)
-Copyright (C) 2010-2012  Stefan Suciu
-GNU General Public License v3
+= Tpda3 [% module %]
+[% copy_author %] <[% copy_email %]>
 
 This is a Tpda3 application.
 
-Version:  0.16
-Language: Romanian
+Version:  0.01
+Language:
 
 Description:
 
@@ -25,20 +19,17 @@ Requirements
 Installation
 ------------
 
-Create a PostgreSQL database for the application.  As a convenience,
-the dbrecreate.sh bash script can be used to create a test database on
-localhost, but must be edited first.  Set at least the user and
-password.
+Create a PostgreSQL database for the application.
 
-Set DBI_USER and DBI_PASS environment vars before test.
+Set the DBI_USER and DBI_PASS environment variables before testing.
 
 Install Tpda3 if not installed yet.
 
-Install Tpda3-Notar with:
+Install Tpda3-[% module %] with:
 
 <pre>
-% tar xaf Tpda3-Notar-0.XX.tar.gz
-% cd Tpda3-Notar-0.XX
+% tar xaf Tpda3-[% module %]-0.XX.tar.gz
+% cd Tpda3-[% module %]-0.XX
 % perl Makefile.PL
 % make
 % make test
@@ -48,14 +39,14 @@ Install Tpda3-Notar with:
 Run for the first time to populate the configuration dir.
 
 <pre>
-% tpda3 notar
+% tpda3 <mnemonic>
 </pre>
 
 
 License And Copyright
 ---------------------
 
-Copyright (C) 2010-2012 Stefan Suciu
+Copyright [% copy_year %] [% copy_author %]
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

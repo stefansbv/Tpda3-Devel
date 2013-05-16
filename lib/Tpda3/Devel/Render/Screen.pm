@@ -90,7 +90,7 @@ sub generate_screen {
     my %data = (
         copy_author => 'Ștefan Suciu',
         copy_email  => 'stefan@s2i2.ro',
-        copy_year   => '2012',
+        copy_year   => (localtime)[5] + 1900,
         module      => $app_info->get_app_name(),
         screen      => $screen,
         columns     => $cfg{maintable}{columns},

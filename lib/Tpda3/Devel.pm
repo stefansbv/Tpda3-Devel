@@ -212,8 +212,6 @@ sub init_params_screen {
 sub process_command {
     my $self = shift;
 
-    version();
-
     # Create a new Tpda3 module tree
     if ( $self->{opt}{module} ) {
         my $module   = $self->{opt}{module};
@@ -334,6 +332,10 @@ sub make_app_tree {
     # Make Makefile.PL script
     my $tdrmk = Tpda3::Devel::Render::Makefile->new( $self->{opt} );
     $tdrmk->generate_makefile();
+
+    # Make README file
+    my $tdrrm = Tpda3::Devel::Render::Readme->new( $self->{opt} );
+    $tdrrm->generate_readme();
 
     # Make etc/*.yml configs
     my $tdry = Tpda3::Devel::Render::YAML->new( $self->{opt} );
@@ -524,8 +526,7 @@ Print module version.
 sub version {
     my $self = shift;
 
-    my $ver = $VERSION;
-    print "Tpda3 Development Tools v$ver\n";
+    print "Tpda3 Development Tools v$VERSION\n";
     print "(C) 2010-2012 Stefan Suciu\n\n";
 
     return;
@@ -616,7 +617,7 @@ App::Ack (C) 2005-2011 Andy Lester.
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2012 Ştefan Suciu.
+Copyright 2012-2013 Ștefan Suciu
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
