@@ -309,6 +309,7 @@ sub make_app_tree {
     my $sharedir = catdir( dist_dir('Tpda3-Devel'), 'dirtree' );
     my $sharedir_module = catdir( $sharedir, 'module' );
     my $sharedir_config = catdir( $sharedir, 'config' );
+    my $moduledir_inc   = catdir( $moduledir, 'inc' );
     my $sharedir_inc    = catdir( $sharedir, 'inc' );
 
     $File::Copy::Recursive::KeepMode = 0; # mode 644
@@ -325,8 +326,9 @@ sub make_app_tree {
         or die "Failed to copy module tree to '$configdir'";
 
     # Populate inc dir
-    File::Copy::Recursive::dircopy( $sharedir_inc, $configdir )
-        or die "Failed to copy inc tree to '$configdir'";
+    print "Copy $sharedir_inc to $moduledir_inc\n";
+    File::Copy::Recursive::dircopy( $sharedir_inc, $moduledir_inc )
+        or die "Failed to copy inc tree to '$moduledir_inc'";
 
     my $tdrm = Tpda3::Devel::Render::Module->new( $self->{opt} );
     my $libapp_path = $tdrm->generate_module();

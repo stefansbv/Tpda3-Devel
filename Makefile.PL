@@ -1,15 +1,15 @@
 #
 # Makefile.PL for Tpda3::Devel
 #
-# Copyright (C) 2011-2012  Stefan Suciu
+# Copyright (C) 2011-2013  Stefan Suciu
 # GNU General Public License v3
 #
 
 use 5.008009;
 use strict;
 use warnings;
-use inc::Module::Install;
 use File::Copy::Recursive;
+use inc::Module::Install;
 
 name     'Tpda3-Devel';
 all_from 'lib/Tpda3/Devel.pm';
@@ -29,12 +29,12 @@ requires 'Tpda3' => '0.46';
 build_requires 'Test::More';
 build_requires 'File::Copy::Recursive';
 
-print "Copy inc/ to share/ ...\r";
-File::Copy::Recursive::dircopy( 'inc', 'share/dirtree/inc' )
-    or die "Failed to copy module tree to 'share'";
-print "Copy inc/ to share/ ... done\n";
-
 install_share 'share';
 install_script 'bin/tpda3d';
 
 WriteAll;
+
+print "Copy inc/ to share/ ...\r";
+File::Copy::Recursive::dircopy( './inc', './share/dirtree/inc' )
+    or die "Failed to copy module tree to 'share'";
+print "Copy inc/ to share/ ... done\n";
