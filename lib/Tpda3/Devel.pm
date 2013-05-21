@@ -25,6 +25,7 @@ require Tpda3::Devel::Render::Screen;
 require Tpda3::Devel::Render::Makefile;
 require Tpda3::Devel::Render::YAML;
 require Tpda3::Devel::Render::Test;
+require Tpda3::Devel::Render::Readme;
 require Tpda3::Devel::Edit::Config;
 require Tpda3::Devel::Edit::Menu;
 
@@ -308,6 +309,7 @@ sub make_app_tree {
     my $sharedir = catdir( dist_dir('Tpda3-Devel'), 'dirtree' );
     my $sharedir_module = catdir( $sharedir, 'module' );
     my $sharedir_config = catdir( $sharedir, 'config' );
+    my $sharedir_inc    = catdir( $sharedir, 'inc' );
 
     $File::Copy::Recursive::KeepMode = 0; # mode 644
 
@@ -321,6 +323,10 @@ sub make_app_tree {
     # Populate config dir
     File::Copy::Recursive::dircopy( $sharedir_config, $configdir )
         or die "Failed to copy module tree to '$configdir'";
+
+    # Populate inc dir
+    File::Copy::Recursive::dircopy( $sharedir_inc, $configdir )
+        or die "Failed to copy inc tree to '$configdir'";
 
     my $tdrm = Tpda3::Devel::Render::Module->new( $self->{opt} );
     my $libapp_path = $tdrm->generate_module();
