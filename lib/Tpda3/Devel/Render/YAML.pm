@@ -14,11 +14,11 @@ Tpda3::Devel::Render::YAML - Create a YAML configuration file.
 
 =head1 VERSION
 
-Version 0.13
+Version 0.14
 
 =cut
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 =head1 SYNOPSIS
 
