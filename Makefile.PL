@@ -34,7 +34,10 @@ install_script 'bin/tpda3d';
 
 WriteAll;
 
+# Refresh the inc/ folder
 print "Copy inc/ to share/ ...\r";
 File::Copy::Recursive::dircopy( './inc', './share/dirtree/inc' )
     or die "Failed to copy module tree to 'share'";
 print "Copy inc/ to share/ ... done\n";
+
+#-- eof
