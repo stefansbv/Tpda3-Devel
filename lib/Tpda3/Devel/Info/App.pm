@@ -17,11 +17,11 @@ Determine if CWD is a Tpda3 application source dir.
 
 =head1 VERSION
 
-Version 0.15
+Version 0.20
 
 =cut
 
-our $VERSION = '0.15';
+our $VERSION = '0.20';
 
 =head1 SYNOPSIS
 

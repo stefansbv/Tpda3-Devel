@@ -16,11 +16,11 @@ Tpda3::Devel::Info::Config - Tpda3 application config related info.
 
 =head1 VERSION
 
-Version 0.15
+Version 0.20
 
 =cut
 
-our $VERSION = '0.15';
+our $VERSION = '0.20';
 
 =head1 SYNOPSIS
 
