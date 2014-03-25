@@ -1,7 +1,7 @@
 # Screen settings
 # Style: default or report
 <screen>
-  version               = 4
+  version               = 5
   name                  = [% modulename %]
   description           = [% moduledescr %]
   style                 = default
@@ -22,13 +22,13 @@
 # Column names in the 'List' tab table, chosen from the field names
 # from the main table view. The order is preserved.
 <list_header>
-[%- IF pkfields.size == 1 -%]
- [% FOREACH pk IN pkfields %]
-  lookup                = [ [%- pk -%] ]
+[%- IF key_fields.size == 1 -%]
+ [% FOREACH key IN key_fields %]
+  lookup                = [ [%- key -%] ]
  [%- END -%]
 [%- ELSE -%]
- [% FOREACH pk IN pkfields %]
-  lookup                = [%- pk -%]
+ [% FOREACH key IN key_fields %]
+  lookup                = [%- key -%]
  [%- END -%]
 [%- END %]
 [%- IF columns.size == 1 -%]
@@ -54,7 +54,6 @@
 
 # Table attributes
 # Main table
-# PK and FK columns attributes: "state = disabled"
 [% IF maintable -%]
 [% maintable %]
 [%- ELSE -%]

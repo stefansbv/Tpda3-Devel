@@ -19,10 +19,9 @@ dies_ok { Tpda3::Devel::Render->get_template_for('fail-test') };
 my %data = (
     maintable   => '',
     deptable    => '',
-    screenname  => 'scrtest',
-    screendescr => 'Screen Test',
-    pkfields    => '',
-    fkfields    => '',
+    modulename  => 'scrtest',
+    moduledescr => 'Screen Test',
+    key_fields  => qw(field0 field1),
     columns     => '',
 );
 

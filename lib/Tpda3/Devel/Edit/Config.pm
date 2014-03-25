@@ -49,6 +49,7 @@ sub new {
     bless $self, $class;
 
     $self->{opt} = $opt;
+    $self->{ver} = undef;                    # screen config version
 
     return $self;
 }
@@ -106,17 +107,17 @@ sub prepare_config_data {
 
     %cfg = $conf->getall;
 
-    my $screen          = make_screen( $cfg{screen} );
-    my $defaultreport   = make_defaultreport( $cfg{defaultreport} );
-    my $defaultdocument = make_defaultdocument( $cfg{defaultdocument} );
-    my $lists_ds        = make_lists_ds( $cfg{lists_ds} );
-    my $list_header     = make_list_header( $cfg{list_header} );
-    my $bindings        = make_bindings( $cfg{bindings} );
-    my $tablebindings   = make_tablebindings( $cfg{tablebindings} );
-    my $maintable       = make_maintable( $cfg{maintable} );
-    my $deptable        = make_deptable( $cfg{deptable} );
-    my $scrtoolbar      = make_scrtoolbar( $cfg{scrtoolbar} );
-    my $toolbar         = make_toolbar( $cfg{toolbar} );
+    my $screen          = $self->make_screen( $cfg{screen} );
+    my $defaultreport   = $self->make_defaultreport( $cfg{defaultreport} );
+    my $defaultdocument = $self->make_defaultdocument( $cfg{defaultdocument} );
+    my $lists_ds        = $self->make_lists_ds( $cfg{lists_ds} );
+    my $list_header     = $self->make_list_header( $cfg{list_header} );
+    my $bindings        = $self->make_bindings( $cfg{bindings} );
+    my $tablebindings   = $self->make_tablebindings( $cfg{tablebindings} );
+    my $maintable       = $self->make_maintable( $cfg{maintable} );
+    my $deptable        = $self->make_deptable( $cfg{deptable} );
+    my $scrtoolbar      = $self->make_scrtoolbar( $cfg{scrtoolbar} );
+    my $toolbar         = $self->make_toolbar( $cfg{toolbar} );
 
     my %data = (
         screen          => $screen,
@@ -166,7 +167,7 @@ screen.
 =cut
 
 sub make_screen {
-    my ($data) = @_;
+    my ($self, $data) = @_;
 
     return unless keys %{$data};
 
@@ -179,7 +180,9 @@ sub make_screen {
     my $rec = {};
     tie %{$rec}, 'Tie::IxHash::Easy';
 
-    $rec->{screen}{version}     = 4;
+    $self->{ver} = $data->{version};         # store the version
+
+    $rec->{screen}{version}     = 5;         # from Tpda3 v0.70
     $rec->{screen}{name}        = $data->{name};
     $rec->{screen}{description} = $data->{description};
     $rec->{screen}{style}       = $data->{style};
@@ -207,7 +210,7 @@ defaultreport.
 =cut
 
 sub make_defaultreport {
-    my ($data) = @_;
+    my ($self, $data) = @_;
 
     return unless keys %{$data};
 
@@ -233,7 +236,7 @@ defaultdocument
 =cut
 
 sub make_defaultdocument {
-    my ($data) = @_;
+    my ($self, $data) = @_;
 
     return unless keys %{$data};
 
@@ -259,7 +262,7 @@ lists_ds.
 =cut
 
 sub make_lists_ds {
-    my ($data) = @_;
+    my ($self, $data) = @_;
 
     return unless keys %{$data};
 
@@ -288,7 +291,7 @@ list_header.
 =cut
 
 sub make_list_header {
-    my ($data) = @_;
+    my ($self, $data) = @_;
 
     return unless keys %{$data};
 
@@ -327,7 +330,7 @@ bindings.
 =cut
 
 sub make_bindings {
-    my $data = shift;
+    my ($self, $data) = @_;
 
     return unless keys %{$data};
 
@@ -399,7 +402,7 @@ Table bindings (Tk::TM).
 =cut
 
 sub make_tablebindings {
-    my $data = shift;
+    my ($self, $data) = @_;
 
     return unless keys %{$data};
 
@@ -456,7 +459,7 @@ maintable.
 =cut
 
 sub make_maintable {
-    my ($data) = @_;
+    my ($self, $data) = @_;
 
     return unless keys %{$data};
 
@@ -472,12 +475,28 @@ sub make_maintable {
     $rec->{maintable}{name} = $data->{name};
     $rec->{maintable}{view} = $data->{view};
 
-    # PK and FK
-    if ( exists $data->{pkcol}{name} ) {
-        $rec->{maintable}{pkcol}{name} = $data->{pkcol}{name};
+    # Keys
+    if ( $self->{ver} <= 4 ) {
+        my $count = 0;
+        if ( exists $data->{pkcol}{name} ) {
+            push @{ $rec->{maintable}{keys}{name} },
+                $data->{pkcol}{name};
+            $count++;
+        }
+        if ( exists $data->{fkcol}{name} ) {
+            push @{ $rec->{maintable}{keys}{name} },
+                $data->{fkcol}{name};
+            $count++;
+        }
+        if ( $count == 1 ) {
+
+            # Corection, add [, ]
+            $rec->{maintable}{keys}{name} = '[ '. $data->{pkcol}{name} .' ]';
+        }
     }
-    if ( exists $data->{fkcol}{name} ) {
-        $rec->{maintable}{fkcol}{name} = $data->{fkcol}{name};
+    elsif ( $self->{ver} >= 5 ) {
+        # New
+        $rec->{maintable}{keys} = $data->{keys};
     }
 
     foreach my $field ( keys %{ $data->{columns} } ) {
@@ -552,7 +571,7 @@ deptable
 =cut
 
 sub make_deptable {
-    my ($data) = @_;
+    my ($self, $data) = @_;
 
     return unless keys %{$data};
 
@@ -574,11 +593,28 @@ sub make_deptable {
         $rec->{deptable}{$tm_ds}{orderby}     = $data->{$tm_ds}{orderby};
 
         # PK and FK
-        if ( exists $data->{$tm_ds}{pkcol}{name} ) {
-            $rec->{deptable}{$tm_ds}{pkcol}{name} = $data->{$tm_ds}{pkcol}{name};
+        # TODO check if works for v < 4
+        if ( $self->{ver} <= 4 ) {
+            my $count = 0;
+            if ( exists $data->{$tm_ds}{pkcol}{name} ) {
+                push @{ $rec->{deptable}{$tm_ds}{keys}{name} },
+                    $data->{$tm_ds}{pkcol}{name};
+                $count++;
+            }
+            if ( exists $data->{$tm_ds}{fkcol}{name} ) {
+                push @{ $rec->{deptable}{$tm_ds}{keys}{name} },
+                    $data->{$tm_ds}{fkcol}{name};
+                $count++;
+            }
+            if ( $count == 1 ) {
+                # Corection, add [, ]
+                $rec->{deptable}{$tm_ds}{keys}{name}
+                    = '[ ' . $data->{$tm_ds}{pkcol}{name} . ' ]';
+            }
         }
-        if ( exists $data->{$tm_ds}{fkcol}{name} ) {
-            $rec->{deptable}{$tm_ds}{fkcol}{name} = $data->{$tm_ds}{fkcol}{name};
+        elsif ( $self->{ver} >= 5 ) {
+            # New
+            $rec->{deptable}{$tm_ds}{keys} = $data->{$tm_ds}{keys};
         }
 
         foreach my $field ( keys %{ $data->{$tm_ds}{columns} } ) {
@@ -647,7 +683,7 @@ scrtoolbar.
 =cut
 
 sub make_scrtoolbar {
-    my $data = shift;
+    my ($self, $data) = @_;
 
     return unless keys %{$data};
 
@@ -678,7 +714,7 @@ toolbar.
 =cut
 
 sub make_toolbar {
-    my $data = shift;
+    my ($self, $data) = @_;
 
     return unless keys %{$data};
 

@@ -56,7 +56,7 @@ Generate a new Tpda3 screen module and a screen configuration:
 
 Update a Tpda3 screen configuration:
 
-   tpda3d -U -c <scr-cfg>
+   tpda3d -U -S <scr-name>
 
 Info:
 

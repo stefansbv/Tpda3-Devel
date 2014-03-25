@@ -54,7 +54,6 @@ Database handle.
 
 sub dbh {
     my $self = shift;
-
     return $self->{dbi}->dbh;
 }
 
@@ -66,7 +65,6 @@ Module instance.
 
 sub dbc {
     my $self = shift;
-
     return $self->{dbi}->dbc;
 }
 
@@ -87,8 +85,7 @@ sub table_info {
     my $table_info = $self->dbc->table_info_short($table);
 
     # PK and FK
-    my $pk_keys = $self->dbc->table_keys($table);
-    my $fk_keys = $self->dbc->table_keys($table, 'foreign');
+    my $keys = $self->dbc->table_keys($table);
 
     my @fields;
     my %info;
@@ -100,12 +97,11 @@ sub table_info {
     }
 
     return {
-        table   => $table_info,
-        pk_keys => $pk_keys,
-        fk_keys => $fk_keys,
-        fields  => \@fields,
-        info    => \%info,
-        name    => $table,
+        table  => $table_info,
+        keys   => $keys,
+        fields => \@fields,
+        info   => \%info,
+        name   => $table,
     };
 }
 

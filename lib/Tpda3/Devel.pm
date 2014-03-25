@@ -255,7 +255,7 @@ sub process_command {
 
                 # Update a screen configuration file
                 $self->init_params_config();    # config
-                die "Abort." unless $self->check_required_params('config');
+                die "Abort." unless $self->check_required_params('screen');
                 my $tdec = Tpda3::Devel::Edit::Config->new( $self->{opt} );
                 $tdec->config_update();
             }

@@ -115,25 +115,24 @@ sub generate_config {
     # print " Main table is '$table_main'\n";
 
     my $table_info = $it->table_info( $table_main );
-    my $maintable_data  = $self->prepare_config_data_main($table_info);
+    my $maintable_data = $self->prepare_config_data_main($table_info);
 
     my $dep_table_data;
     my $deptable_name = $tables[1];
     $dep_table_data = $self->prepare_config_data_dep($deptable_name)
         if $deptable_name;
 
-    my $pkfields = $table_info->{pk_keys};
+    my $key_fields = $table_info->{keys};
     my $fields   = $table_info->{fields};
 
-    my $columns = $self->remove_dupes($pkfields, $fields);
+    my $columns = $self->remove_dupes($key_fields, $fields);
 
     my %data = (
         maintable   => $maintable_data,
         deptable    => $dep_table_data,
         modulename  => $screen,
         moduledescr => $screen,
-        pkfields    => $table_info->{pk_keys},
-        fkfields    => $table_info->{fk_keys},
+        key_fields  => $key_fields,
         columns     => $columns,
     );
 
@@ -166,14 +165,18 @@ sub prepare_config_data_main {
     $rec->{maintable}{name} = $table;
     $rec->{maintable}{view} = $table; # "v_$table" -> VIEW name
 
-    # PK and FK
-    die qq{ No PK key(s) for the '$table' table? }
-        unless $table_info->{pk_keys};
+    # Keys
+    die qq{ No key(s) for the '$table' table? }
+        unless $table_info->{keys};
 
-    my $pkcol = join ',', @{ $table_info->{pk_keys} };
-    $rec->{maintable}{pkcol}{name} = $pkcol;
-    $rec->{maintable}{fkcol}{name} = join ',', @{ $table_info->{fk_keys} }
-        if $table_info->{fk_keys};           # optional?
+    my @keys = @{ $table_info->{keys} };
+    if (scalar @keys == 1) {
+        $keys[0] = '[ ' . $keys[0] . ' ]';
+    }
+    elsif (scalar @keys < 1) {
+        die "Error about the table keys!\n";
+    }
+    push @{ $rec->{maintable}{keys}{name} }, @keys;
 
     # print " Processing fields ...\n";
     foreach my $field ( @{ $table_info->{fields} } ) {
@@ -261,14 +264,15 @@ sub prepare_config_data_dep {
     $rec->{deptable}{colstretch}  = '1';
     $rec->{deptable}{orderby}     = 'id_something';
 
-    my $key_names = [qw{pkcol fkcol}];    # first is pk second is fk
-    foreach my $key ( @{$keys} ) {
-        my $key_name = shift @{$key_names};
-        tie %{ $rec->{deptable}{$key_name} }, 'Tie::IxHash';
-        $rec->{deptable}{$key_name}{name}  = $key;
-        $rec->{deptable}{$key_name}{width} = '';
-        $rec->{deptable}{$key_name}{label} = '';
+    tie %{ $rec->{deptable}{keys} }, 'Tie::IxHash';
+    my @keys = @{$keys};
+    if (scalar @keys == 1) {
+        $keys[0] = '[ ' . $keys[0] . ' ]';
     }
+    elsif (scalar @keys < 1) {
+        die "Error about the dependent table keys!\n";
+    }
+    push @{ $rec->{deptable}{keys}{name} }, @keys;
 
     # print " Processing ...\n";
     tie %{ $rec->{deptable}{columns} }, "Tie::IxHash";
