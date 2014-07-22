@@ -3,6 +3,7 @@
 use utf8;
 use Test::More tests => 6;
 use Test::Exception;
+use File::Spec::Functions;
 
 use_ok('Tpda3::Devel');
 
@@ -18,10 +19,18 @@ is( Tpda3::Devel::Render->get_template_for('cfg-menu'),
 
 # Render
 
-my %data = ( r => { module => 'TestModule' } );
+my $data = {
+    r => { module => 'TestModule' },
+};
 
-my $out = 't/output';
-ok( Tpda3::Devel::Render->render( 'cfg-menu', 'menu.yml', \%data, $out ),
-    'render menu file' );
+my $args = {
+    type        => 'cfg-menu',
+    output_file => 'menu.yml',
+    data        => $data,
+    output_path => catdir('t', 'output'),
+    templ_path  => catdir( 'share', 'templates' ),
+};
+
+ok( Tpda3::Devel::Render->render($args), 'render menu file' );
 
 # done

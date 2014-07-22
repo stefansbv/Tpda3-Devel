@@ -25,10 +25,8 @@
 \.log$
 
 # Other
-^classicmodels$
 ^MYMETA.json$
 ^MYMETA.yml$
-^errors.txt$
 \.tar.gz$
 \.zip$
 

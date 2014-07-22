@@ -1,6 +1,6 @@
 package Tpda3::Devel::Edit::Config;
 
-use 5.008009;
+use 5.010001;
 use strict;
 use warnings;
 use utf8;
@@ -8,6 +8,7 @@ use utf8;
 use Cwd;
 use File::Basename;
 use File::Spec::Functions;
+use Tie::IxHash::Easy;
 use Config::General qw{ParseConfig};
 use File::Copy;
 
@@ -15,17 +16,19 @@ require Tpda3::Devel::Info::App;
 require Tpda3::Devel::Info::Config;
 require Tpda3::Devel::Render;
 
+#use Data::Dump;
+
 =head1 NAME
 
 Tpda3::Devel::Edit::Config - Tpda3 application config update.
 
 =head1 VERSION
 
-Version 0.20
+Version 0.50
 
 =cut
 
-our $VERSION = '0.20';
+our $VERSION = '0.50';
 
 =head1 SYNOPSIS
 
@@ -42,13 +45,11 @@ our $VERSION = '0.20';
 =cut
 
 sub new {
-    my ( $class, $opt ) = @_;
+    my $class = shift;
 
     my $self = {};
-
     bless $self, $class;
 
-    $self->{opt} = $opt;
     $self->{ver} = undef;                    # screen config version
 
     return $self;
@@ -62,24 +63,29 @@ preserve | edit the comments and the order of the sections.
 =cut
 
 sub config_update {
-    my $self = shift;
+    my ($self, $opts) = @_;
 
     my $app_info = Tpda3::Devel::Info::App->new();
 
-    my $scrcfg_fn   = $self->{opt}{config_fn};
-    my $scrcfg_ap   = $self->{opt}{config_ap};
-    my $scrcfg_apfn = $self->{opt}{config_apfn};
+    my $scrcfg_fn   = $opts->{scrcfg_fn};
+    my $scrcfg_ap   = $opts->{scrcfg_ap};
+    my $scrcfg_apfn = $opts->{scrcfg_apfn};
 
     my $data = $self->prepare_config_data($scrcfg_apfn);
 
     # Backup existing config file
     my $backup_ok = $self->backup_config( $scrcfg_ap, $scrcfg_fn );
-    unless ($backup_ok) {
-        die "Backup of old config file failed!";
-    }
+    die "Backup of old config file failed!" unless $backup_ok;
 
-    Tpda3::Devel::Render->render( 'config-update', $scrcfg_fn, $data,
-        $scrcfg_ap );
+    my $args = {
+        type        => 'config-update',
+        output_file => $scrcfg_fn,
+        data        => { r => $data },
+        output_path => $scrcfg_ap,
+        templ_path  => undef,
+    };
+
+    Tpda3::Devel::Render->render($args);
 
     return;
 }
@@ -181,6 +187,7 @@ sub make_screen {
     tie %{$rec}, 'Tie::IxHash::Easy';
 
     $self->{ver} = $data->{version};         # store the version
+    print "Confg version is ", $self->{ver}, "\n";
 
     $rec->{screen}{version}     = 5;         # from Tpda3 v0.70
     $rec->{screen}{name}        = $data->{name};
@@ -466,7 +473,7 @@ sub make_maintable {
     my $conf = Config::General->new(
         -AllowMultiOptions => 1,
         -SplitPolicy       => 'equalsign',
-        -Tie               => "Tie::IxHash",
+        -Tie               => "Tie::IxHash::Easy",
     );
 
     my $rec = {};
@@ -495,8 +502,17 @@ sub make_maintable {
         }
     }
     elsif ( $self->{ver} >= 5 ) {
+
         # New
+        # dd $data->{keys};
+        my $keys = $data->{keys};
+        # dd $keys;
         $rec->{maintable}{keys} = $data->{keys};
+        # dd $rec->{maintable};
+
+        # Bug: the keys content is deleted
+        # See BUGS section in:
+        # https://metacpan.org/pod/Tie::Autotie
     }
 
     foreach my $field ( keys %{ $data->{columns} } ) {

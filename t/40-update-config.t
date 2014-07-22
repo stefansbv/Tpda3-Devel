@@ -1,33 +1,26 @@
 #!perl
 
-use Test::More tests => 5;
+use Test::More tests => 4;
 use Test::Exception;
+use File::Spec::Functions;
 
 use_ok('Tpda3::Devel');
 
 # Check functions
 
-use_ok('Tpda3::Devel::Render');
+use_ok('Tpda3::Devel::Edit::Config');
 
-is( Tpda3::Devel::Render->get_template_for('config-update'),
-    'config-refactor.tt', 'template for config' );
+my $scrcfg_fn   = 'scrtest.conf';
+my $scrcfg_ap   = catdir('t', 'output');
+my $scrcfg_apfn = catfile($scrcfg_ap, $scrcfg_fn);
 
-dies_ok { Tpda3::Devel::Render->get_template_for('fail-test') };
+my $args = {
+    scrcfg_fn   => $scrcfg_fn,
+    scrcfg_ap   => $scrcfg_ap,
+    scrcfg_apfn => $scrcfg_apfn,
+};
 
-# Render
-
-my %data = (
-    maintable   => '',
-    deptable    => '',
-    screenname  => 'scrtest',
-    screendescr => 'Screen Test',
-    pkfields    => '',
-    fkfields    => '',
-    columns     => '',
-);
-
-my $out = 't/output';
-ok( Tpda3::Devel::Render->render( 'config', 'scrtest.conf', \%data, $out ),
-    'render config file' );
+ok my $tdec = Tpda3::Devel::Edit::Config->new, 'new config editor';
+is $tdec->config_update($args), undef, 'update config';
 
 # done

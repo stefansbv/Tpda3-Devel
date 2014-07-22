@@ -1,6 +1,6 @@
 package Tpda3::Devel::Info::App;
 
-use 5.008009;
+use 5.010001;
 use strict;
 use warnings;
 
@@ -17,18 +17,18 @@ Determine if CWD is a Tpda3 application source dir.
 
 =head1 VERSION
 
-Version 0.20
+Version 0.15
 
 =cut
 
-our $VERSION = '0.20';
+our $VERSION = '0.15';
 
 =head1 SYNOPSIS
 
     use Tpda3::Devel::Info::App;
 
-    my $ic = Tpda3::Devel::Info::App->new();
-    my $ic = $dci->config_info();
+    my $dip = Tpda3::Devel::Info::App->new();
+
 
 =head1 METHODS
 
@@ -42,63 +42,55 @@ sub new {
     my ( $class, $opt ) = @_;
 
     my $self = {};
-
     bless $self, $class;
-
     $self->{module} = $opt;
 
     return $self;
 }
 
-=head2 check_app_path
+=head2 get_app_path
 
 Check and return the application path.
 
 =cut
 
-sub check_app_path {
+sub get_app_path {
     my $self = shift;
-
-    my $app_path = catdir( Cwd::cwd(), 'lib/Tpda3/Tk/App' );
-    if ( -d $app_path ) {
-        return $app_path;
-    }
-    else {
-        die "Run 'tpda3d -S | -U' from a Tpda3-* module source root dir!\n\n";
-    }
+    my $app_path = catdir( Cwd::cwd(), 'lib', 'Tpda3', 'Tk', 'App' );
+    return $app_path if -d $app_path;
+    return;
 }
 
-=head2 check_cfg_path
+=head2 get_cfg_path
 
-Return the application config path. If initialized without module
+Return the application config path.  If initialized without module
 name, return the share/apps.
 
 =cut
 
-sub check_cfg_path {
+sub get_cfg_path {
     my $self = shift;
-
     my $module = $self->{module};
     if ($module) {
         my $rp = catdir( $self->get_app_rp($module), 'share/apps' );
-        if ( -d $rp ) {
-            return $rp;
-        }
-        else {
-            die "Wrong path: $rp";
-        }
+        return $rp if -d $rp;
     }
     else {
         my $app_cfg_path = catdir( Cwd::cwd(), 'share/apps' );
-        if ( -d $app_cfg_path ) {
-            return $app_cfg_path;
-        }
-        else {
-            die "Can't determine share/apps config path.";
-        }
+        return $app_cfg_path if -d $app_cfg_path;
     }
-
     return;
+}
+
+=head2 is_app_dir
+
+Return true if CWD is a Tpda3 application distribution dir.
+
+=cut
+
+sub is_app_dir {
+    my $self = shift;
+    return $self->get_app_path and $self->get_cfg_path;
 }
 
 =head2 get_tests_path
@@ -109,21 +101,11 @@ Return the path to the tests dir of the distribution.
 
 sub get_tests_path {
     my $self = shift;
-
     my $module = $self->{module};
     if ($module) {
         my $rp = catdir( $self->get_app_rp($module), 't' );
-        if ( -d $rp ) {
-            return $rp;
-        }
-        else {
-            die "Wrong path: $rp";
-        }
+        return $rp if -d $rp;
     }
-    else {
-        die "Failed to get tests path!";
-    }
-
     return;
 }
 
@@ -139,15 +121,14 @@ module with the same name exists, if true, return the name.
 sub get_app_name {
     my $self = shift;
 
-    my $app_path = $self->check_app_path();
+    my $app_path = $self->get_app_path();
     return unless ($app_path);
 
     my $dirlist = Tpda3::Config::Utils->find_subdirs($app_path);
 
     my $no = scalar @{$dirlist};
     if ( $no == 0 ) {
-        print "No application path found!\n";
-        print " in '$app_path':\n";
+        $self->render("No application path found!\n in '$app_path':\n");
         return;
     }
 
@@ -185,23 +166,18 @@ sub get_app_module_rp {
 
 =head2 get_app_rp
 
-Tpda3 application module relative path.  This is not supposed to be
-called from an application dir.
+A Tpda3 application distribution relative path.  Used for new
+application distributions.  This is not supposed to be called from an
+application dir.
 
 =cut
 
 sub get_app_rp {
-    my $self = shift;
-
-    my $module = $self->{module} || die "No module name!";
-
+    my ($self, $module) = @_;
+    die "No module name in 'get_app_rp'!" unless $module;
     my $rp = catdir("Tpda3-$module");
-    if ( -d $rp ) {
-        return $rp;
-    }
-    else {
-        die "Unknown path: $rp";
-    }
+    return $rp if -d $rp;
+    return;
 }
 
 =head2 get_cfg_name
@@ -213,11 +189,10 @@ Return the current application config name.
 sub get_cfg_name {
     my $self = shift;
 
-    my $app_cfg_path = $self->check_cfg_path();
+    my $app_cfg_path = $self->get_cfg_path;
     return unless ($app_cfg_path);
 
     my $dirlist = Tpda3::Config::Utils->find_subdirs($app_cfg_path);
-
     my $no = scalar @{$dirlist};
     if ( $no == 0 ) {
         warn "No configurations found in '$app_cfg_path'";
@@ -236,17 +211,11 @@ Return the application screen modules absolute path.
 
 sub get_screen_module_ap {
     my $self = shift;
-
-    my $app_path = $self->check_app_path();
-    my $app_name = $self->get_app_name();
-
+    my $app_path = $self->get_app_path;
+    my $app_name = $self->get_app_name;
     my $ap = catdir( $app_path, $app_name );
-    if ( -d $ap ) {
-        return $ap;
-    }
-    else {
-        die "Unknown path: $ap";
-    }
+    return $ap if -d $ap;
+    return;
 }
 
 =head2 get_screen_module_apfn
@@ -257,14 +226,8 @@ Get the application screen module absolute path and file name.
 
 sub get_screen_module_apfn {
     my ( $self, $file ) = @_;
-
     my $apfn = return catfile( $self->get_screen_module_ap, $file );
-    if ( -f $apfn ) {
-        return $apfn;
-    }
-    else {
-        die "Unknown file: $apfn";
-    }
+    return $apfn if -f $apfn;
 }
 
 =head2 get_config_ap_for
@@ -284,17 +247,11 @@ subdir name, one of the following is valid (but no validation occurs):
 
 sub get_config_ap_for {
     my ( $self, $dir ) = @_;
-
-    my $cfg_path = $self->check_cfg_path();
-    my $cfg_name = $self->get_cfg_name();
-
+    my $cfg_path = $self->get_cfg_path;
+    my $cfg_name = $self->get_cfg_name;
     my $ap = catdir( $cfg_path, $cfg_name, $dir );
-    if ( -d $ap ) {
-        return $ap;
-    }
-    else {
-        die "Unknown path: $ap";
-    }
+    return $ap if -d $ap;
+    return;
 }
 
 =head2 get_config_apfn_for
@@ -305,8 +262,28 @@ Get the application screen config absolute path and file name.
 
 sub get_config_apfn_for {
     my ( $self, $type, $file ) = @_;
-
     return catfile( $self->get_config_ap_for($type), $file );
+}
+
+=head2 get_user_path_for
+
+Return the user configurations path.
+
+=cut
+
+sub get_user_path_for {
+    my ($self, $path) = @_;
+
+    my $configpath = File::UserConfig->new(
+        dist     => 'Tpda3',
+        sharedir => 'share',
+    )->configdir;
+
+    my $mnemonic = lc $self->get_app_name;
+    my $ap = catdir( $configpath, 'apps', $mnemonic, $path );
+    die "Nonexistent user path $ap\n" unless -d $ap;
+
+    return $ap;
 }
 
 =head1 AUTHOR

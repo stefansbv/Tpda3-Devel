@@ -1,8 +1,8 @@
-    # Entry objects: var_asoc, var_obiect
-    # Other configurations in '[% name %].conf'
+    # Entry objects: var_asoc, var_obiect.
+    # The configurations are defined in '[% r.conf %]'.
     $self->{controls} = {
-[%- FOREACH key = columns.keys %]
-[% SET ctrltype = columns.$key.ctrltype %]
+[%- FOREACH key = r.columns.keys %]
+[% SET ctrltype = r.columns.$key.ctrltype %]
 [%- IF ctrltype == 'e' -%]
         [% key %] => [ undef, $e[% key %] ],
 [%- ELSIF ctrltype == 'd' -%]

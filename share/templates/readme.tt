@@ -12,7 +12,7 @@ Description:
 Requirements
 ------------
 
-- Perl v5.8.9 or newer.
+- Perl v5.10.01 or newer.
 - PostgreSQL version 8.2 or greater
 - Tpda3
 

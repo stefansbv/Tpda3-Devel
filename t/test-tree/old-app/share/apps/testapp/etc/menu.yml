@@ -1,0 +1,82 @@
+# tpda3
+# Application menu interface configuration
+# Don't change, unless you know what you are doing!
+---
+appmenubar:
+  menu_user:
+    id:    1001
+    label: FPIMM
+    underline: 0
+    popup:
+      1:
+        name: Persoane
+        label: Persoane si activități
+        underline: 12
+        sep: none
+        key: ~
+      2:
+        name: CursuriR
+        label: Cursuri
+        underline: 1
+        sep: before
+        key: ~
+      3:
+        name: ConsultR
+        label: Consultanță
+        underline: 1
+        sep: after
+        key: ~
+      4:
+        name: Firme
+        label: Firme
+        underline: 0
+        sep: none
+        key: ~
+      5:
+        name: QSelect
+        label: Selectare firme
+        underline: 0
+        sep: none
+        key: ~
+      6:
+        name: EmailFirme
+        label: E-mail firme
+        underline: 0
+        sep: none
+        key: ~
+
+  menu_dict:
+    id:    1002
+    label: Dictionare
+    underline: 0
+    popup:
+      1:
+        name: ListaProiecte
+        label: Lista proiecte
+        underline: 6
+        sep: none
+        key: ~
+      2:
+        name: ListaCursuri
+        label: Listă cursuri
+        underline: 7
+        sep: none
+        key: ~
+      3:
+        name: ListaConsult
+        label: Listă consultanță
+        underline: 7
+        sep: after
+        key: ~
+      4:
+        name: Personal
+        label: Listă personal
+        underline: 9
+        sep: after
+        key: ~
+      5:
+        name: Siruta
+        label: Localități (siruta)
+        underline: 0
+        sep: none
+        key: ~

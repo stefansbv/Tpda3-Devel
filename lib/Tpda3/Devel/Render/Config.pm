@@ -1,6 +1,6 @@
 package Tpda3::Devel::Render::Config;
 
-use 5.008009;
+use 5.010001;
 use strict;
 use warnings;
 use utf8;
@@ -10,6 +10,7 @@ use Tie::IxHash::Easy;
 use List::Compare;
 use File::Spec::Functions;
 
+require Tpda3::Devel::Info::Config;
 require Tpda3::Devel::Info::Table;
 require Tpda3::Devel::Render;
 
@@ -19,11 +20,11 @@ Tpda3::Devel::Render::Config - Create a screen configuration file.
 
 =head1 VERSION
 
-Version 0.20
+Version 0.50
 
 =cut
 
-our $VERSION = '0.20';
+our $VERSION = '0.50';
 
 =head1 SYNOPSIS
 
@@ -44,13 +45,11 @@ Constructor.
 =cut
 
 sub new {
-    my ( $class, $opt ) = @_;
+    my $class = shift;
 
     my $self = {};
 
     bless $self, $class;
-
-    $self->{opt} = $opt;
 
     $self->_init;
 
@@ -91,28 +90,23 @@ sub _init {
 
 =head2 generate_config
 
-Prepare data for the screen configuration file and create new file.
+Prepare data for the screen configuration file and create the new
+file.
 
 =cut
 
 sub generate_config {
-    my $self = shift;
+    my ($self, $opts) = @_;
 
-    print "Creating screen config ... \r";
+    my $screen = $opts->{screen};
 
-    my $screen = $self->{opt}{screen};
+    my $ic = Tpda3::Devel::Info::Config->new;
+    my $it = Tpda3::Devel::Info::Table->new;
 
-    die "A screen name is required." unless $screen;
-
-    my $ic = Tpda3::Devel::Info::Config->new($self->{opt});
-    my $it = Tpda3::Devel::Info::Table->new();
-
-    my @tables = split /,/, $self->{opt}{table}, 2;
+    my @tables = split /,/, $opts->{tables}, 2;
     my $table_main = $tables[0];
 
     die "Need a table name!" unless $table_main;
-
-    # print " Main table is '$table_main'\n";
 
     my $table_info = $it->table_info( $table_main );
     my $maintable_data = $self->prepare_config_data_main($table_info);
@@ -122,22 +116,22 @@ sub generate_config {
     $dep_table_data = $self->prepare_config_data_dep($deptable_name)
         if $deptable_name;
 
-    my $key_fields = $table_info->{keys};
-    my $fields   = $table_info->{fields};
+    my $key_fields = $table_info->{pk_keys};
+    my $fields     = $table_info->{fields};
 
     my $columns = $self->remove_dupes($key_fields, $fields);
 
-    my %data = (
+    my $data = {
         maintable   => $maintable_data,
         deptable    => $dep_table_data,
         modulename  => $screen,
         moduledescr => $screen,
         key_fields  => $key_fields,
         columns     => $columns,
-    );
+    };
 
     # Assemble using a template
-    $self->render_config(\%data);
+    $self->render_config($opts, $data);
 
     return;
 }
@@ -167,9 +161,9 @@ sub prepare_config_data_main {
 
     # Keys
     die qq{ No key(s) for the '$table' table? }
-        unless $table_info->{keys};
+        unless $table_info->{pk_keys};
 
-    my @keys = @{ $table_info->{keys} };
+    my @keys = @{ $table_info->{pk_keys} };
     if (scalar @keys == 1) {
         $keys[0] = '[ ' . $keys[0] . ' ]';
     }
@@ -238,8 +232,6 @@ sub prepare_config_data_dep {
         return;
     }
 
-    # my $cons = $dbc->constraints_list('fact_tr_det');
-
     my $info = $dbc->table_info_short($table);
     my $keys = $dbc->table_keys($table);
 
@@ -252,19 +244,19 @@ sub prepare_config_data_dep {
     my $rec = {};
     tie %{$rec}, "Tie::IxHash";
 
-    tie %{ $rec->{deptable} }, "Tie::IxHash";
-    tie %{ $rec->{deptable}{name} }, "Tie::IxHash";
-    tie %{ $rec->{deptable}{view} }, "Tie::IxHash";
+    tie %{ $rec->{deptable}{tm1} }, "Tie::IxHash";
+    tie %{ $rec->{deptable}{tm1}{name} }, "Tie::IxHash";
+    tie %{ $rec->{deptable}{tm1}{view} }, "Tie::IxHash";
 
-    $rec->{deptable}{name} = $table;
-    $rec->{deptable}{view} = "v_$table";
+    $rec->{deptable}{tm1}{name} = $table;
+    $rec->{deptable}{tm1}{view} = "v_$table";
 
-    $rec->{deptable}{updatestyle} = 'delete+add';
-    $rec->{deptable}{selectorcol} = '';
-    $rec->{deptable}{colstretch}  = '1';
-    $rec->{deptable}{orderby}     = 'id_something';
+    $rec->{deptable}{tm1}{updatestyle} = 'delete+add';
+    $rec->{deptable}{tm1}{selectorcol} = '';
+    $rec->{deptable}{tm1}{colstretch}  = '1';
+    $rec->{deptable}{tm1}{orderby}     = 'id_something';
 
-    tie %{ $rec->{deptable}{keys} }, 'Tie::IxHash';
+    tie %{ $rec->{deptable}{tm1}{keys} }, 'Tie::IxHash';
     my @keys = @{$keys};
     if (scalar @keys == 1) {
         $keys[0] = '[ ' . $keys[0] . ' ]';
@@ -272,10 +264,10 @@ sub prepare_config_data_dep {
     elsif (scalar @keys < 1) {
         die "Error about the dependent table keys!\n";
     }
-    push @{ $rec->{deptable}{keys}{name} }, @keys;
+    push @{ $rec->{deptable}{tm1}{keys}{name} }, @keys;
 
     # print " Processing ...\n";
-    tie %{ $rec->{deptable}{columns} }, "Tie::IxHash";
+    tie %{ $rec->{deptable}{tm1}{columns} }, "Tie::IxHash";
     foreach my $k ( sort { $a <=> $b } keys %{$info} ) {
         # print "  field: $k -> ";
         my $v = $info->{$k};
@@ -284,7 +276,7 @@ sub prepare_config_data_dep {
         my $type = $v->{type};
         # print "$name ($type)\n";
 
-        $rec->{deptable}{columns}{$name} = {
+        $rec->{deptable}{tm1}{columns}{$name} = {
             id        => $k,
             label     => $name,
             width     => $self->len( $v->{length} ),
@@ -310,17 +302,28 @@ The screen configuration file name and the configuration data.
 =cut
 
 sub render_config {
-    my ($self, $data) = @_;
+    my ($self, $opts, $data) = @_;
 
-    my $scrcfg_fn   = $self->{opt}{config_fn};
-    my $output_path = $self->{opt}{config_ap};
+    my $app_info = Tpda3::Devel::Info::App->new;
 
-    if ( -f catfile($output_path, $scrcfg_fn) ) {
+    my $scrcfg    = lc $opts->{screen};
+    my $scrcfg_fn = "$scrcfg.conf";
+    my $scrcfg_ap = $app_info->get_config_ap_for('scr');
+
+    if ( -f catfile($scrcfg_ap, $scrcfg_fn) ) {
         print "Creating screen config .... skipped\n";
         return;
     }
 
-    Tpda3::Devel::Render->render( 'config', $scrcfg_fn, $data, $output_path );
+    my $args = {
+        type        => 'config',
+        output_file => $scrcfg_fn,
+        data        => { r => $data },
+        output_path => $scrcfg_ap,
+        templ_path  => undef,
+    };
+
+    Tpda3::Devel::Render->render($args);
 
     print "Creating screen config ....... done\n";
 
@@ -348,7 +351,7 @@ sub ctrltype {
     my ($self, $info) = @_;
 
     my $type = lc $info->{type};
-    my $len  = lc $info->{length};
+    my $len  = $info->{length} // 10;
 
     #      when column type is ...        ctrl type is ...
     return  $type eq q{}                              ? 'x'

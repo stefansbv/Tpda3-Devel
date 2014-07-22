@@ -1,12 +1,16 @@
 package Tpda3::Devel::Edit::Menu;
 
-use 5.008009;
+use 5.010001;
 use strict;
 use warnings;
 use utf8;
 
+use Try::Tiny;
 use YAML::Tiny;
+
 use List::Util qw{max};
+
+require Tpda3::Devel::Info::App;
 
 =head1 NAME
 
@@ -14,11 +18,11 @@ Tpda3::Devel::Edit::Menu - Tpda3 application config update.
 
 =head1 VERSION
 
-Version 0.20
+Version 0.50
 
 =cut
 
-our $VERSION = '0.20';
+our $VERSION = '0.50';
 
 =head1 SYNOPSIS
 
@@ -35,33 +39,33 @@ our $VERSION = '0.20';
 =cut
 
 sub new {
-    my ( $class, $opt ) = @_;
+    my $class = shift;
 
     my $self = {};
-
     bless $self, $class;
-
-    $self->{opt} = $opt;
 
     return $self;
 }
 
 =head2 menu_update
 
-share/apps/raton/etc/menu.yml
+share/apps/name/etc/menu.yml
 
 =cut
 
 sub menu_update {
-    my $self = shift;
+    my ($self, $label, $menu_file) = @_;
 
-    my $label     = $self->{opt}{screen};
-    my $menu_file = $self->{opt}{menu_apfn};
-
+    die "A label is required!"     unless $label;
     die "A menu file is required!" unless $menu_file;
-    die "A label is required!" unless $label;
 
-    my $yaml = YAML::Tiny->read($menu_file);
+    my $yaml;
+    try {
+        $yaml = YAML::Tiny->read($menu_file) or die YAML::Tiny->errstr;
+    }
+    catch {
+        die "YAML Error: $_\n";
+    };
 
     my $popup = $yaml->[0]{appmenubar}{menu_user}{popup};
 

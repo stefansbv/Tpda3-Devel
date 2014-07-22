@@ -1,38 +1,25 @@
 package Tpda3::Devel::Render;
 
-use 5.008009;
+use 5.010001;
 use strict;
 use warnings;
+use utf8;
 
 use Template;
 use File::ShareDir qw(dist_dir);
 use File::Spec::Functions;
 
-require Tpda3::Devel::Info::App;
-
 =head1 NAME
 
-Tpda3::Devel::Render::Config - Create a screen configuration file.
+Tpda3::Devel::Render - render a file from a template.
 
 =head1 VERSION
 
-Version 0.20
+Version 0.50
 
 =cut
 
-our $VERSION = '0.20';
-
-=head1 SYNOPSIS
-
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
-
-    use Tpda3::Devel::Config;
-
-    my $foo = Tpda3::Devel::Config->new();
-
-=head1 METHODS
+our $VERSION = '0.50';
 
 =head2 render
 
@@ -44,18 +31,18 @@ as file name.
 =cut
 
 sub render {
-    my ($self, $type, $output_file, $data, $output_path) = @_;
+    my ($self, $args) = @_;
+
+    my $type        = $args->{type};
+    my $output_file = $args->{output_file};
+    my $data        = $args->{data};
+    my $output_path = $args->{output_path};
+    my $templ_path  = $args->{templ_path}
+        // catdir( dist_dir('Tpda3-Devel'), 'templates' );
 
     my $template = $self->get_template_for($type);
 
     $output_file = "${type}$output_file" if $output_file =~ m{^\.};
-
-    # Where are module-level shared data files kept
-    my $templ_path = catdir( dist_dir('Tpda3-Devel'), 'templates');
-
-    # print "Rendering '$template'...\n";
-    # print " Output goes to\n '$output_path'\n";
-    # print " File is '$output_file'\n";
 
     my $tt = Template->new(
         INCLUDE_PATH => $templ_path,
@@ -115,8 +102,6 @@ You can find documentation for this module with the perldoc command.
     perldoc Tpda3::Devel::Config
 
 =head1 ACKNOWLEDGEMENTS
-
-Options processing inspired from App::Ack (C) 2005-2011 Andy Lester.
 
 =head1 LICENSE AND COPYRIGHT
 

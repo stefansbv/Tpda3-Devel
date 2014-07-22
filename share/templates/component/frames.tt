@@ -2,7 +2,7 @@
 
     my $frm_top = $rec_page->LabFrame(
         -foreground => 'blue',
-        -label      => '[% screen %]',
+        -label      => '[% r.screen %]',
         -labelside  => 'acrosstop',
     );
     $frm_top->grid(

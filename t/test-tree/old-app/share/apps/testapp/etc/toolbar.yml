@@ -1,0 +1,127 @@
+# tpda3
+# Toolbar interface configuration
+# Here ca be added new toolbar buttons
+# The toolbar Id's start at 2000 and the name with tb2
+---
+toolbar2:
+  tb2ad:
+    id:      2001
+    type:    _item_normal
+    icon:    actitemadd16
+    tooltip: Add new row
+    help:    Add new row in table
+    sep:     none
+    state:
+      rec:
+        idle: disabled
+        add : normal
+        edit: normal
+        find: disabled
+        sele: disabled
+      det:
+        idle: disabled
+        add : normal
+        edit: normal
+        find: disabled
+        sele: disabled
+  tb2rm:
+    id      : 2002
+    type    : _item_normal
+    icon    : actitemdelete16
+    tooltip : Remove row
+    help    : Remove row from table
+    sep     : none
+    state:
+      rec:
+        idle: disabled
+        add : normal
+        edit: normal
+        find: disabled
+        sele: disabled
+      det:
+        idle: disabled
+        add : normal
+        edit: normal
+        find: disabled
+        sele: disabled
+  tb2refr:
+    id      : 2001
+    type    : _item_normal
+    icon    : actreload16
+    tooltip : Fill table
+    help    : Fill table
+    sep     : none
+    method  : tmshr_fill_table
+    state:
+      rec:
+        idle: normal
+        add : disabled
+        edit: disabled
+        find: disabled
+        sele: disabled
+      det:
+        idle: disabled
+        add : disabled
+        edit: disabled
+        find: disabled
+        sele: disabled
+  tb2all:
+    id: 3001
+    type: _item_normal
+    icon: actcheck16
+    tooltip: Totul
+    help: Selecteaza totul
+    sep: none
+    state:
+      rec:
+        idle: disabled
+        add:  normal
+        edit: normal
+        find: disabled
+        sele: disabled
+      det:
+        idle: disabled
+        add:  disabled
+        edit: normal
+        find: disabled
+        sele: disabled
+  tb2none:
+    id: 3002
+    type: _item_normal
+    icon: actcross16
+    tooltip: Nimic
+    help: Selecteaza nimic
+    sep: none
+    state:
+      rec:
+        idle: disabled
+        add:  normal
+        edit: normal
+        find: disabled
+        sele: disabled
+      det:
+        idle: disabled
+        add: normal
+        edit: normal
+        find: disabled
+        sele: disabled
+  tb2inv:
+    id: 3003
+    type: _item_normal
+    icon: actundo16
+    tooltip: Invers
+    help: Inversare selectie
+    sep: none
+    state:
+      rec:
+        idle: disabled
+        add: normal
+        edit: normal
+        find: disabled
+        sele: disabled
+      det:
+        idle: disabled
+        add: normal
+        edit: normal
+        find: disabled
+        sele: disabled

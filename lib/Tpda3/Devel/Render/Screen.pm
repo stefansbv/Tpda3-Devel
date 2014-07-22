@@ -1,6 +1,6 @@
 package Tpda3::Devel::Render::Screen;
 
-use 5.008009;
+use 5.010001;
 use strict;
 use warnings;
 use utf8;
@@ -9,8 +9,8 @@ use Config::General qw{ParseConfig};
 use File::Spec::Functions;
 use Tie::IxHash;
 
+require Tpda3::Devel::Config;
 require Tpda3::Devel::Info::App;
-require Tpda3::Devel::Info::Config;
 require Tpda3::Devel::Render;
 
 =head1 NAME
@@ -19,11 +19,11 @@ Tpda3::Devel::Render::Screen - Create a screen module file.
 
 =head1 VERSION
 
-Version 0.20
+Version 0.50
 
 =cut
 
-our $VERSION = '0.20';
+our $VERSION = '0.50';
 
 =head1 SYNOPSIS
 
@@ -47,7 +47,6 @@ sub new {
     my $self = {};
 
     bless $self, $class;
-
     $self->{opt} = $opt;
 
     return $self;
@@ -60,18 +59,15 @@ Generate a screen module from templates.
 =cut
 
 sub generate_screen {
-    my $self = shift;
+    my ($self, $opts) = @_;
+
+    my $screen = $opts->{screen};
 
     print "Creating screen module ........\r";
 
-    my $screen = $self->{opt}{screen};
-
     die "A screen name is required!" unless $screen;
 
-    my $app_info = Tpda3::Devel::Info::App->new();
-    my $cfg_info = Tpda3::Devel::Info::Config->new($self->{opt});
-
-    my $config_file = $self->{opt}{config_apfn};
+    my $config_file = $opts->{scrcfg_apfn};
 
     die unless defined $config_file;
 
@@ -86,26 +82,39 @@ sub generate_screen {
         -Tie        => 'Tie::IxHash',
     );
 
-    # TODO: Make user (developer) config with this data
-    my %data = (
-        copy_author => 'Ștefan Suciu',
-        copy_email  => 'stefan@s2i2.ro',
+    my $app_info = Tpda3::Devel::Info::App->new;
+
+    my $tdc = Tpda3::Devel::Config->new;
+    my ($user_name, $user_email) = $tdc->get_gitconfig;
+
+    my $data = {
+        copy_author => $user_name,
+        copy_email  => $user_email,
         copy_year   => (localtime)[5] + 1900,
-        module      => $app_info->get_app_name(),
+        module      => $app_info->get_app_name,
         screen      => $screen,
+        conf        => lc $screen . '.conf',
         columns     => $cfg{maintable}{columns},
         pkcol       => $cfg{maintable}{pkcol}{name},
-    );
+    };
 
-    my $screen_fn   = $self->{opt}{screen_fn};
-    my $output_path = $self->{opt}{screen_ap};
+    my $screen_fn   = "$screen.pm";
+    my $output_path = $app_info->get_screen_module_ap();
 
     if ( -f catfile($output_path, $screen_fn) ) {
         print "Creating screen module .... skipped\n";
         return;
     }
 
-    Tpda3::Devel::Render->render( 'screen', $screen_fn, \%data, $output_path );
+    my $args = {
+        type        => 'screen',
+        output_file => $screen_fn,
+        data        => { r => $data },
+        output_path => $output_path,
+        templ_path  => undef,
+    };
+
+    Tpda3::Devel::Render->render($args);
 
     print "Creating screen module ....... done\n";
 
@@ -125,10 +134,6 @@ Please report any bugs or feature requests to the autor.
 You can find documentation for this module with the perldoc command.
 
     perldoc Tpda3::Devel::Render::Screen
-
-=head1 ACKNOWLEDGEMENTS
-
-Options processing inspired from App::Ack (C) 2005-2011 Andy Lester.
 
 =head1 LICENSE AND COPYRIGHT
 

@@ -1,6 +1,6 @@
 package Tpda3::Devel::Info::Config;
 
-use 5.008009;
+use 5.010001;
 use strict;
 use warnings;
 
@@ -16,11 +16,11 @@ Tpda3::Devel::Info::Config - Tpda3 application config related info.
 
 =head1 VERSION
 
-Version 0.20
+Version 0.15
 
 =cut
 
-our $VERSION = '0.20';
+our $VERSION = '0.15';
 
 =head1 SYNOPSIS
 
@@ -39,9 +39,7 @@ sub new {
     my ( $class, $opt ) = @_;
 
     my $self = {};
-
     bless $self, $class;
-
     $self->_init($opt);
 
     return $self;
@@ -50,16 +48,13 @@ sub new {
 sub _init {
     my ($self, $opt) = @_;
 
-    unless ( exists $opt->{cfname} and $opt->{cfname} ) {
-        # Try to guess the config name
-        my $app_info = Tpda3::Devel::Info::App->new();
-        $opt->{cfname} = $app_info->get_cfg_name();
-    }
+    my $args = {
+        cfname => $opt->{mnemonic},
+        user   => undef,
+        pass   => undef,
+    };
 
-    die "Abort, can not determine mnemonic"
-        unless exists $opt->{cfname} and $opt->{cfname};
-
-    Tpda3::Config->instance($opt);
+    $self->{_cfg} = Tpda3::Config->instance($args);
 
     return;
 }
@@ -73,9 +68,9 @@ Application configuration info.
 sub config_info {
     my ($self) = @_;
 
-    my $appcfg = Tpda3::Config->instance();
+    my $appcfg = $self->{_cfg};
 
-    my $name   = $appcfg->cfname;
+    my $cfname = $appcfg->cfname;
     my $apps   = $appcfg->cfapps;
     my $module = $appcfg->application->{module};
 
@@ -85,38 +80,10 @@ sub config_info {
         unless $toolkit eq 'Tk';
 
     return {
-        name     => $name,
+        cfname   => $cfname,
         apps_dir => $apps,
         module   => $module,
     };
-}
-
-=head2 list_mnemonics
-
-Call list_configs method from Tpda3::Config.
-
-=cut
-
-sub list_mnemonics {
-    my ($self) = @_;
-
-    Tpda3::Config->instance()->list_mnemonics;
-
-    return;
-}
-
-=head2 list_scrcfg_files
-
-List the available screen configuration files.
-
-=cut
-
-sub list_scrcfg_files {
-    my $self = shift;
-
-    Tpda3::Config->instance()->list_config_files;
-
-    return;
 }
 
 =head1 AUTHOR

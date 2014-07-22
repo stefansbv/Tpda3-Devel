@@ -1,13 +1,13 @@
 # Screen settings
 # Style: default or report
-[% IF screen.size -%]
-[% screen %]
+[% IF r.screen.size -%]
+[% r.screen %]
 [%- ELSE -%]
 Config ERROR screen section is required!
 [%- END -%]
 
 # Report file name bound to the print toolbar button of the Screen
-[% IF defaultreport.size -%]
+[% IF r.defaultreport.size -%]
 [% defaultreport -%]
 [% ELSE -%]
 <defaultreport/>
@@ -15,23 +15,23 @@ Config ERROR screen section is required!
 
 # Document template file name bound to the edit toolbar button of the
 # Screen
-[% IF defaultdocument.size -%]
-[% defaultdocument -%]
+[% IF r.defaultdocument.size -%]
+[% r.defaultdocument -%]
 [% ELSE -%]
 <defaultdocument/>
 [% END -%]
 
-# Data source for list widgets (Combobox)
-[% IF lists_ds.size -%]
-[% lists_ds -%]
+# Data source for list widgets (JCombobox)
+[% IF r.lists_ds.size -%]
+[% r.lists_ds -%]
 [% ELSE -%]
 <lists_ds/>
 [% END -%]
 
 # Column names in the 'List' tab table, chosen from the field names
 # from the main table view. The order is preserved.
-[% IF list_header.size -%]
-[% list_header -%]
+[% IF r.list_header.size -%]
+[% r.list_header -%]
 [% ELSE -%]
 <list_header/>
 [% END -%]
@@ -39,8 +39,8 @@ Config ERROR screen section is required!
 # Define bindings for Entry widgets mapped to fields. Multiple fields
 # are allowed.  Force array of single field elements by surrounding
 # the value of the config entry with [].
-[% IF bindings.size -%]
-[% bindings -%]
+[% IF r.bindings.size -%]
+[% r.bindings -%]
 [% ELSE -%]
 <bindings/>
 [% END -%]
@@ -48,34 +48,33 @@ Config ERROR screen section is required!
 # Define bindings for TM cells. Multiple fields can be added
 # Force array of single elements for 'field' by surrounding the value
 # of the config entry by []
-[% IF tablebindings.size -%]
-[% tablebindings -%]
+[% IF r.tablebindings.size -%]
+[% r.tablebindings -%]
 [% ELSE -%]
 <tablebindings/>
 [% END -%]
 
 # Table attributes
 # Main table
-# Required PK and FK columns attributes: "rw = r", and "state = disabled".
-[% maintable -%]
+[% r.maintable -%]
 
 # Dependent tables with TableMatrix label
-[% IF deptable.size -%]
-[% deptable -%]
+[% IF r.deptable.size -%]
+[% r.deptable -%]
 [% ELSE -%]
 <deptable/>
 [% END -%]
 
 # The toolbar atached to the tm1 TableMatrix. Preserves order.
-[% IF scrtoolbar.size -%]
-[% scrtoolbar -%]
+[% IF r.scrtoolbar.size -%]
+[% r.scrtoolbar -%]
 [% ELSE -%]
 <scrtoolbar/>
 [% END -%]
 
 # Change main toolbar behavior
-[% IF toolbar.size -%]
-[% toolbar -%]
+[% IF r.toolbar.size -%]
+[% r.toolbar -%]
 [% ELSE -%]
 <toolbar/>
 [% END -%]

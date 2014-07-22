@@ -1,14 +1,14 @@
-    #- [% columns.$key.label -%] ([% key %])
+    #- [% r.columns.$key.label -%] ([% key %])
 
     my $v[% key %];
-    my $l[% key %] = $frm_top->Label( -text => '[% columns.$key.label -%]', );
+    my $l[% key %] = $frm_top->Label( -text => '[% r.columns.$key.label -%]', );
     $l[% key %]->form(
         -top     => [ [% top %] ],
         -left    => [ %0, 0 ],
         -padleft => 5,
     );
     my $m[% key %] = $frm_top->JComboBox(
-        -entrywidth         => [% columns.$key.displ_width -%],
+        -entrywidth         => [% r.columns.$key.displ_width -%],
         -textvariable       => \$v[% key %],
         -disabledforeground => 'black'
     );

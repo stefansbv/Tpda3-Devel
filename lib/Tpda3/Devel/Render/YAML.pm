@@ -1,6 +1,6 @@
 package Tpda3::Devel::Render::YAML;
 
-use 5.008009;
+use 5.010001;
 use strict;
 use warnings;
 use utf8;
@@ -14,11 +14,11 @@ Tpda3::Devel::Render::YAML - Create a YAML configuration file.
 
 =head1 VERSION
 
-Version 0.20
+Version 0.50
 
 =cut
 
-our $VERSION = '0.20';
+our $VERSION = '0.50';
 
 =head1 SYNOPSIS
 
@@ -37,13 +37,11 @@ Constructor.
 =cut
 
 sub new {
-    my ( $class, $opt ) = @_;
+    my $class = shift;
 
     my $self = {};
 
     bless $self, $class;
-
-    $self->{opt} = $opt;
 
     return $self;
 }
@@ -55,21 +53,29 @@ Generate a YAML config from a template.
 =cut
 
 sub generate_config {
-    my ($self, $yml_tmpl, $yml_name) = @_;
+    my ($self, $args, $yml_tmpl, $yml_name) = @_;
 
-    my $module = $self->{opt}{module};
-    my $dbname = $self->{opt}{dbname};
+    my $module = $args->{module};
 
-    die "Need a module name!" unless $module;
+    die "Module name required, in 'generate_config'!" unless $module;
 
-    my %data = ( r => $self->{opt} );
+    my $data = $args->{dsn};
+    $data->{module} = $module;
 
     my $app_info = Tpda3::Devel::Info::App->new($module);
-    my $out_path = $app_info->get_config_ap_for('etc');
+    my $output_path = $app_info->get_config_ap_for('etc');
 
-    Tpda3::Devel::Render->render( $yml_tmpl, $yml_name, \%data, $out_path );
+    my $opts = {
+        type        => $yml_tmpl,
+        output_file => $yml_name,
+        data        => { r => $data },
+        output_path => $output_path,
+        templ_path  => undef,
+    };
 
-    return $out_path;
+    Tpda3::Devel::Render->render($opts);
+
+    return;
 }
 
 =head1 DESCRIPTION

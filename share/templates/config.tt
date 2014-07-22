@@ -2,8 +2,8 @@
 # Style: default or report
 <screen>
   version               = 5
-  name                  = [% modulename %]
-  description           = [% moduledescr %]
+  name                  = [% r.modulename %]
+  description           = [% r.moduledescr %]
   style                 = default
   geometry              = 520x520+20+20
   <details/>
@@ -22,21 +22,21 @@
 # Column names in the 'List' tab table, chosen from the field names
 # from the main table view. The order is preserved.
 <list_header>
-[%- IF key_fields.size == 1 -%]
- [% FOREACH key IN key_fields %]
+[%- IF r.key_fields.size == 1 -%]
+ [% FOREACH key IN r.key_fields %]
   lookup                = [ [%- key -%] ]
  [%- END -%]
 [%- ELSE -%]
- [% FOREACH key IN key_fields %]
+ [% FOREACH key IN r.key_fields %]
   lookup                = [%- key -%]
  [%- END -%]
 [%- END %]
-[%- IF columns.size == 1 -%]
- [% FOREACH col IN columns %]
+[%- IF r.columns.size == 1 -%]
+ [% FOREACH col IN r.columns %]
   column                = [ [%- col -%] ]
  [%- END -%]
 [%- ELSE -%]
- [% FOREACH col IN columns %]
+ [% FOREACH col IN r.columns %]
   column                = [%- col -%]
  [%- END -%]
 [%- END %]
@@ -54,15 +54,15 @@
 
 # Table attributes
 # Main table
-[% IF maintable -%]
-[% maintable %]
+[% IF r.maintable -%]
+[% r.maintable %]
 [%- ELSE -%]
 <maintable/>
 [% END -%]
 
 # Dependent tables with TableMatrix label
-[% IF deptable -%]
-[% deptable %]
+[% IF r.deptable -%]
+[% r.deptable %]
 [%- ELSE -%]
 <deptable/>
 [% END -%]

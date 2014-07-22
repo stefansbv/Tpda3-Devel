@@ -8,9 +8,7 @@ blib/
 inc/
 *.tmp
 *~
-*.sqlite
 *.log
-classicmodels
 .#*
 \#*#
 errors.txt
@@ -18,3 +16,4 @@ TAGS
 *.conf
 cover_db/
 t/output
+.build/

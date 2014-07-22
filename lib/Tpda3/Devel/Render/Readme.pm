@@ -1,10 +1,11 @@
 package Tpda3::Devel::Render::Readme;
 
-use 5.008009;
+use 5.010001;
 use strict;
 use warnings;
 use utf8;
 
+require Tpda3::Devel::Config;
 require Tpda3::Devel::Info::App;
 require Tpda3::Devel::Render;
 
@@ -14,11 +15,11 @@ Tpda3::Devel::Render::Readme - Create a READM file.
 
 =head1 VERSION
 
-Version 0.20
+Version 0.50
 
 =cut
 
-our $VERSION = '0.20';
+our $VERSION = '0.50';
 
 =head1 SYNOPSIS
 
@@ -37,13 +38,11 @@ Constructor.
 =cut
 
 sub new {
-    my ( $class, $opt ) = @_;
+    my $class = shift;
 
     my $self = {};
 
     bless $self, $class;
-
-    $self->{opt} = $opt;
 
     return $self;
 }
@@ -55,27 +54,36 @@ Generate README file.
 =cut
 
 sub generate_readme {
-    my $self = shift;
+    my ($self, $args) = @_;
 
-    my $module = $self->{opt}{module};
+    my $module = $args->{module};
 
     die "Need a module name!" unless $module;
 
-    # TODO: Make user (developer) config with this data
-    my %data = (
+    my $tdc = Tpda3::Devel::Config->new;
+    my ($user_name, $user_email) = $tdc->get_gitconfig;
+
+    my $data = {
         module      => $module,
-        copy_author => q{Ștefan Suciu},
-        copy_email  => q{stefan 'la' s2i2 .ro},
+        copy_author => $user_name,
+        copy_email  => $user_email,
         copy_year   => (localtime)[5] + 1900,
-    );
+    };
 
     my $app_info = Tpda3::Devel::Info::App->new($module);
-    my $out_path = $app_info->get_app_rp();
+    my $output_path = $app_info->get_app_rp($module);
 
-    Tpda3::Devel::Render->render( 'readme', 'README', \%data,
-        $out_path );
+    my $opts = {
+        type        => 'readme',
+        output_file => 'README.md',
+        data        => $data,
+        output_path => $output_path,
+        templ_path  => undef,
+    };
 
-    return $out_path;
+    Tpda3::Devel::Render->render($opts);
+
+    return;
 }
 
 =head1 AUTHOR

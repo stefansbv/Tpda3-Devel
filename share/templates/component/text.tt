@@ -1,7 +1,7 @@
-    #- [% columns.$key.label -%] ([% key %])
+    #- [% r.columns.$key.label -%] ([% key %])
 
     my $l[% key %] = $frm_top->Label(
-        -text => '[% columns.$key.label -%]',
+        -text => '[% r.columns.$key.label -%]',
     );
     $l[% key %]->form(
         -top     => [ [% top %] ],
@@ -11,7 +11,7 @@
 
     my $t[% key %] = $frm_top->Scrolled(
         'Text',
-        -width      => [% columns.$key.displ_width -%],
+        -width      => [% r.columns.$key.displ_width -%],
         -height     => 3,
         -wrap       => 'word',
         -scrollbars => 'e',

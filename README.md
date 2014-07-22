@@ -1,7 +1,7 @@
 Tpda3 Devel
 ===========
 Ștefan Suciu <stefan 'la' s2i2.ro>
-2013-04-14
+2014-07-17
 
 Generate Tpda3 application modules.
 
@@ -9,7 +9,7 @@ Generate Tpda3 application modules.
 Requirements
 ------------
 
-Tpda3 v0.61.
+Tpda3 v0.88.
 
 
 Installation
@@ -39,15 +39,15 @@ Create a new tpda3 module application.
 
 For Firebird:
 
-    tpda3d -A <Name> -d 'dbi:Firebird:dbname=<dbname>;host=<host>;port=3050'
+    tpda3d create -n <Name> -d 'dbi:Firebird:dbname=<dbname>;host=<host>;port=3050'
 
 For PostgreSQL:
 
-    tpda3d -A <Name> -d 'dbi:Pg:dbname=<dbname>;host=<host>;port=5432'
+    tpda3d create -n <Name> -d 'dbi:Pg:dbname=<dbname>;host=<host>;port=5432'
 
 For CUBRID:
 
-    tpda3d -A <Name> -d 'dbi:cubrid:database=<dbname>;host=<host>;port=33000'
+    tpda3d create -n <Name> -d 'dbi:cubrid:database=<dbname>;host=<host>;port=33000'
 
 This will create a new Perl module named Tpda3-<Name>
 
@@ -61,7 +61,7 @@ Now you can do:
 
 Nothing very useful so far, just boilerplate, so continue with:
 
-    tpda3d -S <Screen> [-u <user> [-p <pass>]] -t <table>
+    tpda3d [-u <user> [-p <pass>]] gen -s <Screen> -t <table>
 
 This will add a new screen module, (a form In HTML terminology), with
 widgets made from the "table" columns.  The command creates also the
@@ -71,7 +71,7 @@ corresponding configuration file and adds the screen to the menu.
 
 Run the new application:
 
-    tpda3 <name>
+    tpda3 <name> [-u <user> [-p <pass>]]
 
 Where <name> is lc(Name) ;) and of course the database must exist,
 and have a "table" table.
@@ -88,7 +88,7 @@ Bug reports and pull requests welcome!
 License And Copyright
 ---------------------
 
-Copyright (C) 2012-2013 Stefan Suciu
+Copyright (C) 2012-2014 Stefan Suciu
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

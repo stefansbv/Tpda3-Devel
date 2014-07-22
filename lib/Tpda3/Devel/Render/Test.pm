@@ -1,6 +1,6 @@
 package Tpda3::Devel::Render::Test;
 
-use 5.008009;
+use 5.010001;
 use strict;
 use warnings;
 use utf8;
@@ -14,11 +14,11 @@ Tpda3::Devel::Render::Test - Create a test file.
 
 =head1 VERSION
 
-Version 0.20
+Version 0.50
 
 =cut
 
-our $VERSION = '0.20';
+our $VERSION = '0.50';
 
 =head1 SYNOPSIS
 
@@ -37,13 +37,11 @@ Constructor.
 =cut
 
 sub new {
-    my ( $class, $opt ) = @_;
+    my $class = shift;
 
     my $self = {};
 
     bless $self, $class;
-
-    $self->{opt} = $opt;
 
     return $self;
 }
@@ -55,23 +53,32 @@ Generate test from template.
 =cut
 
 sub generate_test {
-    my ($self, $test_tmpl, $test_name) = @_;
+    my ($self, $args, $test_tmpl, $test_name) = @_;
 
-    my $module = $self->{opt}{module};
+    my $module = $args->{module};
 
     die "Need a app name!" unless $module;
     die "Need a test template!" unless $test_tmpl;
     die "Need a test name!" unless $test_name;
 
-    $self->{opt}{appname} = "Tpda3::Tk::App::$module";
+    $args->{appname} = "Tpda3::Tk::App::$module";
 
-    my %data = ( r => $self->{opt} );
+    my $data = {};
+    $data->{module}   = $args->{module};
+    $data->{mnemonic} = $args->{mnemonic};
 
     my $app_info = Tpda3::Devel::Info::App->new($module);
     my $output_path = $app_info->get_tests_path();
 
-    Tpda3::Devel::Render->render( $test_tmpl, $test_name, \%data,
-        $output_path );
+    my $opts = {
+        type        => $test_tmpl,
+        output_file => $test_name,
+        data        => { r => $data },
+        output_path => $output_path,
+        templ_path  => undef,
+    };
+
+    Tpda3::Devel::Render->render($opts);
 
     return;
 }

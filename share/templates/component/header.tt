@@ -1,4 +1,4 @@
-package Tpda3::Tk::App::[% module %]::[% screen %];
+package Tpda3::Tk::App::[% r.module %]::[% r.screen %];
 
 use strict;
 use warnings;
@@ -14,7 +14,7 @@ use Tpda3::Utils;
 
 =head1 NAME
 
-Tpda3::Tk::App::[% module %]::[% screen %] screen.
+Tpda3::Tk::App::[% r.module %]::[% r.screen %] screen.
 
 =head1 VERSION
 
@@ -26,9 +26,9 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-    require Tpda3::App::[% module %]::[% screen %];
+    require Tpda3::App::[% r.module %]::[% r.screen %];
 
-    my $scr = Tpda3::App::[% module %]::[% screen %]->new;
+    my $scr = Tpda3::App::[% r.module %]::[% r.screen %]->new;
 
     $scr->run_screen($args);
 

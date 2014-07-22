@@ -1,6 +1,11 @@
 #!perl -T
 
-use Test::More tests => 1;
+use 5.010001;
+use strict;
+use warnings FATAL => 'all';
+use Test::More;
+
+plan tests => 1;
 
 BEGIN {
     use_ok( 'Tpda3::Devel' ) || print "Bail out!\n";

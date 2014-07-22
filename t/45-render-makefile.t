@@ -3,6 +3,7 @@
 use utf8;
 use Test::More tests => 5;
 use Test::Exception;
+use File::Spec::Functions;
 
 use_ok('Tpda3::Devel');
 
@@ -17,15 +18,21 @@ dies_ok { Tpda3::Devel::Render->get_template_for('fail-test') };
 
 # Render
 
-my %data = (
+my $data = {
     module      => 'TestModule',
     copy_author => 'Ștefan Suciu',
     copy_email  => "stefan 'la' s2i2 .ro",
     copy_year   => '2012',
-);
+};
 
-my $out = 't/output';
-ok( Tpda3::Devel::Render->render( 'makefile', 'Makefile.PL', \%data, $out ),
-    'render makefile file' );
+my $args = {
+    type        => 'makefile',
+    output_file => 'Makefile.PL',
+    data        => $data,
+    output_path => catdir('t', 'output'),
+    templ_path  => catdir( 'share', 'templates' ),
+};
+
+ok( Tpda3::Devel::Render->render($args), 'render makefile file' );
 
 # done

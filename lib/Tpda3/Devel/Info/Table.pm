@@ -1,6 +1,6 @@
 package Tpda3::Devel::Info::Table;
 
-use 5.008009;
+use 5.010001;
 use strict;
 use warnings;
 
@@ -12,11 +12,11 @@ Tpda3::Devel::Info::Table - Database table related info.
 
 =head1 VERSION
 
-Version 0.20
+Version 0.15
 
 =cut
 
-our $VERSION = '0.20';
+our $VERSION = '0.15';
 
 =head1 SYNOPSIS
 
@@ -37,11 +37,9 @@ Return database table related info.
 sub new {
     my ( $class ) = @_;
 
-    my $self = {
-        dbi => Tpda3::Db->instance(),
-    };
-
+    my $self = {};
     bless $self, $class;
+    $self->{dbi} = Tpda3::Db->instance;
 
     return $self;
 }
@@ -78,14 +76,14 @@ sub table_info {
     my ($self, $table) = @_;
 
     unless ( $self->dbc->table_exists($table) ) {
-        print "Table '$table' doesn't exists!\n";
-        die;
+        die "Table '$table' doesn't exists!\n";
     }
 
     my $table_info = $self->dbc->table_info_short($table);
 
     # PK and FK
-    my $keys = $self->dbc->table_keys($table);
+    my $pk_keys = $self->dbc->table_keys($table);
+    my $fk_keys = $self->dbc->table_keys($table, 'foreign');
 
     my @fields;
     my %info;
@@ -97,11 +95,12 @@ sub table_info {
     }
 
     return {
-        table  => $table_info,
-        keys   => $keys,
-        fields => \@fields,
-        info   => \%info,
-        name   => $table,
+        table   => $table_info,
+        pk_keys => $pk_keys,
+        fk_keys => $fk_keys,
+        fields  => \@fields,
+        info    => \%info,
+        name    => $table,
     };
 }
 
@@ -113,7 +112,6 @@ List database table.
 
 sub table_list {
     my $self = shift;
-
     return $self->dbc->table_list();
 }
 

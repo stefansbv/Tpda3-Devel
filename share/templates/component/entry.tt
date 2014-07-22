@@ -1,6 +1,6 @@
-    #- [% columns.$key.label -%] ([% key %])
+    #- [% r.columns.$key.label -%] ([% key %])
 
-    my $l[% key %] = $frm_top->Label( -text => '[% columns.$key.label -%]' );
+    my $l[% key %] = $frm_top->Label( -text => '[% r.columns.$key.label -%]' );
     $l[% key %]->form(
         -top     => [ [% top %] ],
         -left    => [ %0, 0 ],
@@ -8,7 +8,7 @@
     );
 
     my $e[% key %] = $frm_top->MEntry(
-        -width              => [% columns.$key.displ_width -%],
+        -width              => [% r.columns.$key.displ_width -%],
     [%- IF datatype == 'numeric' %]
         -justify            => 'right',
     [%- END %]
@@ -20,6 +20,6 @@
         -left => [ %0,  $f1d ],
     );
 
-    [%- IF key == pkcol %]
+    [%- IF key == 'pkcol' %]
     my $my_font = $e[% key %]->cget('-font');
     [% END -%]
