@@ -163,7 +163,8 @@ sub prepare_config_data_main {
     die qq{ No key(s) for the '$table' table? }
         unless $table_info->{pk_keys};
 
-    my @keys = @{ $table_info->{pk_keys} };
+    my @keys  = @{ $table_info->{pk_keys} };
+    my $pkcol = $keys[0];
     if (scalar @keys == 1) {
         $keys[0] = '[ ' . $keys[0] . ' ]';
     }
@@ -176,8 +177,7 @@ sub prepare_config_data_main {
     foreach my $field ( @{ $table_info->{fields} } ) {
         my $info  = $table_info->{info}{$field};
         my $type  = $info->{type};
-        # my $state = $pkcol eq $field ? 'disabled' : 'normal';
-        my $state = 'normal';
+        my $state = $pkcol eq $field ? 'disabled' : 'normal';
 
         # print "  field: $info->{pos} -> $field ($type)\n";
         $rec->{maintable}{columns}{$field}{label} = $self->label($field);
@@ -185,9 +185,9 @@ sub prepare_config_data_main {
         $rec->{maintable}{columns}{$field}{ctrltype}
             = $self->ctrltype($info);
         $rec->{maintable}{columns}{$field}{displ_width}
-            = $self->len( $info->{length} );
+            = $self->len($info);
         $rec->{maintable}{columns}{$field}{valid_width}
-            = $self->len( $info->{length} );
+            = $self->len($info);
         $rec->{maintable}{columns}{$field}{numscale}
             = $self->numscale( $info->{scale} );
         $rec->{maintable}{columns}{$field}{readwrite} = 'rw';
@@ -279,7 +279,7 @@ sub prepare_config_data_dep {
         $rec->{deptable}{tm1}{columns}{$name} = {
             id        => $k,
             label     => $name,
-            width     => $self->len( $v->{length} ),
+            width     => $self->len($v),
             readwrite => 'rw',
             tag       => 'ro_center',
             numscale  => $self->numscale( $v->{scale} ),
@@ -353,8 +353,9 @@ sub ctrltype {
     my $type = lc $info->{type};
     my $len  = $info->{length} // 10;
 
-    #      when column type is ...        ctrl type is ...
+    #                when column type is ...            ctrl type is ...
     return  $type eq q{}                              ? 'x'
+         :  $type eq 'blob'                           ? 't'
          :  $type eq 'date'                           ? 'd'
          :  $type eq 'character'                      ? 'm'
          :  $type eq 'text'                           ? 't'
@@ -371,22 +372,23 @@ Numeric scale.
 
 sub numscale {
     my ($self, $scale) = @_;
-
     return defined $scale ? $scale : 0;
 }
 
 =head2 len
 
-Length.
+Length of the field in chars.
 
 =cut
 
 sub len {
-    my ($self, $len) = @_;
+    my ($self, $info) = @_;
 
-    $len ||= 10;
-    my $max_len = 30;                   # max length, hardwired config
-    my $min_len = 5;                    # min length, hardwired config
+    my $type = lc $info->{type};
+    my $len  = $info->{length} // $type eq 'text' ? 30 : 10;
+
+    my $max_len = 30;           # max length, hardwired config
+    my $min_len = 5;            # min length, hardwired config
 
     return
        $len >= $max_len  ? $max_len
@@ -402,10 +404,8 @@ Column type.
 =cut
 
 sub datatype {
-    my ($self, $type) = @_;
-
+    my ( $self, $type ) = @_;
     $type = lc $type;
-
     return
         exists $self->{types}{$type} ? $self->{types}{$type} : 'alphanumplus';
 }
