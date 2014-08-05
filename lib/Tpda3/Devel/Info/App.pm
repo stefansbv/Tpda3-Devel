@@ -6,7 +6,7 @@ use warnings;
 
 use File::Basename;
 use File::Spec::Functions;
-
+use File::UserConfig;
 require Tpda3::Config::Utils;
 
 =head1 NAME
@@ -114,7 +114,7 @@ sub get_tests_path {
 Return the current application name.
 
 First check if a subdirectory exists in C<$app_path>, then check if a
-module with the same name exists, if true, return the name.
+module exists, if true, return the name.
 
 =cut
 
@@ -124,23 +124,17 @@ sub get_app_name {
     my $app_path = $self->get_app_path();
     return unless ($app_path);
 
-    my $dirlist = Tpda3::Config::Utils->find_subdirs($app_path);
+    my $filelist = Tpda3::Config::Utils->find_files($app_path);
 
-    my $no = scalar @{$dirlist};
+    my $no = scalar @{$filelist};
     if ( $no == 0 ) {
-        $self->render("No application path found!\n in '$app_path':\n");
+        die "No application module found in path: '$app_path'\n";
         return;
     }
 
-    my $candidate = $dirlist->[0];    # should be only one
+    ( my $module = $filelist->[0] ) =~ s{\.pm$}{};    # should be only one
 
-    return unless $candidate;         # no app name!
-
-    my $app_module = catfile( $app_path, "$candidate.pm" );
-
-    return $candidate if -f $app_module;
-
-    return;                           # no app name!
+    return $module;
 }
 
 =head2 get_app_module_rp
@@ -256,7 +250,7 @@ sub get_config_ap_for {
 
 =head2 get_config_apfn_for
 
-Get the application screen config absolute path and file name.
+Get the application configuration absolute path and file name.
 
 =cut
 
@@ -281,7 +275,7 @@ sub get_user_path_for {
 
     my $mnemonic = lc $self->get_app_name;
     my $ap = catdir( $configpath, 'apps', $mnemonic, $path );
-    die "Nonexistent user path $ap\n" unless -d $ap;
+    warn "Nonexistent user path $ap\n" unless -d $ap;
 
     return $ap;
 }

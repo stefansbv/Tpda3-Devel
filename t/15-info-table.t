@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 11;
+use Test::More tests => 14;
 
 #use Data::Dumper;
 
@@ -30,5 +30,9 @@ ok my $dbc = $it->dbc, 'created dbc';
 ok my $tb_list = $it->table_list, 'get table list';
 is ref $tb_list, 'ARRAY', 'table list isa array';
 #diag Dumper($tb_list);
+
+ok my $table = shift @{$tb_list}, 'get first table form list';
+ok my $tb_info = $it->table_info($table), "get '$table' table info";
+is ref $tb_info, 'HASH', 'table list isa hash';
 
 # done
