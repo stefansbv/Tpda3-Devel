@@ -1,5 +1,7 @@
 package Tpda3::Devel::Config;
 
+# ABSTRACT: Get user name and email from git config.
+
 use 5.010001;
 use strict;
 use warnings;
@@ -9,26 +11,11 @@ use File::Spec::Functions;
 use File::HomeDir;
 use Config::GitLike;
 
-=head1 NAME
-
-Tpda3::Devel::Config - Get user name and email from git config.
-
-=head1 VERSION
-
-Version 0.10
-
-=cut
-
-our $VERSION = '0.10';
-
 =head1 SYNOPSIS
 
     use Tpda3::Devel::Config;
 
     my $dip = Tpda3::Devel::Config->new();
-
-
-=head1 METHODS
 
 =head2 new
 
@@ -70,7 +57,5 @@ sub get_gitconfig {
 
     return ($user, $email);
 }
-
-
 
 1;

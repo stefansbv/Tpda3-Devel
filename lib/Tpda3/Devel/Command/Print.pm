@@ -1,42 +1,45 @@
 package Tpda3::Devel::Command::Print;
 
+# ABSTRACT: Print miscellaneous info
+
 use strict;
 use warnings;
 
 use base qw( CLI::Framework::Command );
 
-use Tpda3::Devel::Info::Table;
+use Tpda3::Devel::Utils;
+require Tpda3::Devel::Info::Table;
 
-# sub usage_text {
-# q{
-# print [--tables|t] [--configs|c]: print table and config file lists
+sub usage_text {
+    q{
+info -t [<table>] | -c | -m [<name>] | -a
 
-# OPTIONS
-#    --table  [<table>]   List the tables from the database
-#    --configs            List the screen config files of the project
-#    --mnemonics          List the application configurations
-#    --app                Show info about the current application
-# }
-# }
-
-sub option_spec {
-    return (
-        ['info' => hidden => {
-         'one_of' => [
-             [ 'table|t:s' => 'List the tables or a table info' ],
-             [ 'configs|c' => 'List the screen config files of the project' ],
-             [ 'mnemonics|m:s' => 'List the application configurations' ],
-             [ 'app|a' => 'Show info about the current project' ],
-         ],
-         required => 1
-     }],
-    );
+    OPTIONS
+        -t,--table    [<table>]   list the tables from the database
+        -c,--configs              list the screen config files of the project
+        -m,--mnemonic             list the application configurations
+        -a,--app                  show info about the current application
+}
 }
 
-# sub validate {
-#     my ($self, $opts, @args) = @_;
-#     # die "exactly one argument required (search regex)" unless @args == 1;
-# }
+sub option_spec {
+    [ 'table|t:s' => 'List the tables or a table info' ],
+    [ 'configs|c' => 'List the screen config files of the project' ],
+    [ 'mnemonic|m:s' => 'List the application configurations' ],
+    [ 'app|a' => 'Show info about the current project' ],
+}
+
+sub validate {
+    my ($self, $cmd_opts, @args) = @_;
+    die "Only one of the options is alowed.  Usage:\n"
+        . $self->usage_text . "\n"
+        . $self->app_context . "\n"
+        if keys %{$cmd_opts} > 1;
+    die "One of the options is mandatory.  Usage:\n"
+        . $self->usage_text . "\n"
+        . $self->app_context . "\n"
+        if keys %{$cmd_opts} < 1;
+}
 
 sub run {
     my ($self, $opts, @args) = @_;
@@ -89,7 +92,8 @@ sub get_table_info {
 
 sub _table_info {
     my $self = shift;
-    my $it = Tpda3::Devel::Info::Table->new();
+    my $db = $self->cache->get('config');
+    my $it = Tpda3::Devel::Info::Table->new($db);
     return $it->table_list;
 }
 
@@ -104,10 +108,10 @@ sub get_app_info {
     my $self = shift;
 
     my $info = Tpda3::Devel::Info::App->new;
-    my $app_name = $info->get_app_name;
-    my $cfg_name = $info->get_cfg_name;
+    my $app_name = $info->get_app_name || q{none};
+    my $cfg_name = $info->get_cfg_name || q{none};
 
-    return "$app_name ($cfg_name)";
+    return "Current application: $app_name ($cfg_name)";
 }
 
 1;

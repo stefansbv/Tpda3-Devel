@@ -1,91 +1,41 @@
 package Tpda3::Devel;
 
+# ABSTRACT: Development helper tool for Tpda3
+
 use 5.010001;
 use strict;
 use warnings;
 
+use Tpda3::Devel::Utils;
 require Tpda3::Config;
 require Tpda3::Db;
 require Tpda3::Devel::Info::App;
 
 use base qw( CLI::Framework );         # pod: CLI::Framework::Tutorial
 
-=head1 NAME
-
-Tpda3::Devel - The great new Tpda3::Devel!
-
-=head1 VERSION
-
-Version 0.50
-
-=cut
-
-our $VERSION = '0.50';
-
-=head1 SYNOPSIS
-
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
-
-    use Tpda3::Devel;
-
-    my $foo = Tpda3::Devel->new();
-    ...
-
-=head1 EXPORT
-
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
-
-=head1 SUBROUTINES/METHODS
-
-=cut
-
 sub usage_text {
     my $self = shift;
+    q{
+tpda3d [-u <username>] [-p <password>] <command>
 
-    if ( $self->cache->get('mode') == 2 ) {
-        return q{
-tpda3d [--verbose|-v] [--user|-u <username>] [--pass|-p <password>]:
+    OPTIONS:
+        -u,--user          user name
+        -p,--pass          password
 
-OPTIONS:
-    --verbose|-v:   be verbose
-    --user|-u:      user name
-    --pass|-p:      password
+    COMMANDS:
+        commands           list available commands
+        info               list info about...
 
-COMMANDS:
-    commands:       list available commands
-    create:         create a new Tpda3 application distribution
-};                                           # do not indent!
-    }
-    else {
-        return q{
-tpda3d [--verbose|-v] [--user|-u <username>] [--pass|-p <password>]:
+        create             create a new Tpda3 application distribution
 
-OPTIONS:
-    --verbose|-v:   be verbose
-    --user|-u:      user name
-    --pass|-p:      password
-
-COMMANDS:
-    commands:       list available commands
-    generate:       generate a screen module and a screen configuration
-    update:         update screen configuration
-    info:           list info about...
-};                                           # do not indent!
-    }
+        generate           generate a screen module and a screen configuration
+        update             update screen configuration
+} . "\n" . $self->app_context . "\n";
 }
 
 sub option_spec {
-
-    # The option_spec() hook in the Application class provides the option
-    # specification for the whole application.
-    return (
-        [ 'verbose|v' => 'be verbose' ],
-        [ 'user|u=s'  => 'database user name' ],
-        [ 'pass|p=s'  => 'database password' ],
-    );
+    [ 'user|u=s'  => 'database user name' ],
+    [ 'pass|p=s'  => 'database password' ],
 }
 
 sub validate_options {
@@ -141,78 +91,19 @@ sub init {
         $app->cache->set( 'config' => $config );
         my $db;
         if ($user and $pass) {
-            my $db = Tpda3::Db->instance;
-            $app->cache->set( 'db' => $db );
+            my $conn = Tpda3::Db::Connection->new(); # model=undef
+            $app->cache->set( 'conn' => $conn );
         }
-        $app->cache->set( 'mode' => 1 );
-
         my $name = $info->get_app_name;
-        print "\nCurrent project: $name - scope: update the application.\n";
+        $app->cache->set( 'context' => 'upd' );
+        $app->cache->set( 'appname' => $name );
     }
     else {
-        $app->cache->set( 'mode'   => 2 );
-        print "\nCurrent project: none - scope: create new application.\n";
+        $app->cache->set( 'context' => 'new' );
+        $app->cache->set( 'appname' => 'none' );
     }
 
     return 1;
 }
 
-=head1 AUTHOR
-
-Stefan Suciu, C<< <stefan at s2i2.ro> >>
-
-=head1 BUGS
-
-Please report any bugs or feature requests to ...
-
-=head1 SUPPORT
-
-You can find documentation for this module with the perldoc command.
-
-    perldoc Tpda3::Devel
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker (report bugs here)
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Tpda3-Devel>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Tpda3-Devel>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Tpda3-Devel>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Tpda3-Devel/>
-
-=back
-
-=head1 ACKNOWLEDGEMENTS
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2013 Stefan Suciu.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; version 2 dated June, 1991 or at your option
-any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-A copy of the GNU General Public License is available in the source tree;
-if not, write to the Free Software Foundation, Inc.,
-51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
-
-=cut
-
-1; # End of Tpda3::Devel
+1;

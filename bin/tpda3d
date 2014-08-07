@@ -1,4 +1,6 @@
 #!/bin/env perl
+# PODNAME: tpda3d
+# ABSTRACT: Development helper tool for Tpda3
 
 use strict;
 use warnings;
@@ -6,5 +8,3 @@ use warnings;
 use Tpda3::Devel;
 
 Tpda3::Devel->run();
-
-# End

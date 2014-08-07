@@ -1,11 +1,14 @@
 package Tpda3::Devel::Command::Generate;
 
+# ABSTRACT: Generate and install a screen module and a configuration file
+
 use 5.010001;
 use strict;
 use warnings;
 
 use File::Spec::Functions;
 use File::Copy;
+use Tpda3::Devel::Utils;
 
 require Tpda3::Devel::Render::Config;
 require Tpda3::Devel::Render::Screen;
@@ -14,11 +17,35 @@ require Tpda3::Devel::Edit::Menu;
 
 use base qw( CLI::Framework::Command );
 
+sub usage_text {
+    q{
+    gen -s <name> -t <name[,name]>
+
+    OPTIONS
+        -s,--screen <name>         the name of the screen module
+        -t,--tables <name[,name]>  the name(s) of the tables
+    }
+}
+
 sub option_spec {
-    return (
-        [ 'screen|s=s', 'the name of the screen',  { required => 1 } ],
-        [ 'tables|t=s', 'maintable[,deptable] the names of the database tables', { required => 1 } ],
-    );
+    [ 'screen|s=s', 'the name of the screen module' ],
+    [ 'tables|t=s', 'name[,name] the name(s) of the tables' ],
+}
+
+sub validate {
+    my ($self, $cmd_opts, @args) = @_;
+
+    die "Wrong context!\n",
+        "The generate command must be run from a Tpda3 application directory.\n"
+        unless $self->cache->get('context') eq 'upd';
+    die "Both options are mandatory.  Usage:\n"
+        . $self->usage_text  . "\n"
+        . $self->app_context . "\n"
+        unless exists $cmd_opts->{screen} and exists $cmd_opts->{tables};
+    die "No options given.  Usage:\n"
+        . $self->usage_text  . "\n"
+        . $self->app_context . "\n"
+        unless scalar %{$cmd_opts};
 }
 
 sub run {

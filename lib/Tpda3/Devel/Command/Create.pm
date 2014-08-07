@@ -1,5 +1,7 @@
 package Tpda3::Devel::Command::Create;
 
+# ABSTRACT: Command to create a new Tpda3 application
+
 use 5.010001;
 use strict;
 use warnings;
@@ -10,6 +12,7 @@ use File::Copy;
 use File::Copy::Recursive qw(dircopy);
 use File::UserConfig;
 use DBI 1.43;                        # minimum version for 'parse_dsn'
+use Tpda3::Devel::Utils;
 
 require Tpda3::Devel::Render::Module;
 require Tpda3::Devel::Render::Config;
@@ -22,22 +25,33 @@ use base qw( CLI::Framework::Command );
 
 sub usage_text {
     q{
-    create [-n <name> -d <dsn>]
+    new -n <name> -d <dsn>
 
     OPTIONS
-       --name|-n <name>:            the name of the application
-       --dsn |-d <dsn>:              the DSN to connect to the DB
+        -n,--name  <name>     the name of the application
+        -d,--dsn   <dsn>      the DSN to connect to the database
     }
 }
 
 sub option_spec {
-    [ 'name|n=s', 'the name of the application',  { required => 1 } ],
-    [ 'dsn|d=s' , 'the DSN to connect to the DB', { required => 1 } ],
+    [ 'name|n=s', 'the name of the application'   ],
+    [ 'dsn|d=s' , 'the DSN to connect to the DB', ],
 }
 
-sub validate_options {
-    my ($self, $opts) = @_;
-    # ...nothing to check for this application
+sub validate {
+    my ( $self, $cmd_opts, @args ) = @_;
+
+    die "Wrong context!\n",
+        "The 'create' command must NOT be run from a Tpda3 application directory.\n"
+        unless $self->cache->get('context') eq 'new';
+    die "Both options are mandatory.  Usage:\n"
+        . $self->usage_text  . "\n"
+        . $self->app_context . "\n"
+        unless ( exists $cmd_opts->{name} and exists $cmd_opts->{dsn} );
+    die "No options given.  Usage:"
+        . $self->usage_text  . "\n"
+        . $self->app_context . "\n"
+        unless scalar %{$cmd_opts};
 }
 
 sub run {

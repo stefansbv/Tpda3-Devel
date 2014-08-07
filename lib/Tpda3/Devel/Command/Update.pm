@@ -1,45 +1,51 @@
 package Tpda3::Devel::Command::Update;
 
+# ABSTRACT: Update a screen configuration file
+
 use strict;
 use warnings;
 
 use base qw( CLI::Framework::Command );
 
+use Tpda3::Devel::Utils;
 require Tpda3::Devel::Edit::Config;
 
 sub usage_text {
     q{
-    update [-c <name>]
-
-    update [-s <name>]
+    update -c <name> | -s <name>
 
     OPTIONS
-       --conf=<name>:            the name of the screen .conf file
-       --screen=<name>.pm:       or the name of the screen module
+        -c,--conf   <name>    the name of the screen configuration file
+        -s,--screen <name>    the name of the screen module
     }
 }
 
 sub option_spec {
-    [  name     => hidden => {
-          required => 1,
-          one_of   => [
-             [ "conf|c=s"   => 'the name of the screen .conf file' ],
-             [ "screen|s=s" => 'or the name of the screen module' ],
-          ]
-       }
-    ]
+    [ "conf|c=s"   => 'the name of the screen configuration file' ],
+    [ "screen|s=s" => 'the name of the screen module' ],
 }
 
-sub validate_options {
-    my ($self, $opts) = @_;
-    # ...nothing to check for this application
+sub validate {
+    my ($self, $cmd_opts, @args) = @_;
+
+    die "Wrong context!\n",
+        "The update command must be run from a Tpda3 application directory.\n"
+        unless $self->cache->get('context') eq 'upd';
+    die "Only one of the options conf or screen, is alowed.  Usage:"
+        . $self->usage_text  . "\n"
+        . $self->app_context . "\n"
+        if exists $cmd_opts->{conf} and exists $cmd_opts->{screen};
+    die "No options given.  Usage:"
+        . $self->usage_text  . "\n"
+        . $self->app_context . "\n"
+        unless scalar %{$cmd_opts};
 }
 
 sub run {
     my ($self, $opts, @args) = @_;
 
-    my $option = $opts->name;
-    ( my $name = $opts->$option ) =~ s{\.\w+$}{}g; # remove the ext
+    my $option = $opts->conf || $opts->screen;
+    ( my $name = $option ) =~ s{\.\w+$}{}g; # remove the ext
 
     my $scrcfg    = lc $name;
     my $scrcfg_fn = "$scrcfg.conf";
