@@ -3,20 +3,36 @@ package Tpda3::Devel::Command::Update;
 use strict;
 use warnings;
 
-require Tpda3::Devel::Edit::Config;
-
-use Data::Printer;
-
 use base qw( CLI::Framework::Command );
 
+require Tpda3::Devel::Edit::Config;
+
+sub usage_text {
+    q{
+    update [-c <name>]
+
+    update [-s <name>]
+
+    OPTIONS
+       --conf=<name>:            the name of the screen .conf file
+       --screen=<name>.pm:       or the name of the screen module
+    }
+}
+
 sub option_spec {
-    return (
-        [  name     => hidden => {
-           required => 1,
-           one_of   => [
-               [ "conf|c=s"   => 'the name of the screen .conf file' ],
-               [ "screen|s=s" => 'or the name of the screen module' ],
-        ] } ], );
+    [  name     => hidden => {
+          required => 1,
+          one_of   => [
+             [ "conf|c=s"   => 'the name of the screen .conf file' ],
+             [ "screen|s=s" => 'or the name of the screen module' ],
+          ]
+       }
+    ]
+}
+
+sub validate_options {
+    my ($self, $opts) = @_;
+    # ...nothing to check for this application
 }
 
 sub run {

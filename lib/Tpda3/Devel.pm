@@ -8,7 +8,7 @@ require Tpda3::Config;
 require Tpda3::Db;
 require Tpda3::Devel::Info::App;
 
-use base qw( CLI::Framework );         # doc: CLI::Framework::Tutorial
+use base qw( CLI::Framework );         # pod: CLI::Framework::Tutorial
 
 =head1 NAME
 
@@ -45,8 +45,6 @@ if you don't export anything, such as for a purely object-oriented module.
 sub usage_text {
     my $self = shift;
 
-    # The usage_text() hook in the Application Class is meant to return a
-    # usage string describing the whole application.
     if ( $self->cache->get('mode') == 2 ) {
         return q{
 tpda3d [--verbose|-v] [--user|-u <username>] [--pass|-p <password>]:
@@ -91,31 +89,22 @@ sub option_spec {
 }
 
 sub validate_options {
-    # The validate_options() hook can be used to ensure that the application
-    # options are valid.
     my ($self, $opts) = @_;
-
     # ...nothing to check for this application
 }
 
 sub command_map {
-
-    # In this *list*, the command names given as keys will be bound to the
-    # command classes given as values.  This will be used by CLIF as a hash
-    # initializer and the command_map_hashref() method will be provided to
-    # return a hash created from this list for convenience.
-    {   alias    => 'CLI::Framework::Command::Alias',
-        commands => 'CLI::Framework::Command::List',
-        info     => 'Tpda3::Devel::Command::Print',
-        create   => 'Tpda3::Devel::Command::Create',
-        update   => 'Tpda3::Devel::Command::Update',
-        generate => 'Tpda3::Devel::Command::Generate',
-    };
+    # Commands
+    alias    => 'CLI::Framework::Command::Alias',
+    commands => 'CLI::Framework::Command::List',
+    info     => 'Tpda3::Devel::Command::Print',
+    create   => 'Tpda3::Devel::Command::Create',
+    update   => 'Tpda3::Devel::Command::Update',
+    generate => 'Tpda3::Devel::Command::Generate',
 }
 
 sub command_alias {
-    # In this list, the keys are aliases to the command names given as values
-    # (the values should be found as "keys" in command_map()).
+    # Command aliases
     i   => 'info',
     upd => 'update',
     new => 'create',
@@ -167,14 +156,6 @@ sub init {
 
     return 1;
 }
-
-# Use templates. How? Seems not to be used for all the output.
-# sub render {
-#     my ($app, $output) = @_;
-#     print "***\n";
-#     print "* $output";
-#     print "***\n";
-# }
 
 =head1 AUTHOR
 

@@ -20,11 +20,24 @@ require Tpda3::Devel::Render::Readme;
 
 use base qw( CLI::Framework::Command );
 
+sub usage_text {
+    q{
+    create [-n <name> -d <dsn>]
+
+    OPTIONS
+       --name|-n <name>:            the name of the application
+       --dsn |-d <dsn>:              the DSN to connect to the DB
+    }
+}
+
 sub option_spec {
-    return (
-        [ 'name|n=s', 'the name of the application',  { required => 1 } ],
-        [ 'dsn|d=s', 'the DSN to connect to the DB', { required => 1 } ],
-    );
+    [ 'name|n=s', 'the name of the application',  { required => 1 } ],
+    [ 'dsn|d=s' , 'the DSN to connect to the DB', { required => 1 } ],
+}
+
+sub validate_options {
+    my ($self, $opts) = @_;
+    # ...nothing to check for this application
 }
 
 sub run {
