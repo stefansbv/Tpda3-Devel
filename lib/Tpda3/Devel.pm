@@ -76,9 +76,7 @@ sub init {
 
         # CWD is a Tpda3 module dir.
         my $mnemonic = $info->get_cfg_name();
-        unless ($mnemonic) {
-            die "Can't determine mnemonic name.";
-        }
+        die "Can't determine mnemonic name." unless $mnemonic;
         my $user = $opts->user;
         my $pass = $opts->pass;
         my $args = {
@@ -88,15 +86,13 @@ sub init {
         };
         my $config = Tpda3::Config->instance($args);
         $app->cache->set( 'config' => $config );
-        # if ($user and $pass) {
-        #     my $conn = Tpda3::Db->instance;
-        #     $app->cache->set( 'conn' => $conn );
-        # }
         my $name = $info->get_app_name;
         $app->cache->set( 'context' => 'upd' );
         $app->cache->set( 'appname' => $name );
     }
     else {
+        my $config = Tpda3::Config->instance;
+        $app->cache->set( 'config' => $config );
         $app->cache->set( 'context' => 'new' );
         $app->cache->set( 'appname' => 'none' );
     }
