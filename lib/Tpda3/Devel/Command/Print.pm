@@ -44,9 +44,12 @@ sub validate {
 sub run {
     my ($self, $opts, @args) = @_;
 
+    my $ic = $self->cache->get('config');
+    my $default = $ic->get_default_mnemonic;
+
     my $context = $self->cache->get('context');
     if ($context eq 'new') {
-        print "# NOTE: Info regarding the default configuration.\n";
+        print "# NOTE: Info regarding the default configuration [$default].\n";
     }
 
     $self->get_app_info                     if $opts->{app};
