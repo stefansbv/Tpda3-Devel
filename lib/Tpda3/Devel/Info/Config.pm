@@ -21,8 +21,7 @@ Constructor.
 sub new {
     my ( $class, $opt ) = @_;
 
-    my $self = {};
-    bless $self, $class;
+    my $self = bless {}, $class;
     $self->_init($opt);
 
     return $self;

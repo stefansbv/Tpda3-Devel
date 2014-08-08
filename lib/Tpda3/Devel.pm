@@ -8,7 +8,6 @@ use warnings;
 
 use Tpda3::Devel::Utils;
 require Tpda3::Config;
-require Tpda3::Db;
 require Tpda3::Devel::Info::App;
 
 use base qw( CLI::Framework );         # pod: CLI::Framework::Tutorial
@@ -26,10 +25,10 @@ tpda3d [-u <username>] [-p <password>] <command>
         commands           list available commands
         info               list info about...
 
-        create             create a new Tpda3 application distribution
+        create  |new       create a new Tpda3 application distribution
 
-        generate           generate a screen module and a screen configuration
-        update             update screen configuration
+        generate|gen       generate a screen module and a screen configuration
+        update  |upd       update screen configuration
 } . "\n" . $self->app_context . "\n";
 }
 
@@ -89,11 +88,10 @@ sub init {
         };
         my $config = Tpda3::Config->instance($args);
         $app->cache->set( 'config' => $config );
-        my $db;
-        if ($user and $pass) {
-            my $conn = Tpda3::Db::Connection->new(); # model=undef
-            $app->cache->set( 'conn' => $conn );
-        }
+        # if ($user and $pass) {
+        #     my $conn = Tpda3::Db->instance;
+        #     $app->cache->set( 'conn' => $conn );
+        # }
         my $name = $info->get_app_name;
         $app->cache->set( 'context' => 'upd' );
         $app->cache->set( 'appname' => $name );

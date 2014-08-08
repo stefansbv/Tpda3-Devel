@@ -6,6 +6,9 @@ use 5.010001;
 use strict;
 use warnings;
 
+require Tpda3::Config;
+require Tpda3::Db;
+
 =head1 SYNOPSIS
 
 Return database table related info.
@@ -25,8 +28,8 @@ Constructor.
 sub new {
     my ( $class ) = @_;
 
-    my $self = {};
-    bless $self, $class;
+    my $self = bless {}, $class;
+    $self->{cfg} = Tpda3::Config->instance;
     $self->{dbi} = Tpda3::Db->instance;
 
     return $self;
@@ -100,7 +103,26 @@ List database table.
 
 sub table_list {
     my $self = shift;
+    $self->connection_info;
     return $self->dbc->table_list();
+}
+
+sub connection_info {
+    my $self = shift;
+
+    my $conn = $self->{cfg}->connection;
+
+    my $dbname = $conn->{dbname};
+    my $driver = $conn->{driver};
+    my $host   = $conn->{host} || 'localhost';
+    my $user   = $conn->{user} || 'undef';
+    my $dbfile = $conn->{dbfile} || '';
+
+    print "# Connected to the $driver database '$dbname' on '$host',\n";
+    print "#  as user '$user'.\n";
+    print "# Database path: $dbfile\n" if $dbfile;
+
+    return;
 }
 
 1;

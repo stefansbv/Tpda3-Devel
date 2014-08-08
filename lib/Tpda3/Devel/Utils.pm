@@ -15,8 +15,8 @@ sub app_context {
     my $context = $self->cache->get('context');
     my $name    = $self->cache->get('appname');
     my $scope;
-    $scope = 'create a new Tpda3 application'       if $context eq 'new';
-    $scope = 'update an existing Tpda3 application' if $context eq 'upd';
+    $scope = 'create a new Tpda3 application' if $context eq 'new';
+    $scope = 'update a Tpda3 application'     if $context eq 'upd';
     qq{# Current project: $name\n# Current scope  : $scope};
 }
 
