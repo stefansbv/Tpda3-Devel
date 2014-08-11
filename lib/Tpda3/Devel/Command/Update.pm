@@ -12,7 +12,7 @@ require Tpda3::Devel::Edit::Config;
 
 sub usage_text {
     q{
-    update -c <name> | -s <name>
+tpda3d update -c <name> | -s <name>
 
     OPTIONS
         -c,--conf   <name>    the name of the screen configuration file

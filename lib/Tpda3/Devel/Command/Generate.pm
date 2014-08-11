@@ -19,7 +19,7 @@ use base qw( CLI::Framework::Command );
 
 sub usage_text {
     q{
-    gen -s <name> -t <name[,name]>
+tpda3d gen -s <name> -t <name[,name]>
 
     OPTIONS
         -s,--screen <name>         the name of the screen module

@@ -12,12 +12,12 @@ require Tpda3::Devel::Info::Table;
 
 sub usage_text {
     q{
-info -t [<table>] | -c | -m [<name>] | -a
+tpda3d info -t [<table>] | -c | -m [<name>] | -a
 
     OPTIONS
         -t,--table    [<table>]   list the tables from the database
         -c,--configs              list the screen config files of the project
-        -m,--mnemonic             list the application configurations
+        -m,--mnemonic [<name>]    list the application configurations
         -a,--app                  show info about the current application
 }
 }
@@ -98,7 +98,7 @@ sub get_table_info {
     my $it  = Tpda3::Devel::Info::Table->new();
     my $itd = $it->table_info($table);
 
-    my $output = "\nTable [$table] columns info:\n - ";
+    my $output = "\nTable [$table] columns list:\n - ";
     $output .= join "\n - ", @{ $itd->{fields} };
     $output .= "\n";
     print $output;

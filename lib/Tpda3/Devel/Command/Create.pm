@@ -25,7 +25,7 @@ use base qw( CLI::Framework::Command );
 
 sub usage_text {
     q{
-    new -n <name> -d <dsn>
+tpda3d new -n <name> -d <dsn>
 
     OPTIONS
         -n,--name  <name>     the name of the application
