@@ -23,12 +23,12 @@ tpda3d [-u <username>] [-p <password>] <command>
 
     COMMANDS:
         commands           list available commands
-        info               list info about...
+        i,info             list info about...
 
-        create  |new       create a new Tpda3 application distribution
+        new,create         create a new Tpda3 application distribution
 
-        generate|gen       generate a screen module and a screen configuration
-        update  |upd       update screen configuration
+        gen,generate       generate a screen module and a screen configuration
+        upd,update         update screen configuration
 } . "\n" . $self->app_context . "\n";
 }
 
