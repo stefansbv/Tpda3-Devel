@@ -54,10 +54,16 @@ sub run {
 
     $self->get_app_info                     if $opts->{app};
     $self->get_configs_info                 if $opts->{configs};
-    $self->get_table_info( $opts->{table} ) if $opts->{table};
-    $self->get_table_list                   if defined $opts->{table};
-    $self->get_mnemonics_info( $opts->{mnemonic} )
-        if defined $opts->{mnemonic};
+    if ( defined $opts->{table} ) {
+        $opts->{table}
+            ? $self->get_table_info( $opts->{table} )
+            : $self->get_table_list;
+    }
+    if ( defined $opts->{mnemonic} ) {
+        $opts->{mnemonic}
+            ? $self->get_mnemonics_info( $opts->{mnemonic} )
+            : $self->get_mnemonics_info;
+    }
 
     return;
 }
@@ -73,9 +79,15 @@ sub get_mnemonics_info {
 sub get_table_list {
     my $self = shift;
     my $output = "\nTables:\n - ";
-    $output .= join "\n - ", @{ $self->_table_info };
+    $output .= join "\n - ", @{ $self->_table_list };
     $output .= "\n";
     print $output;
+}
+
+sub _table_list {
+    my ($self, $table) = @_;
+    my $it = Tpda3::Devel::Info::Table->new;
+    return $it->table_list($table);
 }
 
 sub get_table_info {
@@ -90,12 +102,6 @@ sub get_table_info {
     $output .= join "\n - ", @{ $itd->{fields} };
     $output .= "\n";
     print $output;
-}
-
-sub _table_info {
-    my $self = shift;
-    my $it = Tpda3::Devel::Info::Table->new;
-    return $it->table_list;
 }
 
 sub get_configs_info {
