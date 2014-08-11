@@ -6,6 +6,8 @@ use 5.010001;
 use strict;
 use warnings;
 
+use Try::Tiny;
+
 require Tpda3::Config;
 require Tpda3::Db;
 
@@ -29,10 +31,43 @@ sub new {
     my ( $class ) = @_;
 
     my $self = bless {}, $class;
-    $self->{cfg} = Tpda3::Config->instance;
-    $self->{dbi} = Tpda3::Db->instance;
+
+    $self->_init;
 
     return $self;
+}
+
+sub _init {
+    my ($self) = @_;
+
+    try {
+        $self->{cfg} = Tpda3::Config->instance;
+        $self->{dbi} = Tpda3::Db->instance;
+    }
+    catch {
+        $self->catch_db_exceptions($_);
+    };
+
+    return;
+}
+
+sub catch_db_exceptions {
+    my ($self, $exc) = @_;
+
+    my ($message, $details);
+
+    if ( my $e = Exception::Base->catch($exc) ) {
+        if ( $e->isa('Exception::Db::Connect') ) {
+            $message = $e->usermsg;
+            $details = $e->logmsg;
+            die "Connection error ($message, $details)\n";
+        }
+        else {
+            die "Unknown exception: $exc\n";
+        }
+    }
+
+    return;
 }
 
 =head2 dbh
