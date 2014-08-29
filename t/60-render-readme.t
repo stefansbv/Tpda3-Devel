@@ -3,7 +3,7 @@
 use utf8;
 use Test::More tests => 5;
 use Test::Exception;
-use File::Spec::Functions;
+use Path::Tiny;
 
 use_ok('Tpda3::Devel');
 
@@ -29,8 +29,8 @@ my $args = {
     type        => 'readme',
     output_file => 'README',
     data        => $data,
-    output_path => catdir('t', 'output'),
-    templ_path  => catdir( 'share', 'templates' ),
+    output_path => path('t', 'output'),
+    templ_path  => path( 'share', 'templates' ),
 };
 
 ok( Tpda3::Devel::Render->render($args), 'render readme file' );

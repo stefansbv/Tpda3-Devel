@@ -9,7 +9,7 @@ use utf8;
 
 use Template;
 use File::ShareDir qw(dist_dir);
-use File::Spec::Functions;
+use Path::Tiny;
 
 =head2 render
 
@@ -28,7 +28,7 @@ sub render {
     my $data        = $args->{data};
     my $output_path = $args->{output_path};
     my $templ_path  = $args->{templ_path}
-        // catdir( dist_dir('Tpda3-Devel'), 'templates' );
+        // path( dist_dir('Tpda3-Devel'), 'templates' );
 
     my $template = $self->get_template_for($type);
 

@@ -2,7 +2,7 @@
 
 use Test::More tests => 5;
 use Test::Exception;
-use File::Spec::Functions;
+use Path::Tiny;
 
 use_ok('Tpda3::Devel');
 
@@ -31,8 +31,8 @@ my $args = {
     type        => 'screen',
     output_file => 'ScrTest.pm',
     data        => $data,
-    output_path => catdir('t', 'output'),
-    templ_path  => catdir( 'share', 'templates' ),
+    output_path => path('t', 'output'),
+    templ_path  => path( 'share', 'templates' ),
 };
 
 ok( Tpda3::Devel::Render->render($args), 'render screen module file' );

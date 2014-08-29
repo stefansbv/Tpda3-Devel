@@ -3,7 +3,7 @@
 use utf8;
 use Test::More tests => 6;
 use Test::Exception;
-use File::Spec::Functions;
+use Path::Tiny;
 
 use_ok('Tpda3::Devel');
 
@@ -27,8 +27,8 @@ my $args = {
     type        => 'cfg-menu',
     output_file => 'menu.yml',
     data        => $data,
-    output_path => catdir('t', 'output'),
-    templ_path  => catdir( 'share', 'templates' ),
+    output_path => path('t', 'output'),
+    templ_path  => path( 'share', 'templates' ),
 };
 
 ok( Tpda3::Devel::Render->render($args), 'render menu file' );

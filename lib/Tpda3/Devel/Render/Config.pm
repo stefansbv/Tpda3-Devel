@@ -10,7 +10,7 @@ use utf8;
 use Config::General;
 use Tie::IxHash::Easy;
 use List::Compare;
-use File::Spec::Functions;
+use Path::Tiny;
 
 require Tpda3::Devel::Info::Config;
 require Tpda3::Devel::Info::Table;
@@ -288,7 +288,7 @@ sub render_config {
     my $scrcfg_fn = "$scrcfg.conf";
     my $scrcfg_ap = $app_info->get_config_ap_for('scr');
 
-    if ( -f catfile($scrcfg_ap, $scrcfg_fn) ) {
+    if ( -f path($scrcfg_ap, $scrcfg_fn) ) {
         print "Creating screen config .... skipped\n";
         return;
     }

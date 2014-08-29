@@ -9,7 +9,7 @@ use utf8;
 
 use Cwd;
 use File::Basename;
-use File::Spec::Functions;
+use Path::Tiny;
 use Tie::IxHash::Easy;
 use Config::General qw{ParseConfig};
 use File::Copy;
@@ -131,8 +131,8 @@ Copy the old config file with and I<.orig> suffix.
 sub backup_config {
     my ($self, $scrcfg_ap, $scrcfg_fn ) = @_;
 
-    my $file_old = catfile($scrcfg_ap, $scrcfg_fn);
-    my $file_bak = catfile($scrcfg_ap, "$scrcfg_fn.orig");
+    my $file_old = path($scrcfg_ap, $scrcfg_fn);
+    my $file_bak = path($scrcfg_ap, "$scrcfg_fn.orig");
 
     if ( copy($file_old, $file_bak) ) {
         return 1;

@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use utf8;
 
-use File::Spec::Functions;
+use Path::Tiny;
 use Cwd;
 use Test::More tests => 28;
 
@@ -23,7 +23,7 @@ is $dip->is_app_dir, undef, "Not a Tpda3 application distribution dir";
 #--  A test tree for an existing Tpda3 app dist
 
 my $cwd = Cwd::cwd();
-chdir catdir(qw{t test-tree old-app})
+chdir path(qw{t test-tree old-app})
     or die "Can't cd to 't/test-tree/old-app': $!\n";
 
 ok $dip->get_app_path, "In a Tpda3 app dir";
@@ -40,7 +40,7 @@ ok $dip->is_app_dir, "Is a Tpda3 application distribution dir";
 #--  New app dist tree, not in the CWD, module name parameter: Test
 
 #diag "CWD is: $cwd";
-chdir catdir($cwd, 't', 'test-tree');
+chdir path($cwd, 't', 'test-tree');
 
 ok $dip = Tpda3::Devel::Info::App->new('Test'),
     'New instance with module name';

@@ -6,11 +6,11 @@ use 5.010001;
 use strict;
 use warnings;
 
-use File::Spec::Functions;
 use File::ShareDir qw(dist_dir);
 use File::Copy;
 use File::Copy::Recursive qw(dircopy);
 use File::UserConfig;
+use Path::Tiny;
 use DBI 1.43;                        # minimum version for 'parse_dsn'
 use Tpda3::Devel::Utils;
 
@@ -97,11 +97,11 @@ sub make_app_tree {
     Tpda3::Config::Utils->create_path($moduledir);
 
     # Populate module dir
-    my $sharedir        = catdir( dist_dir('Tpda3-Devel'), 'dirtree' );
-    my $sharedir_module = catdir( $sharedir,               'module' );
-    my $sharedir_config = catdir( $sharedir,               'config' );
-    my $moduledir_inc   = catdir( $moduledir,              'inc' );
-    my $sharedir_inc    = catdir( $sharedir,               'inc' );
+    my $sharedir        = path( dist_dir('Tpda3-Devel'), 'dirtree' );
+    my $sharedir_module = path( $sharedir,               'module' );
+    my $sharedir_config = path( $sharedir,               'config' );
+    my $moduledir_inc   = path( $moduledir,              'inc' );
+    my $sharedir_inc    = path( $sharedir,               'inc' );
 
     $File::Copy::Recursive::KeepMode = 0;    # mode 644
 
@@ -109,7 +109,7 @@ sub make_app_tree {
         or die "Failed to copy module tree to '$moduledir'";
 
     # Create config path '$mnemonic'
-    my $configdir = catdir( $moduledir, 'share', 'apps', $mnemonic );
+    my $configdir = path( $moduledir, 'share', 'apps', $mnemonic );
     Tpda3::Config::Utils->create_path($configdir);
 
     # Populate config dir
@@ -129,7 +129,7 @@ sub make_app_tree {
     my $tdrm        = Tpda3::Devel::Render::Module->new;
     my $libapp_path = $tdrm->generate_module($opts);
 
-    my $scrmoduledir = catdir( $libapp_path, $module );
+    my $scrmoduledir = path( $libapp_path, $module );
 
     # Create screens module dir
     Tpda3::Config::Utils->create_path($scrmoduledir);

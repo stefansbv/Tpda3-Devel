@@ -8,7 +8,7 @@ use warnings;
 use utf8;
 
 use Config::General qw{ParseConfig};
-use File::Spec::Functions;
+use Path::Tiny;
 use Tie::IxHash;
 
 require Tpda3::Devel::Config;
@@ -81,7 +81,7 @@ sub generate_screen {
     my $screen_fn   = "$screen.pm";
     my $output_path = $app_info->get_screen_module_ap();
 
-    if ( -f catfile($output_path, $screen_fn) ) {
+    if ( -f path($output_path, $screen_fn) ) {
         print "Creating screen module .... skipped\n";
         return;
     }

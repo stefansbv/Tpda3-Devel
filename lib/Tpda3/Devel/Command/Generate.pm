@@ -6,8 +6,8 @@ use 5.010001;
 use strict;
 use warnings;
 
-use File::Spec::Functions;
 use File::Copy;
+use Path::Tiny;
 use Tpda3::Devel::Utils;
 
 require Tpda3::Devel::Render::Config;
@@ -134,7 +134,7 @@ sub install_screen_config {
     my $scrcfg_apfn = $app_info->get_config_apfn_for( 'scr', $scrcfg_fn );
     my $scrcfg_ap   = $app_info->get_user_path_for( 'scr' );
 
-    if ( -f catfile($scrcfg_ap, $scrcfg_fn) ) {
+    if ( -f path($scrcfg_ap, $scrcfg_fn) ) {
         print "Installing screen config .. skipped\n";
     }
     else {

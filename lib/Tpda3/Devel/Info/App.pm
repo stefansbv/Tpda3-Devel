@@ -7,8 +7,8 @@ use strict;
 use warnings;
 
 use File::Basename;
-use File::Spec::Functions;
 use File::UserConfig;
+use Path::Tiny qw(cwd path);
 require Tpda3::Config::Utils;
 
 =head2 new
@@ -34,7 +34,7 @@ Check and return the application path.
 
 sub get_app_path {
     my $self = shift;
-    my $app_path = catdir( Cwd::cwd(), 'lib', 'Tpda3', 'Tk', 'App' );
+    my $app_path = path( cwd, (qw{lib Tpda3 Tk App}) );
     return $app_path if -d $app_path;
     return;
 }
@@ -50,11 +50,11 @@ sub get_cfg_path {
     my $self = shift;
     my $module = $self->{module};
     if ($module) {
-        my $rp = catdir( $self->get_app_rp($module), 'share/apps' );
+        my $rp = path( $self->get_app_rp($module), 'share', 'apps' );
         return $rp if -d $rp;
     }
     else {
-        my $app_cfg_path = catdir( Cwd::cwd(), 'share/apps' );
+        my $app_cfg_path = path( cwd, 'share', 'apps' );
         return $app_cfg_path if -d $app_cfg_path;
     }
     return;
@@ -81,7 +81,7 @@ sub get_tests_path {
     my $self = shift;
     my $module = $self->{module};
     if ($module) {
-        my $rp = catdir( $self->get_app_rp($module), 't' );
+        my $rp = path( $self->get_app_rp($module), 't' );
         return $rp if -d $rp;
     }
     return;
@@ -127,7 +127,7 @@ sub get_app_module_rp {
 
     my $module = $self->{module} or die "No module name!";
 
-    my $rp = catdir( $self->get_app_rp($module), 'lib/Tpda3/Tk/App' );
+    my $rp = path( $self->get_app_rp($module), (qw{lib Tpda3 Tk App}) );
     if ( -d $rp ) {
         return $rp;
     }
@@ -147,7 +147,7 @@ application dir.
 sub get_app_rp {
     my ($self, $module) = @_;
     die "No module name in 'get_app_rp'!" unless $module;
-    my $rp = catdir("Tpda3-$module");
+    my $rp = path("Tpda3-$module");
     return $rp if -d $rp;
     return;
 }
@@ -185,7 +185,7 @@ sub get_screen_module_ap {
     my $self = shift;
     my $app_path = $self->get_app_path;
     my $app_name = $self->get_app_name;
-    my $ap = catdir( $app_path, $app_name );
+    my $ap = path( $app_path, $app_name );
     return $ap if -d $ap;
     return;
 }
@@ -198,7 +198,7 @@ Get the application screen module absolute path and file name.
 
 sub get_screen_module_apfn {
     my ( $self, $file ) = @_;
-    my $apfn = return catfile( $self->get_screen_module_ap, $file );
+    my $apfn = return path( $self->get_screen_module_ap, $file );
     return $apfn if -f $apfn;
 }
 
@@ -221,7 +221,7 @@ sub get_config_ap_for {
     my ( $self, $dir ) = @_;
     my $cfg_path = $self->get_cfg_path;
     my $cfg_name = $self->get_cfg_name;
-    my $ap = catdir( $cfg_path, $cfg_name, $dir );
+    my $ap = path( $cfg_path, $cfg_name, $dir );
     return $ap if -d $ap;
     return;
 }
@@ -234,7 +234,7 @@ Get the application configuration absolute path and file name.
 
 sub get_config_apfn_for {
     my ( $self, $type, $file ) = @_;
-    return catfile( $self->get_config_ap_for($type), $file );
+    return path( $self->get_config_ap_for($type), $file );
 }
 
 =head2 get_user_path_for
@@ -252,7 +252,7 @@ sub get_user_path_for {
     )->configdir;
 
     my $mnemonic = lc $self->get_app_name;
-    my $ap = catdir( $configpath, 'apps', $mnemonic, $path );
+    my $ap = path( $configpath, 'apps', $mnemonic, $path );
     warn "Nonexistent user path $ap\n" unless -d $ap;
 
     return $ap;

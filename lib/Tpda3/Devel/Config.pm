@@ -7,8 +7,8 @@ use strict;
 use warnings;
 use utf8;
 
-use File::Spec::Functions;
 use File::HomeDir;
+use Path::Tiny;
 use Config::GitLike;
 
 =head1 SYNOPSIS
@@ -41,7 +41,7 @@ Check and return the application path.
 sub get_gitconfig {
     my $self = shift;
 
-    my $config_file = catfile( File::HomeDir->my_home, '.gitconfig');
+    my $config_file = path( File::HomeDir->my_home, '.gitconfig');
 
     unless (-f $config_file) {
         print "Git configuration file not found!\n";

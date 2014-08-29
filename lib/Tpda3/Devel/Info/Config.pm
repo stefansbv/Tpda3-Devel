@@ -6,9 +6,6 @@ use 5.010001;
 use strict;
 use warnings;
 
-use File::Basename;
-use File::Spec::Functions;
-
 require Tpda3::Config;
 require Tpda3::Devel::Info::App;
 

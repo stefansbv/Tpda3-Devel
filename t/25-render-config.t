@@ -2,7 +2,7 @@
 
 use Test::More tests => 5;
 use Test::Exception;
-use File::Spec::Functions;
+use Path::Tiny;
 
 use_ok('Tpda3::Devel');
 
@@ -22,7 +22,7 @@ my $data = {
     deptable    => '',
     modulename  => 'scrtest',
     moduledescr => 'Screen Test',
-    key_fields  => qw(field0 field1),
+    key_fields  => [qw(field0 field1)],
     columns     => '',
 };
 
@@ -30,8 +30,8 @@ my $args = {
     type        => 'config',
     output_file => 'scrtest.conf',
     data        => $data,
-    output_path => catdir('t', 'output'),
-    templ_path  => catdir( 'share', 'templates' ),
+    output_path => path('t', 'output'),
+    templ_path  => path( 'share', 'templates' ),
 };
 
 ok( Tpda3::Devel::Render->render($args), 'render config file' );
