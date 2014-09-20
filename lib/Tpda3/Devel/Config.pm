@@ -43,7 +43,7 @@ sub get_gitconfig {
 
     my $config_file = path( File::HomeDir->my_home, '.gitconfig');
 
-    unless (-f $config_file) {
+    unless ( $config_file->is_file ) {
         print "Git configuration file not found!\n";
         print "Please configure with:\n";
         print "# git config --global user.name 'John Doe'\n";
@@ -51,7 +51,7 @@ sub get_gitconfig {
         return ('<user name here>', '<user e-mail here>');
     }
 
-    my $c = Config::GitLike->new( confname => $config_file );
+    my $c = Config::GitLike->new( confname => $config_file->stringify );
     my $user  = $c->get( key => 'user.name' );
     my $email = $c->get( key => 'user.email' );
 
