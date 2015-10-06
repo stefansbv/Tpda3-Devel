@@ -16,11 +16,6 @@ require Tpda3::Devel::Info::Config;
 require Tpda3::Devel::Info::Table;
 require Tpda3::Devel::Render;
 
-=head2 new
-
-Constructor.
-
-=cut
 
 sub new {
     my $class = shift;
@@ -34,11 +29,6 @@ sub new {
     return $self;
 }
 
-=head2 _init
-
-Initializations.
-
-=cut
 
 sub _init {
     my $self = shift;
@@ -66,12 +56,6 @@ sub _init {
     return;
 }
 
-=head2 generate_config
-
-Prepare data for the screen configuration file and create the new
-file.
-
-=cut
 
 sub generate_config {
     my ($self, $opts) = @_;
@@ -114,11 +98,6 @@ sub generate_config {
     return;
 }
 
-=head2 prepare_config_data_main
-
-Generate the L<maintable> section of the config file.
-
-=cut
 
 sub prepare_config_data_main {
     my ($self, $table_info) = @_;
@@ -179,22 +158,12 @@ sub prepare_config_data_main {
     return $conf->save_string($rec);
 }
 
-=head2 is_key
-
-Fake, not implemented!
-
-=cut
 
 sub is_key {
     my ($self, $field) = @_;
     return 0;
 }
 
-=head2 prepare_config_data_dep
-
-Generate the L<deptable> section of the config file.
-
-=cut
 
 sub prepare_config_data_dep {
     my ($self, $table) = @_;
@@ -209,9 +178,12 @@ sub prepare_config_data_dep {
         print "Table '$table' doesn't exists!\n";
         return;
     }
+    else {
+        print "Processing table: $table\n";
+    }
 
     my $info = $dbc->table_info_short($table);
-    my $keys = $dbc->table_keys($table);
+    my $keys = $dbc->table_keys($table, 'foreign');
 
     my $conf = Config::General->new(
         -AllowMultiOptions => 1,
@@ -269,15 +241,6 @@ sub prepare_config_data_dep {
     return $conf->save_string($rec);
 }
 
-=head2 render_config
-
-Generate a module configuration file.
-
-Parameters:
-
-The screen configuration file name and the configuration data.
-
-=cut
 
 sub render_config {
     my ($self, $opts, $data) = @_;
@@ -308,22 +271,7 @@ sub render_config {
     return;
 }
 
-=head1 DEFAULTS
 
-Subs to handle defaults
-
-=cut
-
-=head2 ctrltype
-
-Control type.  The numeric and integer types => Tk::Entry.  The char
-type is good candidate for Tk::JComboBox entries (m).  And of course
-the date type for Tk::DateEntry.
-
-If the length of the column is greater than B<200> make it a text
-entry.
-
-=cut
 
 sub ctrltype {
     my ($self, $info) = @_;
@@ -342,22 +290,12 @@ sub ctrltype {
          ;
 }
 
-=head2 numscale
-
-Numeric scale.
-
-=cut
 
 sub numscale {
     my ($self, $scale) = @_;
     return defined $scale ? $scale : 0;
 }
 
-=head2 len
-
-Length of the field in chars.
-
-=cut
 
 sub len {
     my ($self, $info) = @_;
@@ -375,11 +313,6 @@ sub len {
      ;
 }
 
-=head2 datatype
-
-Column type.
-
-=cut
 
 sub datatype {
     my ( $self, $type ) = @_;
@@ -388,11 +321,6 @@ sub datatype {
         exists $self->{types}{$type} ? $self->{types}{$type} : 'alphanumplus';
 }
 
-=head2 remove_dupes
-
-Remove key fields.
-
-=cut
 
 sub remove_dupes {
     my ($self, $pkfields, $fields) = @_;
@@ -403,11 +331,6 @@ sub remove_dupes {
     return \@columns;
 }
 
-=head2 label
-
-Remove underscores form label and make the first character upper case.
-
-=cut
 
 sub label {
     my ($self, $label) = @_;
@@ -419,3 +342,75 @@ sub label {
 }
 
 1;
+
+__END__
+
+=pod
+
+=head2 new
+
+Constructor.
+
+=head2 _init
+
+Initializations.
+
+=head2 generate_config
+
+Prepare data for the screen configuration file and create the new
+file.
+
+=head2 prepare_config_data_main
+
+Generate the L<maintable> section of the config file.
+
+=head2 is_key
+
+Fake, not implemented!
+
+=head2 prepare_config_data_dep
+
+Generate the L<deptable> section of the config file.
+
+=head2 render_config
+
+Generate a module configuration file.
+
+Parameters:
+
+The screen configuration file name and the configuration data.
+
+=head1 DEFAULTS
+
+Subs to handle defaults
+
+=head2 ctrltype
+
+Control type.  The numeric and integer types => Tk::Entry.  The char
+type is good candidate for Tk::JComboBox entries (m).  And of course
+the date type for Tk::DateEntry.
+
+If the length of the column is greater than B<200> make it a text
+entry.
+
+=head2 numscale
+
+Numeric scale.
+
+=head2 len
+
+Length of the field in chars.
+
+=head2 datatype
+
+Column type.
+
+=head2 remove_dupes
+
+Remove key fields.
+
+=head2 label
+
+Remove underscores form label and make the first character upper case.
+
+=cut

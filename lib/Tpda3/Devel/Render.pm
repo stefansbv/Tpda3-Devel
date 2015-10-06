@@ -11,14 +11,6 @@ use Template;
 use File::ShareDir qw(dist_dir);
 use Path::Tiny;
 
-=head2 render
-
-Generate a file from templates.
-
-If the output file parameter is just the file extension, then use type
-as file name.
-
-=cut
 
 sub render {
     my ($self, $args) = @_;
@@ -45,12 +37,6 @@ sub render {
     return $output_file;
 }
 
-=head2 get_template_for
-
-Return the template name for one of the two known types: I<config> or
-I<screen>.
-
-=cut
 
 sub get_template_for {
     my ($self, $type) = @_;
@@ -78,3 +64,21 @@ sub get_template_for {
 }
 
 1;
+
+__END__
+
+=pod
+
+=head2 render
+
+Generate a file from templates.
+
+If the output file parameter is just the file extension, then use type
+as file name.
+
+=head2 get_template_for
+
+Return the template name for one of the two known types: I<config> or
+I<screen>.
+
+=cut

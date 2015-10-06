@@ -15,11 +15,6 @@ require Tpda3::Devel::Config;
 require Tpda3::Devel::Info::App;
 require Tpda3::Devel::Render;
 
-=head2 new
-
-Constructor.
-
-=cut
 
 sub new {
     my ( $class, $opt ) = @_;
@@ -32,11 +27,6 @@ sub new {
     return $self;
 }
 
-=head2 generate_screen
-
-Generate a screen module from templates.
-
-=cut
 
 sub generate_screen {
     my ($self, $opts) = @_;
@@ -79,7 +69,10 @@ sub generate_screen {
     };
 
     my $screen_fn   = "$screen.pm";
-    my $output_path = $app_info->get_screen_module_ap();
+    my $output_path = $app_info->get_screen_module_ap;
+
+    die "No screen output path!" unless $output_path;
+    die "No screen file name!"   unless $screen_fn;
 
     if ( -f path($output_path, $screen_fn) ) {
         print "Creating screen module .... skipped\n";
@@ -102,3 +95,17 @@ sub generate_screen {
 }
 
 1;
+
+__END__
+
+=pod
+
+=head2 new
+
+Constructor.
+
+=head2 generate_screen
+
+Generate a screen module from templates.
+
+=cut

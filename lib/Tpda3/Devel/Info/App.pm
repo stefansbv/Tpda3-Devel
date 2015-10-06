@@ -11,11 +11,6 @@ use File::UserConfig;
 use Path::Tiny qw(cwd path);
 require Tpda3::Config::Utils;
 
-=head2 new
-
-Constructor.
-
-=cut
 
 sub new {
     my ( $class, $opt ) = @_;
@@ -26,11 +21,6 @@ sub new {
     return $self;
 }
 
-=head2 get_app_path
-
-Check and return the application path.
-
-=cut
 
 sub get_app_path {
     my $self = shift;
@@ -39,12 +29,6 @@ sub get_app_path {
     return;
 }
 
-=head2 get_cfg_path
-
-Return the application config path.  If initialized without module
-name, return the share/apps.
-
-=cut
 
 sub get_cfg_path {
     my $self = shift;
@@ -60,22 +44,12 @@ sub get_cfg_path {
     return;
 }
 
-=head2 is_app_dir
-
-Return true if CWD is a Tpda3 application distribution dir.
-
-=cut
 
 sub is_app_dir {
     my $self = shift;
-    return $self->get_app_path and $self->get_cfg_path;
+    return ( $self->get_app_path && $self->get_cfg_path );
 }
 
-=head2 get_tests_path
-
-Return the path to the tests dir of the distribution.
-
-=cut
 
 sub get_tests_path {
     my $self = shift;
@@ -87,14 +61,6 @@ sub get_tests_path {
     return;
 }
 
-=head2 get_app_name
-
-Return the current application name.
-
-First check if a subdirectory exists in C<$app_path>, then check if a
-module exists, if true, return the name.
-
-=cut
 
 sub get_app_name {
     my $self = shift;
@@ -103,29 +69,25 @@ sub get_app_name {
     return unless ($app_path);
 
     my $filelist = Tpda3::Config::Utils->find_files($app_path);
+    my @modules  = grep {!/^\.keepme/} @{$filelist};    # remove '.keepme'
 
-    my $no = scalar @{$filelist};
+    my $no = scalar @modules;
     if ( $no == 0 ) {
         die "No application module found in path: '$app_path'\n";
         return;
     }
 
-    ( my $module = $filelist->[0] ) =~ s{\.pm$}{};    # should be only one
+    ( my $module = $modules[0] ) =~ s{\.pm$}{};    # XXX should be only one
 
     return $module;
 }
 
-=head2 get_app_module_rp
-
-Tpda3 application module relative path.  This is not supposed to be
-called from an application dir.
-
-=cut
 
 sub get_app_module_rp {
     my $self = shift;
 
-    my $module = $self->{module} or die "No module name!";
+    my $module = $self->{module};
+    die "No module name!" unless $module;
 
     my $rp = path( $self->get_app_rp($module), (qw{lib Tpda3 Tk App}) );
     if ( -d $rp ) {
@@ -136,13 +98,6 @@ sub get_app_module_rp {
     }
 }
 
-=head2 get_app_rp
-
-A Tpda3 application distribution relative path.  Used for new
-application distributions.  This is not supposed to be called from an
-application dir.
-
-=cut
 
 sub get_app_rp {
     my ($self, $module) = @_;
@@ -152,11 +107,6 @@ sub get_app_rp {
     return;
 }
 
-=head2 get_cfg_name
-
-Return the current application config name.
-
-=cut
 
 sub get_cfg_name {
     my $self = shift;
@@ -175,12 +125,6 @@ sub get_cfg_name {
     }
 }
 
-=head2 get_screen_module_ap
-
-Return the application screen modules absolute path.
-
-=cut
-
 sub get_screen_module_ap {
     my $self = shift;
     my $app_path = $self->get_app_path;
@@ -190,32 +134,12 @@ sub get_screen_module_ap {
     return;
 }
 
-=head2 get_screen_module_apfn
-
-Get the application screen module absolute path and file name.
-
-=cut
-
 sub get_screen_module_apfn {
     my ( $self, $file ) = @_;
     my $apfn = return path( $self->get_screen_module_ap, $file );
     return $apfn if -f $apfn;
 }
 
-=head2 get_config_ap_for
-
-Get an application configuration absolute path.  The parameter is a
-subdir name, one of the following is valid (but no validation occurs):
-
-=over
-
-=item etc
-
-=item scr
-
-=back
-
-=cut
 
 sub get_config_ap_for {
     my ( $self, $dir ) = @_;
@@ -226,22 +150,12 @@ sub get_config_ap_for {
     return;
 }
 
-=head2 get_config_apfn_for
-
-Get the application configuration absolute path and file name.
-
-=cut
 
 sub get_config_apfn_for {
     my ( $self, $type, $file ) = @_;
     return path( $self->get_config_ap_for($type), $file );
 }
 
-=head2 get_user_path_for
-
-Return the user configurations path.
-
-=cut
 
 sub get_user_path_for {
     my ($self, $path) = @_;
@@ -259,3 +173,81 @@ sub get_user_path_for {
 }
 
 1;
+
+__END__
+
+=pod
+
+=head2 new
+
+Constructor.
+
+=head2 get_app_path
+
+Check and return the application path.
+
+=head2 get_cfg_path
+
+Return the application config path.  If initialized without module
+name, return the share/apps.
+
+=head2 is_app_dir
+
+Return true if CWD is a Tpda3 application distribution dir.
+
+=head2 get_tests_path
+
+Return the path to the tests dir of the distribution.
+
+=head2 get_app_name
+
+Return the current application name.
+
+First check if a subdirectory exists in C<$app_path>, then check if a
+module exists, if true, return the name.
+
+=head2 get_app_module_rp
+
+Tpda3 application module relative path.  This is not supposed to be
+called from an application dir.
+
+=head2 get_app_rp
+
+A Tpda3 application distribution relative path.  Used for new
+application distributions.  This is not supposed to be called from an
+application dir.
+
+=head2 get_cfg_name
+
+Return the current application config name.
+
+=head2 get_screen_module_ap
+
+Return the application screen modules absolute path.
+
+=head2 get_screen_module_apfn
+
+Get the application screen module absolute path and file name.
+
+=head2 get_config_ap_for
+
+Get an application configuration absolute path.  The parameter is a
+subdir name, one of the following is valid (but no validation occurs):
+
+=over
+
+=item etc
+
+=item scr
+
+=back
+
+=head2 get_config_apfn_for
+
+Get the application configuration absolute path and file name.
+
+=head2 get_user_path_for
+
+Return the user configurations path.
+
+=cut
