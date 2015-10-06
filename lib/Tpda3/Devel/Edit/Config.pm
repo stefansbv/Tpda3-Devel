@@ -18,11 +18,6 @@ require Tpda3::Devel::Info::App;
 require Tpda3::Devel::Info::Config;
 require Tpda3::Devel::Render;
 
-=head2 new
-
-Constructor.
-
-=cut
 
 sub new {
     my $class = shift;
@@ -35,12 +30,6 @@ sub new {
     return $self;
 }
 
-=head2 config_update
-
-Read the old config file section by section and use a template to
-preserve | edit the comments and the order of the sections.
-
-=cut
 
 sub config_update {
     my ($self, $opts) = @_;
@@ -70,14 +59,6 @@ sub config_update {
     return;
 }
 
-=head2 prepare_config_data
-
-Prepare and return config data.
-
-Force array is on, so we must take special care about [ field ]
-constructs.
-
-=cut
 
 sub prepare_config_data {
     my ($self, $scrcfg_fn) = @_;
@@ -122,11 +103,6 @@ sub prepare_config_data {
     return \%data;
 }
 
-=head2 backup_config
-
-Copy the old config file with and I<.orig> suffix.
-
-=cut
 
 sub backup_config {
     my ($self, $scrcfg_ap, $scrcfg_fn ) = @_;
@@ -144,13 +120,6 @@ sub backup_config {
     return;
 }
 
-=head1 CONFIG SECTIONS
-
-=head2 make_screen
-
-screen.
-
-=cut
 
 sub make_screen {
     my ($self, $data) = @_;
@@ -190,11 +159,6 @@ sub make_screen {
     return $conf->save_string($rec);
 }
 
-=head2 make_defaultreport
-
-defaultreport.
-
-=cut
 
 sub make_defaultreport {
     my ($self, $data) = @_;
@@ -216,11 +180,6 @@ sub make_defaultreport {
     return $conf->save_string($rec);
 }
 
-=head2 make_defaultdocument
-
-defaultdocument
-
-=cut
 
 sub make_defaultdocument {
     my ($self, $data) = @_;
@@ -242,11 +201,6 @@ sub make_defaultdocument {
     return $conf->save_string($rec);
 }
 
-=head2 make_lists_ds
-
-lists_ds.
-
-=cut
 
 sub make_lists_ds {
     my ($self, $data) = @_;
@@ -271,11 +225,6 @@ sub make_lists_ds {
     return $conf->save_string($rec);
 }
 
-=head2 make_list_header
-
-list_header.
-
-=cut
 
 sub make_list_header {
     my ($self, $data) = @_;
@@ -310,11 +259,6 @@ sub make_list_header {
     return $conf->save_string($rec);
 }
 
-=head2 make_bindings
-
-bindings.
-
-=cut
 
 sub make_bindings {
     my ($self, $data) = @_;
@@ -382,11 +326,6 @@ sub make_bindings {
 }
 
 
-=head2 make_tablebindings
-
-Table bindings (Tk::TM).
-
-=cut
 
 sub make_tablebindings {
     my ($self, $data) = @_;
@@ -439,11 +378,6 @@ sub make_tablebindings {
     return $conf->save_string($rec);
 }
 
-=head2 make_maintable
-
-maintable.
-
-=cut
 
 sub make_maintable {
     my ($self, $data) = @_;
@@ -560,11 +494,6 @@ sub make_maintable {
     return $conf->save_string($rec);
 }
 
-=head2 make_deptable
-
-deptable
-
-=cut
 
 sub make_deptable {
     my ($self, $data) = @_;
@@ -672,11 +601,6 @@ sub make_deptable {
     return $conf->save_string($rec);
 }
 
-=head2 make_scrtoolbar
-
-scrtoolbar.
-
-=cut
 
 sub make_scrtoolbar {
     my ($self, $data) = @_;
@@ -703,11 +627,6 @@ sub make_scrtoolbar {
     return $conf->save_string($rec);
 }
 
-=head2 make_toolbar
-
-toolbar.
-
-=cut
 
 sub make_toolbar {
     my ($self, $data) = @_;
@@ -736,3 +655,75 @@ sub make_toolbar {
 }
 
 1;
+
+__END__
+
+=pod
+
+=head2 new
+
+Constructor.
+
+=head2 config_update
+
+Read the old config file section by section and use a template to
+preserve | edit the comments and the order of the sections.
+
+=head2 prepare_config_data
+
+Prepare and return config data.
+
+Force array is on, so we must take special care about [ field ]
+constructs.
+
+=head2 backup_config
+
+Copy the old config file with and I<.orig> suffix.
+
+=head1 CONFIG SECTIONS
+
+=head2 make_screen
+
+screen.
+
+=head2 make_defaultreport
+
+defaultreport.
+
+=head2 make_defaultdocument
+
+defaultdocument
+
+=head2 make_lists_ds
+
+lists_ds.
+
+=head2 make_list_header
+
+list_header.
+
+=head2 make_bindings
+
+bindings.
+
+=head2 make_tablebindings
+
+Table bindings (Tk::TM).
+
+=head2 make_maintable
+
+maintable.
+
+=head2 make_deptable
+
+deptable
+
+=head2 make_scrtoolbar
+
+scrtoolbar.
+
+=head2 make_toolbar
+
+toolbar.
+
+=cut

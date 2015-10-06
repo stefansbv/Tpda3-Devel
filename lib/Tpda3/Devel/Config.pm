@@ -11,17 +11,6 @@ use File::HomeDir;
 use Path::Tiny;
 use Config::GitLike;
 
-=head1 SYNOPSIS
-
-    use Tpda3::Devel::Config;
-
-    my $dip = Tpda3::Devel::Config->new();
-
-=head2 new
-
-Constructor.
-
-=cut
 
 sub new {
     my $class = shift;
@@ -32,11 +21,6 @@ sub new {
     return $self;
 }
 
-=head2 get_app_path
-
-Check and return the application path.
-
-=cut
 
 sub get_gitconfig {
     my $self = shift;
@@ -59,3 +43,23 @@ sub get_gitconfig {
 }
 
 1;
+
+__END__
+
+=pod
+
+=head1 SYNOPSIS
+
+    use Tpda3::Devel::Config;
+
+    my $dip = Tpda3::Devel::Config->new();
+
+=head2 new
+
+Constructor.
+
+=head2 get_app_path
+
+Check and return the application path.
+
+=cut

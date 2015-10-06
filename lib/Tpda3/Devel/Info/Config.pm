@@ -9,11 +9,6 @@ use warnings;
 require Tpda3::Config;
 require Tpda3::Devel::Info::App;
 
-=head2 new
-
-Constructor.
-
-=cut
 
 sub new {
     my ( $class, $opt ) = @_;
@@ -38,11 +33,6 @@ sub _init {
     return;
 }
 
-=head2 config_info
-
-Application configuration info.
-
-=cut
 
 sub config_info {
     my ($self) = @_;
@@ -66,3 +56,17 @@ sub config_info {
 }
 
 1;
+
+__END__
+
+=pod
+
+=head2 new
+
+Constructor.
+
+=head2 config_info
+
+Application configuration info.
+
+=cut

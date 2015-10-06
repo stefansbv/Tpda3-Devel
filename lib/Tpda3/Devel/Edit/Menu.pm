@@ -14,11 +14,6 @@ use List::Util qw{max};
 
 require Tpda3::Devel::Info::App;
 
-=head2 new
-
-Constructor.
-
-=cut
 
 sub new {
     my $class = shift;
@@ -29,11 +24,6 @@ sub new {
     return $self;
 }
 
-=head2 menu_update
-
-share/apps/name/etc/menu.yml
-
-=cut
 
 sub menu_update {
     my ($self, $label, $menu_file) = @_;
@@ -80,3 +70,17 @@ sub menu_update {
 }
 
 1;
+
+__END__
+
+=pod
+
+=head2 new
+
+Constructor.
+
+=head2 menu_update
+
+share/apps/name/etc/menu.yml
+
+=cut

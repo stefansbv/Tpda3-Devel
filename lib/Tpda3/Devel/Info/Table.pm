@@ -11,35 +11,15 @@ use Try::Tiny;
 require Tpda3::Config;
 require Tpda3::Db;
 
-=head1 SYNOPSIS
-
-Return database table related info.
-
-    use Tpda3::Devel::Info::Table;
-
-    my $dti  = Tpda3::Devel::Info::Table->new();
-    my $info = $dti->table_info();
-    my $list = $dti->table_list();
-
-=head2 new
-
-Constructor.
-
-=cut
-
 sub new {
     my ( $class ) = @_;
-
     my $self = bless {}, $class;
-
     $self->_init;
-
     return $self;
 }
 
 sub _init {
     my ($self) = @_;
-
     try {
         $self->{cfg} = Tpda3::Config->instance;
         $self->{dbi} = Tpda3::Db->instance;
@@ -47,7 +27,6 @@ sub _init {
     catch {
         $self->catch_db_exceptions($_);
     };
-
     return;
 }
 
@@ -70,33 +49,18 @@ sub catch_db_exceptions {
     return;
 }
 
-=head2 dbh
-
-Database handle.
-
-=cut
 
 sub dbh {
     my $self = shift;
     return $self->{dbi}->dbh;
 }
 
-=head2 dbc
-
-Module instance.
-
-=cut
 
 sub dbc {
     my $self = shift;
     return $self->{dbi}->dbc;
 }
 
-=head2 table_info
-
-Return table informations.
-
-=cut
 
 sub table_info {
     my ($self, $table) = @_;
@@ -130,11 +94,6 @@ sub table_info {
     };
 }
 
-=head2 table_list
-
-List database table.
-
-=cut
 
 sub table_list {
     my $self = shift;
@@ -161,3 +120,39 @@ sub connection_info {
 }
 
 1;
+
+__END__
+
+=pod
+
+=head1 SYNOPSIS
+
+Return database table related info.
+
+    use Tpda3::Devel::Info::Table;
+
+    my $dti  = Tpda3::Devel::Info::Table->new();
+    my $info = $dti->table_info();
+    my $list = $dti->table_list();
+
+=head2 new
+
+Constructor.
+
+=head2 dbh
+
+Database handle.
+
+=head2 dbc
+
+Module instance.
+
+=head2 table_info
+
+Return table informations.
+
+=head2 table_list
+
+List database table.
+
+=cut

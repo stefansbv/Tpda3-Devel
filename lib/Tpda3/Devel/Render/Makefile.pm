@@ -11,11 +11,6 @@ require Tpda3::Devel::Config;
 require Tpda3::Devel::Info::App;
 require Tpda3::Devel::Render;
 
-=head2 new
-
-Constructor.
-
-=cut
 
 sub new {
     my $class = shift;
@@ -27,11 +22,6 @@ sub new {
     return $self;
 }
 
-=head2 generate_makefile
-
-Generate screen module.
-
-=cut
 
 sub generate_makefile {
     my ($self, $args) = @_;
@@ -67,3 +57,17 @@ sub generate_makefile {
 }
 
 1;
+
+__END__
+
+=pod
+
+=head2 new
+
+Constructor.
+
+=head2 generate_makefile
+
+Generate screen module.
+
+=cut

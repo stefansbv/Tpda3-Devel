@@ -10,11 +10,6 @@ use utf8;
 require Tpda3::Devel::Info::App;
 require Tpda3::Devel::Render;
 
-=head2 new
-
-Constructor.
-
-=cut
 
 sub new {
     my $class = shift;
@@ -26,11 +21,6 @@ sub new {
     return $self;
 }
 
-=head2 generate_config
-
-Generate a YAML config from a template.
-
-=cut
 
 sub generate_config {
     my ($self, $args, $yml_tmpl, $yml_name) = @_;
@@ -59,3 +49,17 @@ sub generate_config {
 }
 
 1;
+
+__END__
+
+=pod
+
+=head2 new
+
+Constructor.
+
+=head2 generate_config
+
+Generate a YAML config from a template.
+
+=cut

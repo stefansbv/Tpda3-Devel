@@ -115,12 +115,6 @@ sub make_screen_module {
     return;
 }
 
-=head2 install_configs
-
-Install the screen config and the updated menu config file in the
-user's home path.
-
-=cut
 
 sub install_screen_config {
     my ($self, $opts) = @_;
@@ -145,11 +139,6 @@ sub install_screen_config {
     return;
 }
 
-=head2 install_menu_config
-
-Install the updated menu config file in the user's home path.
-
-=cut
 
 sub install_menu_config {
     my ($self, $opts) = @_;
@@ -169,3 +158,18 @@ sub install_menu_config {
 }
 
 1;
+
+__END__
+
+=pod
+
+=head2 install_configs
+
+Install the screen config and the updated menu config file in the
+user's home path.
+
+=head2 install_menu_config
+
+Install the updated menu config file in the user's home path.
+
+=cut
